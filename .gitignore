@@ -21,8 +21,13 @@ venv/
 env/
 
 # ---- Test / real-user data (do NOT publish) ----
+# JN's sample manuscripts live under text/; extend here for any other scratch
+# area where she drops PDFs to try the pipeline. Anything published must go
+# under examples/ with the explicit sample.* filenames below.
 text/
 !text/.gitkeep
+test/
+!test/.gitkeep
 examples/output/
 examples/tmp/
 *.prep/
