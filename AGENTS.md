@@ -34,7 +34,7 @@
 
 ---
 
-## 六个 Skill 的协作顺序
+## 八个 Skill 的协作顺序
 
 ```
 ┌─────────┐
@@ -45,17 +45,26 @@
 │ prep-scan  │  PDF → 去水印/馆藏章/页眉页脚 → cleaned.pdf
 └────┬───────┘
      ▼
+┌─────────────────┐
+│ visual-preview  │  （质检闸门）原图 / 清理后 / 差异热图三态对比
+└────┬────────────┘
+     ▼
 ┌────────────┐
 │  ocr-run   │  cleaned.pdf → MinerU/百度 OCR → raw.md + preview.html
 └────┬───────┘
      ▼
-     │  （可选）她在 preview.html 里先手动改明显错字
+     │  JN 在 preview.html 里改明显错字，点「下载修改后的 Markdown」
+     │  回来对 Agent 说「改完了」，apply_corrections.py 自动替换 raw.md
      ▼
 ┌────────────┐
 │ proofread  │  raw.md → historical-proofreader agent → review.md（标注清单）
 └────┬───────┘
      ▼
-     │  她按清单改 raw.md → final.md
+     │  JN 按清单改 raw.md → final.md
+     ▼
+┌────────────┐
+│ diff-review│  （核对闸门）比对 raw.md / final.md / review.md，查漏改
+└────┬───────┘
      ▼
  ┌───┴────┐
  ▼        ▼
@@ -75,9 +84,12 @@
 | JN 说（中文） | 触发 |
 |--------------|------|
 | "装好了""第一次用""配一下 OCR""注册 MinerU""我有百度的 key" | `setup` |
-| "这个 PDF 水印好难看""去馆藏章""CNKI 水印""读秀水印""读秀水印""预处理""清理扫描件""页眉页脚" | `prep-scan` |
+| "这个 PDF 水印好难看""去馆藏章""CNKI 水印""读秀水印""预处理""清理扫描件""页眉页脚" | `prep-scan` |
+| "看看清理效果""对比一下""擦掉了什么""效果怎么样""让我看看结果" | `visual-preview` |
 | "跑 OCR""转文字""识别""MinerU""百度 OCR" | `ocr-run` |
+| "改完了""应用修改""我改好了""apply""浏览器里改完了" | `ocr-run`（Step 8，调 apply_corrections.py 把 corrected.md 替换 raw.md） |
 | "校对""有没有 OCR 错""检查专名""标点对不对""看看这份稿子""这段有没有问题" | `proofread` |
+| "看我改了哪些""对比一下""diff""我漏改了啥""核对改动" | `diff-review` |
 | "转成 Word""生成 docx""出 doc""学界交流用""期刊投稿""学术规范排版" | `to-docx` |
 | "发公众号""秀米""壹伴""微信推送""转 HTML""排版" | `mp-format` |
 

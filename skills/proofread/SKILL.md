@@ -66,6 +66,28 @@ reference 已加载：<path>
 
 同时读 OCR 阶段产出的 `meta.json`（如果存在），把 `low_confidence_pages` 传给 agent 作为**重点盯防**提示。
 
+**读取时的防御性规则**（老版本产物也要能跑）：
+
+```python
+import json
+meta = {}
+meta_path = <input-dir>/meta.json
+if meta_path.is_file():
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    except Exception:
+        meta = {}
+
+# 字段缺失时的兜底：
+low_conf = meta.get("low_confidence_pages") or []  # 列表，可能空
+avg_conf = meta.get("avg_confidence")               # 可能是 None（MinerU/百度都不直接给）
+pages    = meta.get("pages") or 0
+```
+
+- `low_confidence_pages` 缺失或为空 → agent 按全文均匀盯防，不降级
+- `avg_confidence` 为 `None` → 只展示，不做阈值判断
+- `pages` 为 0 → 说明是旧版 meta 或解析失败，不要阻塞流程
+
 ### Step 5：保存报告
 
 agent 输出写到：
@@ -99,7 +121,7 @@ open "<input-dir>/<input-basename>.review.md"
 
 ## 判断规则
 
-- **校对清单是否为空**：意味着 OCR 质量极好，或 agent 没干活。看置信度 meta.json 判断是不是后者。
+- **校对清单是否为空**：意味着 OCR 质量极好，或 agent 没干活。看 `meta.json` 里 `pages` 和 `low_confidence_pages` 判断是不是后者（若 `low_confidence_pages` 有值却没出现在清单里，大概率 agent 漏扫）。
 - **A 类超过 50 条**：OCR 质量有问题，建议她回去重跑 prep-scan + ocr-run（可能换引擎 / 加 aggressive）
 - **她说"agent 搞得太保守 / 太激进"**：调 agent prompt，不是调 reference。reference 是知识不是策略。
 

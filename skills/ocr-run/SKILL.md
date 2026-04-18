@@ -23,24 +23,39 @@ allowed-tools: Bash, Read, Write, Edit
 <pdf-basename>.ocr/
 ├── raw.md              OCR 原始 Markdown
 ├── assets/             图片附件（古籍插图、论文图表）
-├── preview.html        原图左 / OCR 右并排，可点击编辑右栏回写 raw.md
-└── meta.json           引擎、耗时、页数、置信度
+├── preview.html        原图左 / OCR 右并排，可点击编辑右栏；点「下载修改后的 Markdown」会保存 corrected.md，需手动替换 raw.md（浏览器不能直接写磁盘）
+└── meta.json           引擎、耗时、页数、low_confidence_pages
 ```
 
 ## Process
 
-### Step 1：读 OCR_ENGINE
+### Step 0：决定走哪条路径（默认本地 `mineru` CLI）
+
+Agent **默认走 `run_mineru.py`**（本地 `mineru[pipeline]`），不再按 `OCR_ENGINE`
+环境变量选云 API：
 
 ```bash
-source ~/.env 2>/dev/null
-ENGINE="${OCR_ENGINE:-mineru}"
-# 命令行覆盖
-[[ "$*" =~ --engine=baidu ]] && ENGINE=baidu
-[[ "$*" =~ --engine=mineru ]] && ENGINE=mineru
-echo "使用引擎: $ENGINE"
+which mineru   # 装好了吗
+ls -d ~/mineru/"$STEM".pdf-* 2>/dev/null   # Desktop 跑过吗
 ```
 
-如果引擎对应的 key 没配，停下让她先跑 setup 或换引擎。
+判断：
+
+| 条件 | 路径 |
+|---|---|
+| `mineru` 在 PATH 且 `~/mineru/` 没对应产出 | **路径 A**：`run_mineru.py` 本地跑 |
+| `~/mineru/` 已有 Desktop 产出 | 路径 A'：`import_mineru_output.py --job-dir` 直接导入 |
+| `mineru` 没装 | 路径 B：提示 `pip install 'mineru[pipeline]'` 或跑 `/historical-ocr-review:setup` |
+| 离线 / 环境装不上 / PDF 有可用文字层且用户急 | 路径 D：`extract_text_layer.py` 兜底（质量会打折） |
+
+具体四条路径的决策语义与失败兜底全文见
+`agents/ocr-pipeline-operator.md`——ocr-run skill 只负责**调脚本**，不重复
+决策逻辑。
+
+旧的 `OCR_ENGINE=baidu|mineru` 环境变量仍然被 `mineru_client.py` /
+`baidu_client.py` 读，但新工作流不走这两个——它们是兼容分支。
+
+### Step 1（已合并到 Step 0）
 
 ### Step 2：建输出目录
 
@@ -65,46 +80,52 @@ mkdir -p "$OUT/assets"
 
 用户没指定时，用你的判断。不确定就问她一句："这份文献是繁体竖排、繁体横排还是简体？"
 
-### Step 4：调 OCR
+### Step 4：调 OCR（默认本地 `mineru`）
 
-#### 分支 A — MinerU
+#### 默认 — 本地 `mineru[pipeline]`
 
 ```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/run_mineru.py" \
+    --pdf "$PDF" --out "$OUT" --lang "$MINERU_LANG"
+```
+
+`$MINERU_LANG` 按内容类型选：
+- 中文简体 / 繁简混 → `ch`
+- 繁体古籍 → `chinese_cht`
+- 英文 → `en`
+- 日文 / 韩文 → `japan` / `korean`
+
+脚本内部：
+1. 调 `mineru -p $PDF -o <tmp> -b pipeline -m auto -l $MINERU_LANG`
+2. MinerU 本地跑 DocLayout-YOLO + PaddleOCR 识别（不上云、不依赖 API key）
+3. 链式跑 `import_mineru_output.py --job-dir <tmp>/<stem>` 生成 `raw.md` +
+   `meta.json` + `assets/` + `_import_provenance.json`
+
+首次跑会下载 ~2–3 GB 模型到 `~/.cache/huggingface/hub/`（预热过后复跑秒级
+启动）。27 页论文约 90 秒完成；50 页古籍约 2 分钟。
+
+#### 兼容分支（已弃用，离线或特殊环境才走）
+
+旧路径保留在仓库里，不是默认工作流：
+
+```bash
+# 只在 mineru[pipeline] 装不上时兜底
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/mineru_client.py" \
-    --pdf "$PDF" \
-    --out "$OUT" \
-    --layout "$LAYOUT" \
-    --lang "$LANG" \
-    --poll-interval 10 \
-    --timeout 900
-```
+    --pdf "$PDF" --out "$OUT" --layout "$LAYOUT" --lang "$LANG"
 
-脚本内部：
-1. `POST /api/v4/extract/task` 提交（带 layout/lang hint）
-2. 每 10 秒 `GET /api/v4/extract/task/<id>` 轮询
-3. 拿到 done 状态后下载 zip，解压出 `full.md` 和 `images/`
-4. 重命名 `full.md` → `raw.md`，图片挪到 `assets/`
-
-长度 50 页的古籍/民国文献通常 3-6 分钟完成。期间脚本会每 30 秒打印进度，让她知道没卡死。
-
-#### 分支 B — 百度 OCR
-
-```bash
+# 用户已有百度 OCR key 想复用
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/baidu_client.py" \
-    --pdf "$PDF" \
-    --out "$OUT" \
-    --layout "$LAYOUT" \
-    --lang "$LANG"
+    --pdf "$PDF" --out "$OUT" --layout "$LAYOUT" --lang "$LANG"
 ```
 
-脚本内部：
-1. 拿 `BAIDU_OCR_API_KEY` + `BAIDU_OCR_SECRET_KEY` 换 access_token（缓存到 `~/.cache/baidu_ocr_token.json`，24 小时有效，不是每次都换）
-2. PDF 先拆成 PNG（复用 prep-scan 拆好的）
-3. 每页调「通用文字识别（高精度版）」或「手写文字识别」（古籍/民国走高精度）
-4. 结果拼成 Markdown，段落用双换行分隔，识别出的标题按缩进层级转 `#` / `##`
-5. 保存 `raw.md`
+这两条路径的 meta.json 字段和默认路径保持一致
+（`engine / pages / low_confidence_pages / ...`），下游 proofread / preview /
+to-docx 不需要分支。细节：
 
-**百度 OCR 的坑**：它按页返回 JSON，段落切分是我们自己做的，容易把一整段拆成一行一行。脚本里用了行距启发式合并。如果 `raw.md` 出现每行一段，建议她改用 MinerU 重跑。
+- `mineru_client.py`：走 MinerU 云 API，通过 catbox.moe 中转上传。catbox 偶
+  发静默失败，已加 3 次重试。没 API key 时不要走。
+- `baidu_client.py`：每页调百度「通用文字识别（高精度版）」，段落合并依赖
+  行距启发式，若 `raw.md` 出现「每行一段」→ 改走默认本地路径。
 
 ### Step 5：产出对照预览 HTML
 
@@ -119,11 +140,11 @@ HTML 是**本地文件，不联网**。打开后：
 
 - **左栏**：逐页 PDF 截图（高清）
 - **右栏**：对应段落的 OCR 文本，`contenteditable` 可直接改
-- **顶栏**：「保存所有修改」按钮——点一下把右栏编辑后的文本回写 `raw.md`（通过本地 localStorage + 导出 JSON，不跨域不上云）
-- **页面跳转**：左右箭头键翻页，或侧边页码点击
-- **高亮可疑字**：OCR 引擎返回 confidence 低于 0.7 的字自动黄色背景标出，她一眼就能看见"这个字 OCR 自己都不确定"
+- **顶栏**：「下载修改后的 Markdown」按钮——浏览器无法直接写磁盘，所以按钮只能下载一份 `corrected.md` 到下载目录。用户拿到 `corrected.md` 后手动替换 `raw.md`（preview.html 的 footer 给出了具体命令和备份建议），再进入 proofread 步骤。
 
 ### Step 6：写 meta.json
+
+两个 client 自动写成统一 schema，proofread skill 直接消费：
 
 ```json
 {
@@ -131,13 +152,18 @@ HTML 是**本地文件，不联网**。打开后：
   "layout": "vertical",
   "lang": "zh-hant",
   "pages": 47,
-  "duration_seconds": 215,
-  "avg_confidence": 0.91,
-  "low_confidence_pages": [3, 12, 38]
+  "avg_confidence": null,
+  "low_confidence_pages": [3, 12, 38],
+  "duration_seconds": 215.0
 }
 ```
 
-low_confidence_pages 是后续校对的重点，proofread skill 会用到。
+字段约定：
+
+- `pages`：实际页数。MinerU 来自 `extract_progress.total_pages`；百度来自分页数组长度。
+- `avg_confidence`：**目前固定为 `null`**——MinerU API 不暴露 per-page confidence，百度 `accurate_basic` 也不返回 probability。写 null 比编数字诚实。
+- `low_confidence_pages`：**启发式**产生的重点盯防页列表。百度：OCR 失败页 + 文字量 < 中位数 50% 的页；MinerU：若 raw.md 含 `<!-- page N -->` marker 则按块长度判，否则空列表。
+- 所有字段都必须存在（即便为空）。proofread skill 按 `meta.get(field, default)` 读，老版本 meta 也兼容。
 
 ### Step 7：报告
 
@@ -146,13 +172,46 @@ OCR 完成（引擎：$ENGINE，47 页，耗时 3 分 35 秒）
 
 - 原始 Markdown：<open> $OUT/raw.md
 - 对照预览：<open> $OUT/preview.html  ← 先打开这个，在浏览器里手改明显错字
-- 平均置信度：0.91
-- 置信度偏低的页：第 3、12、38 页 —— 重点盯一下
+- 平均置信度：暂不可得（MinerU 与百度 accurate_basic 接口都不返回 per-page 置信度，这里写 null）
+- 置信度偏低的页（启发式，字符数显著低于中位数或 OCR 失败）：第 3、12、38 页 —— 重点盯一下
 
 下一步建议：
-  1. 打开 preview.html 先手过一遍（10-15 分钟）
-  2. 把修改保存后重跑：/historical-ocr-review:proofread $OUT/raw.md
+  1. 打开 preview.html 手过一遍（10-15 分钟）
+  2. 改完点「下载修改后的 Markdown」，浏览器会把 corrected.md 存到你的下载目录
+  3. 回来对我说一句「改完了」或「应用修改」，我会自动把 corrected.md 替换到位
+     （我会先备份原 raw.md 到 raw.md.bak，再移入 corrected.md，不需要你敲命令）
+  4. 然后跑 /historical-ocr-review:proofread $OUT/raw.md
      校对 Agent 会按「繁体古籍 / 民国排印 / 现代简体」的史学知识给你标红建议
+```
+
+### Step 8：应用浏览器里的修改（触发词：「改完了」「应用修改」「我改好了」「apply」）
+
+当用户说完上面的触发词，Agent 要自动执行：
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/apply_corrections.py" \
+    --ocr-dir "$OUT"
+```
+
+脚本行为（不需要用户动手）：
+
+1. 在用户 `~/Downloads/` 目录下找最新的 `corrected*.md`
+2. 把当前 `$OUT/raw.md` 备份成 `$OUT/raw.md.bak`（若已存在则加时间戳，不覆盖旧备份）
+3. 把 `corrected.md` 移动到 `$OUT/raw.md`
+4. 打印替换后字节数 + 备份位置
+
+若用户显式指定了 corrected 路径（例如改存到了其他文件夹），Agent 传 `--corrected <path>` 覆盖自动查找。
+
+脚本的防御规则：空文件拒绝替换（退码 5）；下载目录找不到就提示用户确认文件落在哪里（退码 3）。这两种情况 Agent 不要硬闯，问用户要路径。
+
+完成后告诉用户：
+
+```
+已应用修改：
+- raw.md 已更新（$NEW_BYTES 字节）
+- 原文备份在 $OUT/raw.md.bak
+
+下一步：/historical-ocr-review:proofread $OUT/raw.md
 ```
 
 用 `open` 命令直接拉起 preview.html：

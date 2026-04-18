@@ -1,0 +1,39 @@
+# humanities preset — JN's default for 社科 journal submission drafts.
+#
+# Why this shape:
+#   - 2 cm page margins — denser on-screen read without looking crammed
+#   - Source Han Serif SC (思源宋体) for body — softer than SimSun
+#   - 12 pt body + 1.2 line spacing — matches her reviewer comfort
+#   - 0.2 pt inter-glyph spacing — a hint of breathing room, not stretched
+#
+# Edit any field here; `md_to_docx.py --preset humanities` reads this
+# directly. Run `extract_template_config.py <journal-template.docx>` on
+# an editor-sent .docx to regenerate this file automatically.
+
+name: humanities
+description: 社科 / 历史学期刊投稿默认格式
+
+page:
+  margin_top: 2.0       # cm
+  margin_bottom: 2.0
+  margin_left: 2.0
+  margin_right: 2.0
+
+body:
+  font: "Source Han Serif SC"   # 思源宋体 SC; Word silently falls back to SimSun if missing
+  size: 12                      # pt
+  line_spacing: 1.2             # multiple (1.0 = single, 1.2 = dense, 1.5 = relaxed)
+  first_line_indent_chars: 2    # Chinese convention: 2-char paragraph indent
+  character_spacing_pt: 0.2     # inter-glyph spacing; twips = 20 * this
+
+heading:
+  font: "SimHei"                # 黑体
+  sizes:                        # pt per level
+    1: 18                       # document main title (centered, from first # in md)
+    2: 16                       # section (一、二、三 …)
+    3: 14                       # sub-section
+    4: 12
+
+image:
+  max_width_cm: 14              # shrink if larger; keep aspect
+  max_file_kb: 800              # re-encode if image file exceeds this

@@ -25,6 +25,8 @@ import argparse
 import io
 import json
 import os
+import re
+import statistics
 import sys
 import time
 import zipfile
@@ -42,13 +44,62 @@ CATBOX_URL = "https://catbox.moe/user/api.php"
 ENV_KEY = "MINERU_API_KEY"
 
 
+def _read_mineru_cli_token() -> str:
+    """Fallback: reuse the token saved by the official `mineru` CLI.
+
+    `mineru auth` writes `~/.mineru/config.yaml` with an `api_key:` (or
+    `token:`) field. If JN ran that at some point we should pick it up
+    automatically rather than asking her to duplicate it in `~/.env`.
+    """
+    cfg = Path.home() / ".mineru" / "config.yaml"
+    if not cfg.is_file():
+        return ""
+    try:
+        # PyYAML is optional at import-time — only parse if it's available.
+        import yaml  # type: ignore
+        data = yaml.safe_load(cfg.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return ""
+    for key in ("api_key", "MINERU_API_KEY", "token", "MINERU_API_TOKEN"):
+        val = data.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.strip()
+    return ""
+
+
 def load_key() -> str:
+    """Resolve the MinerU API key across the common storage locations.
+
+    Priority:
+      1. `MINERU_API_KEY` in the process environment (highest — explicit)
+      2. `~/.env`                                  (plugin convention)
+      3. `MINERU_API_TOKEN` / `MINERU_TOKEN` env vars (shared w/ CLI)
+      4. `~/.mineru/config.yaml`                   (official CLI's cache)
+    """
+    # Pull in `~/.env` so we pick up plugin-local config on top of whatever
+    # the caller already exported in the shell.
     load_dotenv(Path.home() / ".env")
-    key = os.environ.get(ENV_KEY, "").strip()
-    if not key:
-        print(f"{ENV_KEY} not set — run setup skill first", file=sys.stderr)
-        sys.exit(10)
-    return key
+
+    key = (os.environ.get(ENV_KEY, "") or "").strip()
+    if key:
+        return key
+
+    # Some tooling writes under different var names; accept the common ones.
+    for alt in ("MINERU_API_TOKEN", "MINERU_TOKEN"):
+        val = (os.environ.get(alt, "") or "").strip()
+        if val:
+            return val
+
+    key = _read_mineru_cli_token()
+    if key:
+        return key
+
+    print(
+        f"{ENV_KEY} not set — run the setup skill, add it to ~/.env, "
+        "or log in via `mineru auth` so we can reuse the official CLI token",
+        file=sys.stderr,
+    )
+    sys.exit(10)
 
 
 def headers(key: str) -> dict:
@@ -68,21 +119,40 @@ def check_auth(key: str) -> int:
     return 12
 
 
-def upload_to_catbox(pdf: Path) -> str:
-    """Upload a local PDF to catbox.moe, return public URL. 24h retention."""
-    print(f"[mineru] uploading {pdf.name} to catbox.moe …")
-    with pdf.open("rb") as f:
-        r = requests.post(
-            CATBOX_URL,
-            data={"reqtype": "fileupload"},
-            files={"fileToUpload": (pdf.name, f, "application/pdf")},
-            timeout=180,
+def upload_to_catbox(pdf: Path, retries: int = 3) -> str:
+    """Upload a local PDF to catbox.moe, return public URL. 24h retention.
+
+    catbox occasionally returns 200 with an empty body (appears to be a
+    transient nginx/cache issue on their side — the same request succeeds
+    on retry). We retry a small number of times before giving up so the
+    caller isn't blocked by a flaky upload.
+    """
+    last_status: int | None = None
+    last_body: str = ""
+    for attempt in range(1, retries + 1):
+        print(f"[mineru] uploading {pdf.name} to catbox.moe (attempt {attempt}/{retries}) …")
+        with pdf.open("rb") as f:
+            r = requests.post(
+                CATBOX_URL,
+                data={"reqtype": "fileupload"},
+                files={"fileToUpload": (pdf.name, f, "application/pdf")},
+                timeout=180,
+            )
+        body = (r.text or "").strip()
+        last_status, last_body = r.status_code, body
+        if r.status_code == 200 and body.startswith("https://"):
+            print(f"[mineru] uploaded -> {body}")
+            return body
+        print(
+            f"[mineru] catbox returned http={r.status_code} body={body[:120]!r}; "
+            "retrying" if attempt < retries else "giving up",
+            file=sys.stderr,
         )
-    if r.status_code != 200 or not r.text.startswith("https://"):
-        raise RuntimeError(f"catbox upload failed: http={r.status_code} body={r.text[:200]}")
-    url = r.text.strip()
-    print(f"[mineru] uploaded -> {url}")
-    return url
+        time.sleep(2 * attempt)
+    raise RuntimeError(
+        f"catbox upload failed after {retries} attempts: "
+        f"last http={last_status} body={last_body[:200]!r}"
+    )
 
 
 def _unwrap(body: dict) -> dict:
@@ -92,12 +162,13 @@ def _unwrap(body: dict) -> dict:
     return body.get("data", {})
 
 
-def submit_url(key: str, url: str, layout: str, lang: str) -> str:
+def submit_url(key: str, url: str) -> str:
     """Submit a public URL for parsing, return task_id.
 
     MinerU v4 currently only accepts a small set of fields; we keep the payload
-    minimal to stay forward-compatible. layout/lang are retained in our meta
-    for the proofreader agent but not sent to MinerU directly.
+    minimal to stay forward-compatible. The caller's layout/lang hints are
+    recorded in our own meta.json for the proofreader agent but not forwarded
+    to MinerU — that's why this function deliberately has a narrow signature.
     """
     payload = {
         "url": url,
@@ -121,9 +192,14 @@ def submit_url(key: str, url: str, layout: str, lang: str) -> str:
 
 
 def poll(key: str, task_id: str, interval: int, timeout: int) -> dict:
-    """Poll until state=done, return the result data dict (has full_zip_url)."""
+    """Poll until state=done, return the result data dict.
+
+    The returned dict carries `full_zip_url`; we also keep the last known
+    `extract_progress` so callers can read `total_pages` for meta.json.
+    """
     start = time.time()
     last_state = ""
+    last_progress: dict = {}
     while time.time() - start < timeout:
         r = requests.get(
             f"{API_BASE}/extract/task/{task_id}",
@@ -134,7 +210,9 @@ def poll(key: str, task_id: str, interval: int, timeout: int) -> dict:
             raise RuntimeError(f"poll http={r.status_code} body={r.text[:300]}")
         data = _unwrap(r.json())
         state = data.get("state", "")
-        progress = data.get("extract_progress", {})
+        progress = data.get("extract_progress", {}) or {}
+        if progress:
+            last_progress = progress
         extracted = progress.get("extracted_pages", "?")
         total = progress.get("total_pages", "?")
         if state != last_state or (extracted != "?" and int(time.time() - start) % 30 == 0):
@@ -142,11 +220,62 @@ def poll(key: str, task_id: str, interval: int, timeout: int) -> dict:
             print(f"[mineru] {elapsed}s state={state} progress={extracted}/{total}")
             last_state = state
         if state == "done":
+            # make sure progress persists into the caller's snapshot
+            if last_progress and not data.get("extract_progress"):
+                data["extract_progress"] = last_progress
             return data
         if state == "failed":
             raise RuntimeError(f"task failed: {data.get('err_msg', data)}")
         time.sleep(interval)
     raise TimeoutError(f"task {task_id} did not complete in {timeout}s")
+
+
+PAGE_MARKER_RE = re.compile(r"<!--\s*page\s+(\d+)\s*-->", re.IGNORECASE)
+
+
+def compute_page_stats(raw_md: Path, total_pages_hint: int | None) -> tuple[int, list[int]]:
+    """Return (pages, low_confidence_pages) from a raw.md file.
+
+    MinerU doesn't emit per-page confidence, so we use a layout heuristic:
+    pages whose OCR text is dramatically shorter than the median are flagged
+    as low-confidence candidates for the proofread step.
+
+    - If raw.md contains explicit `<!-- page N -->` markers, we split on them
+      and score each block by character count.
+    - Otherwise `pages` falls back to the hint (typically
+      `extract_progress.total_pages` from the MinerU API) and low_confidence
+      is left empty (we have no way to score individual pages without markers).
+    """
+    try:
+        text = raw_md.read_text(encoding="utf-8")
+    except Exception:
+        return (total_pages_hint or 0, [])
+
+    matches = list(PAGE_MARKER_RE.finditer(text))
+    if not matches:
+        return (total_pages_hint or 0, [])
+
+    blocks: list[tuple[int, str]] = []
+    for i, m in enumerate(matches):
+        page = int(m.group(1))
+        start = m.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        blocks.append((page, text[start:end].strip()))
+
+    pages = len(blocks)
+    lengths = [len(body) for _, body in blocks]
+    if not lengths:
+        return (pages, [])
+
+    median = statistics.median(lengths)
+    # Flag a page as low-confidence when it is conspicuously short AND
+    # absolutely small — avoids false positives on short documents where
+    # every page is short.
+    threshold = max(200, int(median * 0.5))
+    low = sorted(
+        page for page, body in blocks if len(body) < threshold
+    )
+    return (pages, low)
 
 
 def download_and_extract(result: dict, out_dir: Path) -> None:
@@ -206,24 +335,41 @@ def main() -> int:
             return 2
 
     start = time.time()
+    total_pages_hint: int | None = None
     try:
         url = args.url or upload_to_catbox(args.pdf)
-        task_id = submit_url(key, url, args.layout, args.lang)
+        task_id = submit_url(key, url)
         print(f"[mineru] submitted task_id={task_id}")
         result = poll(key, task_id, args.poll_interval, args.timeout)
+        progress = result.get("extract_progress") or {}
+        total = progress.get("total_pages")
+        if isinstance(total, int) and total > 0:
+            total_pages_hint = total
         download_and_extract(result, args.out)
     except Exception as e:
         print(f"[mineru] error: {e}", file=sys.stderr)
         return 5
 
+    pages, low_conf = compute_page_stats(args.out / "raw.md", total_pages_hint)
     meta = {
         "engine": "mineru",
         "layout": args.layout,
         "lang": args.lang,
+        "pages": pages,
+        # MinerU's API does not expose per-page confidence scores, so we keep
+        # this field explicitly null rather than fabricating a number. The
+        # proofread skill treats null as "no signal" and does not gate on it.
+        "avg_confidence": None,
+        "low_confidence_pages": low_conf,
         "duration_seconds": round(time.time() - start, 1),
     }
-    (args.out / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2))
-    print(f"[mineru] done in {meta['duration_seconds']}s")
+    (args.out / "meta.json").write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(
+        f"[mineru] done in {meta['duration_seconds']}s; "
+        f"pages={pages} low_confidence={low_conf or '[]'}"
+    )
     return 0
 
 

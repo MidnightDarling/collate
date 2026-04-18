@@ -26,6 +26,7 @@ import argparse
 import base64
 import json
 import os
+import statistics
 import sys
 import time
 from pathlib import Path
@@ -180,30 +181,56 @@ def main() -> int:
 
     start = time.time()
     all_text: list[str] = []
+    # Track per-page OCR length so we can emit a low-confidence hint list to
+    # proofread. Failed pages always qualify; otherwise we flag pages whose
+    # text length is conspicuously short compared to the median.
+    failed_pages: list[int] = []
+    page_lengths: dict[int, int] = {}
     for i, page in enumerate(pages, 1):
         try:
             result = ocr_one_page(token, page, args.lang)
         except Exception as e:
             print(f"[baidu] page {i} failed: {e}", file=sys.stderr)
             all_text.append(f"<!-- page {i} OCR failed: {e} -->")
+            failed_pages.append(i)
             continue
         merged = merge_lines(result["lines"])
         all_text.append(f"\n\n<!-- page {i} -->\n\n{merged}")
+        page_lengths[i] = len(merged)
         if i % 5 == 0 or i == len(pages):
             print(f"[baidu] {i}/{len(pages)} pages OCR'd")
 
     raw = "\n".join(all_text).strip() + "\n"
     (args.out / "raw.md").write_text(raw, encoding="utf-8")
 
+    low_confidence_pages = set(failed_pages)
+    if page_lengths:
+        lengths = list(page_lengths.values())
+        median = statistics.median(lengths)
+        threshold = max(200, int(median * 0.5))
+        low_confidence_pages.update(
+            p for p, length in page_lengths.items() if length < threshold
+        )
+
     meta = {
         "engine": "baidu",
         "layout": args.layout,
         "lang": args.lang,
         "pages": len(pages),
+        # accurate_basic does not return per-word probability, so we leave
+        # this explicitly null instead of inventing a score. proofread treats
+        # null as "no signal".
+        "avg_confidence": None,
+        "low_confidence_pages": sorted(low_confidence_pages),
         "duration_seconds": round(time.time() - start, 1),
     }
-    (args.out / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2))
-    print(f"[baidu] done: {len(pages)} pages in {meta['duration_seconds']}s -> {args.out}/raw.md")
+    (args.out / "meta.json").write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(
+        f"[baidu] done: {len(pages)} pages in {meta['duration_seconds']}s -> "
+        f"{args.out}/raw.md (low_confidence={meta['low_confidence_pages'] or '[]'})"
+    )
     return 0
 
 

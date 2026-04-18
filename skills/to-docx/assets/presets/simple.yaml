@@ -1,0 +1,29 @@
+# simple preset — minimal, fast draft for personal review only.
+
+name: simple
+description: 极简草稿格式 (SimSun / 11pt / 标准 1.5 行距)
+
+page:
+  margin_top: 2.0
+  margin_bottom: 2.0
+  margin_left: 2.5
+  margin_right: 2.5
+
+body:
+  font: "SimSun"
+  size: 11
+  line_spacing: 1.5
+  first_line_indent_chars: 2
+  character_spacing_pt: 0.0
+
+heading:
+  font: "SimHei"
+  sizes:
+    1: 16
+    2: 14
+    3: 12
+    4: 11
+
+image:
+  max_width_cm: 14
+  max_file_kb: 800

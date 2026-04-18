@@ -1,0 +1,36 @@
+# historical-ocr-review — Python dependencies
+#
+# Pinned loosely (major version floor) so JN's Python 3.11+ environment
+# doesn't break on every upstream patch. When a hard upper bound matters
+# (e.g. a known breaking change), add it inline with a comment.
+#
+# Two functional groups:
+#   1. Classical pipeline — prep-scan, preview, md→docx, mp-format
+#   2. MinerU pipeline    — local PDF OCR + layout analysis
+# The Mac setup skill installs this file verbatim via `pip install -r`.
+
+# === Group 1: classical pipeline ==========================================
+opencv-python>=4.10      # prep-scan dewatermark + page splitting
+pillow>=10.0             # image IO for preview / prep-scan
+pdf2image>=1.17          # PDF → PNG via poppler
+PyPDF2>=3.0              # PDF text layer + metadata extraction
+requests>=2.31           # OCR API fallbacks + catbox retry
+python-dotenv>=1.0       # read ~/.env
+markdown>=3.5            # md → HTML for mp-format
+beautifulsoup4>=4.12     # HTML cleanup for mp-format
+python-docx>=1.1         # to-docx writer
+pyyaml>=6.0              # load humanities / sscilab / … presets in assets/presets/
+opencc-python-reimplemented>=0.1.7  # 繁简转换 for mp-format
+
+# === Group 2: MinerU local pipeline =======================================
+# `mineru[pipeline]` pulls the layout + OCR stack (shapely, scikit-image,
+# opencv, pandas, lxml, pypdfium2, …). torch/torchvision come as transitive
+# deps but listed explicitly so `pip install -r` doesn't pick a CPU-only
+# stub on Apple Silicon.
+mineru[pipeline]>=3.1
+torch>=2.4
+torchvision>=0.19
+
+# The first `mineru` invocation downloads ~2–3 GB of weights from
+# HuggingFace Hub / ModelScope into `~/.cache/huggingface/hub/`. Both
+# hubs are already transitive deps of mineru — no extra install here.

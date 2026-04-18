@@ -2,7 +2,7 @@
 
 > 建立：2026-04-19 · 作者：Claude Opus 4.7 与 Alice 共笔
 
-给历史研究者的论文 OCR 校对工作流。一个装上就能用的 Claude Code 插件。把扫描版论文 PDF 整理成 Word 稿（供学界交流）和公众号 HTML（供公众阅读），全流程六步，每一步都能看见、能回滚、能复查。
+给历史研究者的论文 OCR 校对工作流。一个装上就能用的 Claude Code 插件。把扫描版论文 PDF 整理成 Word 稿（供学界交流）和公众号 HTML（供公众阅读），全流程八个 skill、一条主线，每一步都能看见、能回滚、能复查。
 
 ---
 
@@ -70,7 +70,7 @@ final.docx + final.mp.html
 
 ---
 
-## 六个 Skill
+## 八个 Skill
 
 ### 1. setup — 首次配置
 
@@ -262,7 +262,7 @@ OCR_ENGINE=baidu
 
 ## 架构 & 故障排查
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — 六个 skill 的职责边界、数据流、文件布局、设计决策
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — 八个 skill 的职责边界、数据流、文件布局、设计决策
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) — 常见报错和兜底
 
 ---

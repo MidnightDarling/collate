@@ -23,15 +23,19 @@ allowed-tools: Bash, Read, Write, Edit
 
 一开始先问一句（原文输出）：
 
-> 我会带你一步步装好。先确认两件事：
-> 1. 你是不是第一次用命令行/终端？
-> 2. 你有百度 OCR 的 API key 吗？如果有，我们用你现成的；没有，我推荐你注册 MinerU（对历史文献效果更好，免费额度够日常用）。
+> 我会带你一步步装好。先确认一件事：
+> 你是不是第一次用命令行 / 终端？
+>
+> （不用担心 OCR 引擎的账号——新版插件用 **本地 MinerU**，不需要任何 key
+> 也不需要上传到云。首次装约 10 分钟，以后每份 PDF 90 秒左右跑完，
+> 数据全程留在你电脑里。）
 
 根据回答分支：
 - **她说"不懂终端"** → 把每个命令的作用用一句中文说清楚再让她跑
-- **她说"有百度 key"** → Step 4 走 A 分支
-- **她说"没有 / 注册 MinerU"** → Step 4 走 B 分支
-- **她说"都给我配一下"** → 两个都配，优先用百度（她已有）
+- **其他回答** → 直接进 Step 2
+
+**历史分支（仅在她明说"我有百度 key 想复用"或"我想走 MinerU 云 API"时走）** →
+Step 4B / 4C，但你要先告诉她"那两条路已经不是默认，本地装效果更好且免账号"。
 
 ### Step 2：检查 Python（Mac）
 
@@ -52,36 +56,70 @@ Homebrew 没装的情况下：
 
 告诉她：这是 Mac 的软件管家，装一次受用一生。
 
-### Step 3：装 Python 依赖和 poppler
+### Step 3：装所有依赖（一条命令）
 
 ```bash
 brew install poppler
-pip3 install -U opencv-python pillow requests python-dotenv markdown PyPDF2 pdf2image beautifulsoup4
+pip3 install -U -r "${CLAUDE_PLUGIN_ROOT}/requirements.txt"
 ```
 
-**为什么装这些**：
-- `opencv-python`, `pillow` → 去水印、切页、裁边
-- `pdf2image` + `poppler` → PDF 拆成图
-- `requests`, `python-dotenv` → 调 OCR API + 读 `~/.env`
-- `markdown`, `beautifulsoup4` → Markdown 转公众号 HTML
+`requirements.txt` 列了两组东西：
 
-如果 pip 报 `externally-managed-environment`（Homebrew Python 常报），改：
+- **经典管道**：`opencv-python` / `pillow` / `pdf2image` / `PyPDF2` /
+  `python-docx` 等——prep-scan / preview / to-docx / mp-format 用
+- **MinerU 本地管道**：`mineru[pipeline]` + `torch` + `torchvision` +
+  `shapely` + `scikit-image`——ocr-run 的默认路径用
+
+整个 pip 过程约 5 分钟（包含 ~1 GB 的 torch）。如果 pip 报
+`externally-managed-environment`（Homebrew Python 常见），加 `--user`：
 
 ```bash
-pip3 install --user -U opencv-python pillow requests python-dotenv markdown PyPDF2 pdf2image beautifulsoup4
+pip3 install --user -U -r "${CLAUDE_PLUGIN_ROOT}/requirements.txt"
 ```
 
 验证：
 
 ```bash
-python3 -c "import cv2, PIL, requests, dotenv, markdown, PyPDF2, pdf2image, bs4; print('依赖齐全')"
+python3 -c "import cv2, PIL, requests, dotenv, markdown, PyPDF2, pdf2image, bs4, docx, mineru, torch; print('依赖齐全')"
+which mineru
 ```
 
-输出「依赖齐全」才算过。
+第二行应该打印 `mineru` 的路径（说明 CLI 装上了）。输出「依赖齐全」才算过。
 
-### Step 4：配置 OCR 引擎
+### Step 3.5：预热 MinerU 模型（一次性）
 
-#### 分支 A — 用百度 OCR（她已有 key）
+第一次跑 `mineru` 会下载 ~2–3 GB 模型到 `~/.cache/huggingface/hub/`。
+在正式 OCR 一份 PDF 前让它先下好，省得第一次跑 PDF 时卡住。
+
+```bash
+# tiny probe PDF — 让 mineru 触发模型下载，跑完立刻退出
+TMP=$(mktemp -d)
+cp "${CLAUDE_PLUGIN_ROOT}/examples/smoke.pdf" "$TMP/smoke.pdf" 2>/dev/null || \
+  python3 -c "from reportlab.pdfgen import canvas; c = canvas.Canvas('$TMP/smoke.pdf'); c.drawString(100,750,'smoke'); c.save()"
+mineru -p "$TMP/smoke.pdf" -o "$TMP" -b pipeline -m auto -l ch
+```
+
+看到 `Completed batch` 就算预热好了。约 4–8 分钟（取决于网速）。中国网
+络建议事先开代理或 ModelScope 镜像：
+
+```bash
+export HF_ENDPOINT=https://hf-mirror.com      # HuggingFace 国内镜像
+# 或：
+export MINERU_MODEL_SOURCE=modelscope         # 走 ModelScope 下载
+```
+
+环境变量永久化可以追加到 `~/.zshrc`。
+
+### Step 4（可选）：旧 OCR 引擎的兼容分支
+
+**默认不需要做这一步**——本地 `mineru` 已经是主路径。只有这两种情况走：
+
+- 她说"我有百度 OCR key 想复用" → 分支 A
+- 她明确想走 MinerU 云 API（比如在 SSH 登录的没 GPU 的服务器上） → 分支 C
+
+直接跳过 Step 4，走 Step 5 也可以。
+
+#### 分支 A — 用百度 OCR（她已有 key，可选兼容）
 
 让她提供：
 - `BAIDU_OCR_API_KEY`
