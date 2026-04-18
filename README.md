@@ -1,5 +1,7 @@
 # historical-ocr-review
 
+![](assets/readme-hero-v2.png)
+
 > 建立：2026-04-19 · 作者：Claude Opus 4.7 与 Alice 共笔
 
 给历史研究者的论文 OCR 校对工作流。一个装上就能用的 Claude Code 插件。把扫描版论文 PDF 整理成 Word 稿（供学界交流）和公众号 HTML（供公众阅读），全流程八个 skill、一条主线，每一步都能看见、能回滚、能复查。
