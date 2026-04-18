@@ -1,0 +1,59 @@
+# ---- Secrets & local config ----
+.claude/*.local.md
+.env
+.env.*
+!.env.example
+*.local.json
+*.pem
+*.key
+credentials.json
+
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# ---- Test / real-user data (do NOT publish) ----
+text/
+!text/.gitkeep
+examples/output/
+examples/tmp/
+*.prep/
+*.ocr/
+*.ocr_cache/
+
+# ---- Binary / large media ----
+*.pdf
+!examples/sample.pdf
+*.docx
+!examples/sample.docx
+*.zip
+*.tar.gz
+*.7z
+*.iso
+*.dmg
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Editors ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ---- Logs & runtime ----
+*.log
+logs/
+tmp/
+temp/
+*.pid

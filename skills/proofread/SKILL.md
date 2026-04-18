@@ -1,0 +1,116 @@
+---
+name: proofread
+description: 使用场景：用户对 OCR 出来的 Markdown 运行 `/historical-ocr-review:proofread`、说出"校对这份稿子""看看 OCR 对不对""检查字形""有没有识别错""这段繁体有没有问题""专名校对""标点校对""帮我过一遍"等。这个 skill 会判定文献类型（繁体古籍 / 民国排印 / 现代简体），加载对应的专业知识 reference，然后调用 historical-proofreader agent 输出一份**标注清单**（A 类 OCR 错 / B 类规范问题 / C 类存疑待考），不直接改原文。社科院历史学者的日常核心工作就是这一步——凡是涉及"校对"的请求都要主动触发这个 skill，不必等她说 proofread 三个字。
+argument-hint: "<markdown-path> [--type=classics|republican|modern]"
+allowed-tools: Read, Write, Edit, Bash, Grep
+---
+
+# 校对 — 历史文献三类知识库 + 专家 Agent
+
+## Task
+
+给 `historical-proofreader` agent 喂一份 OCR 产出的 Markdown，让它输出一份**校对清单**。用户最核心的工作（校对）就围绕这份清单展开。
+
+你的责任是：
+1. 读用户给的 Markdown
+2. 判断文献类型（也可以她指定）
+3. 加载对应 reference 文件到上下文
+4. 调用 `historical-proofreader` agent，传入文本 + reference
+5. 把 agent 返回的标注清单保存为 `<input>.review.md`
+6. 用 `open` 打开 review.md 让她看
+
+## Process
+
+### Step 1：读输入
+
+```bash
+INPUT="<markdown-path>"
+test -f "$INPUT" || { echo "文件不存在"; exit 1; }
+```
+
+Read 这个 Markdown 前 50 行，判断文献类型（或读 `meta.json` 如果存在）。
+
+### Step 2：判定文献类型
+
+| 提示 | 类型 |
+|------|------|
+| 竖排标志「|」夹杂、繁体、无现代标点、年号纪年（乾隆、道光） | `classics` 繁体古籍 |
+| 繁体或繁简混、有「．」等旧式标点、年份在 1912-1949、出现"民國"年号 | `republican` 民国排印 |
+| 纯简体、现代学术格式、年份在 1980 后、参考文献 GB/T 或 APA | `modern` 现代简体 |
+
+命令行 `--type=xxx` 覆盖自动判断。不确定就问用户。
+
+### Step 3：加载对应 reference
+
+根据类型读对应文件到上下文：
+
+| 类型 | reference 路径 |
+|------|---------------|
+| classics | `${CLAUDE_PLUGIN_ROOT}/skills/proofread/references/traditional-classics.md` |
+| republican | `${CLAUDE_PLUGIN_ROOT}/skills/proofread/references/republican-era.md` |
+| modern | `${CLAUDE_PLUGIN_ROOT}/skills/proofread/references/modern-chinese.md` |
+
+**为什么分开**：古籍异体字表塞不进民国校对会浪费上下文；反之亦然。三份分别加载，agent 不被不相关知识干扰。
+
+### Step 4：调 historical-proofreader agent
+
+用 Task / Agent 机制调起 `historical-proofreader`（agent 定义在 plugin 的 `agents/historical-proofreader.md`），传入：
+
+```
+任务：校对 OCR 出的历史论文 Markdown
+文献类型：<type>
+reference 已加载：<path>
+待校对文本：<path>
+输出要求：按 A/B/C 分类的标注清单（参见 agent 内部规范），不改原文
+```
+
+同时读 OCR 阶段产出的 `meta.json`（如果存在），把 `low_confidence_pages` 传给 agent 作为**重点盯防**提示。
+
+### Step 5：保存报告
+
+agent 输出写到：
+
+```
+<input-dir>/<input-basename>.review.md
+```
+
+例：`~/Downloads/论文.ocr/raw.md` → `~/Downloads/论文.ocr/raw.review.md`
+
+### Step 6：打开 + 报告
+
+```bash
+open "<input-dir>/<input-basename>.review.md"
+```
+
+告诉用户：
+
+> 校对清单已生成。共 N 条标注：
+>
+> - A 类 OCR 错：X 条（建议直接改）
+> - B 类规范：Y 条（按刊物要求判断）
+> - C 类存疑：Z 条（需核对原书）
+>
+> 我已经打开 `raw.review.md`。处理建议：
+> 1. 先把 A 类过一遍（快，半小时内）
+> 2. 回到 `raw.md` 按你的判断修改
+> 3. 改完可以：
+>     - 跑 `/historical-ocr-review:proofread raw.md` 再校一遍（循环直到清单变空 / 只剩你决定保留的条目）
+>     - 或直接进下一步 `/historical-ocr-review:to-docx raw.md` 生成 Word 稿
+
+## 判断规则
+
+- **校对清单是否为空**：意味着 OCR 质量极好，或 agent 没干活。看置信度 meta.json 判断是不是后者。
+- **A 类超过 50 条**：OCR 质量有问题，建议她回去重跑 prep-scan + ocr-run（可能换引擎 / 加 aggressive）
+- **她说"agent 搞得太保守 / 太激进"**：调 agent prompt，不是调 reference。reference 是知识不是策略。
+
+## 迭代用法
+
+她可能想**多轮校对**：第一轮主改 A 类，第二轮专门看 B 类规范，第三轮攻 C 类存疑。支持她分轮跑：
+
+```
+/historical-ocr-review:proofread raw.md --focus=A
+/historical-ocr-review:proofread raw.md --focus=B
+/historical-ocr-review:proofread raw.md --focus=C
+```
+
+（`--focus` 透传给 agent）
