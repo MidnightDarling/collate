@@ -1,21 +1,21 @@
 ---
-description: 一键 OCR：扫描 PDF → Word + 公众号 HTML + 审计链
+description: One-shot OCR — scanned PDF to Word + WeChat HTML + audit trail
 argument-hint: <pdf-path>
 allowed-tools: Task, Read, Bash
 ---
 
-人类递过来一份扫描 PDF，要跑完整条 pipeline 并拿到终稿：
+The user handed over a scanned PDF and wants the full pipeline to produce publishable output:
 
 `$ARGUMENTS`
 
-用 **Task tool** 调起 `ocr-pipeline-operator` subagent，把这份 PDF 原样交给它，prompt 写清楚：
+Use the **Task tool** to dispatch the `ocr-pipeline-operator` subagent. Pass the PDF path as-is with a prompt that instructs:
 
-1. 输入 PDF 路径就是上面这一行
-2. 请按 `agents/ocr-pipeline-operator.md` 里的 Canonical Workflow 推进：
-   - 先跑 `python3 scripts/run_full_pipeline.py --pdf "<pdf>"` 走机械阶段
-   - 读 `<workspace>/_internal/_pipeline_status.json`；若 `status=awaiting_agent_review`，按文献类型判定（classics / republican / modern）调起 `historical-proofreader`，按 review contract 把结果落盘到 `<workspace>/review/raw.review.md`
-   - 再跑 `python3 scripts/run_full_pipeline.py --workspace "<workspace>"` 让 apply-review、diff-review、to-docx、mp-format 一次跑完
-   - 核对 `final.md` / `previews/diff-review.html` / `review/diff-summary.md` / `output/*_final.docx` / `output/*_wechat.html` 是否都到位
-3. 成功按 Human-Facing Delivery Message 模板汇报；失败按 Failure Contract 结构化回传
+1. Input PDF is the path above.
+2. Follow the Canonical Workflow in `agents/ocr-pipeline-operator.md`:
+   - Run `python3 scripts/run_full_pipeline.py --pdf "<pdf>"` for the mechanical stages (prep → OCR).
+   - Read `<workspace>/_internal/_pipeline_status.json`. If `status=awaiting_agent_review`, classify the document type (`classics` / `republican` / `modern`) and invoke `historical-proofreader` to produce `<workspace>/review/raw.review.md` in canonical review format.
+   - Re-enter `python3 scripts/run_full_pipeline.py --workspace "<workspace>"` to chain apply-review, diff-review, to-docx, mp-format.
+   - Verify `final.md`, `previews/diff-review.html`, `review/diff-summary.md`, `output/*_final.docx`, `output/*_wechat.html` all exist.
+3. On success, report using the Human-Facing Delivery Message template; on failure, return the structured Failure Contract.
 
-Agent 返回什么就把它的汇报原样给人类，不要再套一层总结。人类要看的是交付物路径、审计摘要、遗留风险，这三件事。
+Relay the agent's delivery message verbatim to the human — no second layer of summary. The three things they care about: deliverable paths, audit summary, residual risks.

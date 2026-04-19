@@ -1,18 +1,18 @@
 ---
-description: final.md → 微信公众号 HTML（内联 CSS、OpenCC t2s、脚注归尾）
+description: Export final.md to WeChat MP HTML (inline CSS, OpenCC t2s, footnotes at end)
 argument-hint: <workspace-path>
 allowed-tools: Bash(python3:*), Read
 ---
 
-把工作区的 `final.md` 输出为公众号发文用的 HTML + xiumi 兼容 markdown sidecar。
+Export the workspace's `final.md` to WeChat Official Account HTML plus a xiumi-compatible markdown sidecar.
 
-工作区：`$ARGUMENTS`
+Workspace: `$ARGUMENTS`
 
-### 前置检查
+### Preflight
 
-`<workspace>/final.md` 必须存在。缺了就停手——公众号版本必须走审计过的 final，不走 raw。
+`<workspace>/final.md` must exist. If missing, stop — the WeChat version must be built from the audited `final.md`, never from `raw.md`.
 
-### 执行
+### Execute
 
 ```
 python3 skills/mp-format/scripts/md_to_wechat.py \
@@ -20,17 +20,17 @@ python3 skills/mp-format/scripts/md_to_wechat.py \
   --also-markdown
 ```
 
-脚本会：
+The script:
 
-- 把所有 CSS 内联进标签（公众号会剥离 `<style>`）
-- 对正文做 OpenCC t2s 繁→简，但 **保留 `> blockquote` 内的原文形态**（引文不做转换）
-- 脚注统一收束到文末
-- 生成署名 / 来源栏
-- 另写一份 xiumi 兼容 markdown（便于进秀米编辑器）
+- Inlines all CSS into tag `style` attributes (WeChat strips external stylesheets).
+- Applies OpenCC t2s (traditional → simplified) to body text, **but preserves the original form inside `> blockquote` sections** (citations are not converted).
+- Collects footnotes at the end of the article.
+- Generates byline and source bar.
+- Emits a xiumi-compatible markdown sidecar for the xiumi editor.
 
-### 汇报
+### Report
 
-- HTML 绝对路径：`<workspace>/output/<stem>_wechat.html`
-- Markdown sidecar 绝对路径
-- 脚注数量
-- 提示：若公众号后台粘贴后样式异常，先核实是否复制了 `<body>` 之外的内容
+- HTML absolute path: `<workspace>/output/<stem>_wechat.html`
+- Markdown sidecar absolute path
+- Footnote count
+- Note: if styles break when pasted into WeChat admin, verify the user copied only `<body>` content.

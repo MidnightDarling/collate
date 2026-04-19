@@ -1,31 +1,31 @@
 ---
-description: 只跑 prep-scan（切页 → 去水印去章 → 切页眉页脚 → 合成 cleaned.pdf）
+description: Preprocessing only — split, dewatermark, trim margins, build cleaned.pdf
 argument-hint: <pdf-path>
 allowed-tools: Bash(python3:*), Bash(mkdir:*), Bash(cp:*), Read
 ---
 
-只做预处理，不触发 OCR。输入：
+Preprocessing only. Do not trigger OCR. Input:
 
 `$ARGUMENTS`
 
-### 工作区约定
+### Workspace convention
 
-若用户没指明，工作区默认：`<pdf-dir>/<pdf-stem>.ocr/`。必要子目录：`prep/`、`previews/`、`_internal/`。
+If not specified, default workspace: `<pdf-dir>/<pdf-stem>.ocr/`. Required subdirs: `prep/`, `previews/`, `_internal/`.
 
-### 顺序执行
+### Sequence
 
-1. 把原 PDF 复制到 `<ws>/prep/original.pdf` 和 `<ws>/source.pdf`
+1. Copy the source PDF to `<ws>/prep/original.pdf` and `<ws>/source.pdf`.
 2. `python3 skills/prep-scan/scripts/split_pages.py --pdf <ws>/prep/original.pdf --out <ws>/prep/pages --dpi 300`
 3. `python3 skills/prep-scan/scripts/dewatermark.py --in <ws>/prep/pages --out <ws>/prep/cleaned_pages`
 4. `python3 skills/prep-scan/scripts/remove_margins.py --in <ws>/prep/cleaned_pages --out <ws>/prep/trimmed_pages --header-ratio 0.08 --footer-ratio 0.08`
 5. `python3 skills/prep-scan/scripts/pages_to_pdf.py --in <ws>/prep/trimmed_pages --out <ws>/prep/cleaned.pdf`
-6. 把 `<ws>/prep/cleaned.pdf` 复制到 `<ws>/source.pdf`（OCR 入口）
-7. 生成三联预览：`python3 skills/visual-preview/scripts/visualize_prep.py --prep-dir <ws>/prep --out <ws>/previews/visual-prep.html`
+6. Copy `<ws>/prep/cleaned.pdf` to `<ws>/source.pdf` (OCR entry point).
+7. Generate the three-state preview: `python3 skills/visual-preview/scripts/visualize_prep.py --prep-dir <ws>/prep --out <ws>/previews/visual-prep.html`
 
-### 汇报
+### Report
 
-- 工作区路径
-- `cleaned.pdf` 大小与页数
-- `previews/visual-prep.html` 绝对路径
+- Workspace path
+- `cleaned.pdf` size and page count
+- Absolute path to `previews/visual-prep.html`
 
-提醒人类先浏览预览，确认清理效果 OK 再走 `/ocr-run`。**这一步不自动续跑 OCR。**
+Prompt the user to review the preview before running `/ocr-run`. **This command does not auto-continue into OCR.**

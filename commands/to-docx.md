@@ -1,19 +1,19 @@
 ---
-description: final.md → 学术 Word（思源宋体 12pt、首行缩进两字、连续脚注）
+description: Export final.md to academic Word (Source Han Serif SC 12pt, 2-char first-line indent, continuous footnotes)
 argument-hint: <workspace-path>
 allowed-tools: Bash(python3:*), Read
 ---
 
-把工作区的 `final.md` 输出为学术规格的 Word 文档。
+Export the workspace's `final.md` to an academic Word document.
 
-工作区：`$ARGUMENTS`
+Workspace: `$ARGUMENTS`
 
-### 前置检查
+### Preflight
 
-- `<workspace>/final.md` 必须存在。缺了就停手，提示人类先 `/ocr` 或 `/proofread` + apply_review
-- 读 `final.md` 的第一个 `#` 一级标题，用它作为 docx 标题
+- `<workspace>/final.md` must exist. If missing, stop and prompt the user to run `/ocr` or `/proofread` + apply_review first.
+- Read the first `#` H1 in `final.md` for the docx title.
 
-### 执行
+### Execute
 
 ```
 python3 skills/to-docx/scripts/md_to_docx.py \
@@ -21,11 +21,11 @@ python3 skills/to-docx/scripts/md_to_docx.py \
   --title-from-first-h1
 ```
 
-脚本会把 `.docx` 直接写到 `<workspace>/output/<stem>_final.docx`，并沿用仓库统一规格：思源宋体 SC 12pt、行距 1.2、字距 0.2pt、四边 2cm 页边距、首行缩进 2 字、连续脚注。
+The script writes to `<workspace>/output/<stem>_final.docx` and applies the unified repo spec: Source Han Serif SC 12pt, 1.2 line spacing, 0.2pt character spacing, 2cm margins on all sides, 2-character first-line indent, continuous footnote numbering.
 
-### 汇报
+### Report
 
-- 产物绝对路径
-- 文档标题（第一个 H1）
-- 页数（若能读出）
-- 提示：公众号版本走 `/mp-format`
+- Absolute output path
+- Document title (first H1)
+- Page count (if readable)
+- Next: `/mp-format` for the WeChat version
