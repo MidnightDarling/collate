@@ -25,6 +25,26 @@ Any agent architecture that can execute Python scripts and read structured text 
 
 The name Collate renders 点校, the classical Chinese scholarly term for punctuating and collating received texts — the millennia-old practice this toolkit extends with contemporary OCR and agent tooling.
 
+## Install
+
+One command — clones the repo, installs Python dependencies, and auto-wires every agent runtime it detects (Claude Code, OpenCode, Hermes, Codex CLI, Cursor, Gemini CLI):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/scripts/install.sh | bash
+```
+
+Options: `--target PATH` (default `~/.local/share/collate`) · `--no-deps` · `--no-runtimes` · `--dry-run` · `--help`. Pass through with `bash -s -- <flags>`.
+
+Manual alternative:
+
+```bash
+git clone https://github.com/MidnightDarling/collate.git ~/.local/share/collate
+cd ~/.local/share/collate
+pip install --user -U -r requirements.txt
+```
+
+System dependency: `poppler` (`brew install poppler` on macOS, `apt install poppler-utils` on Debian). Per-runtime wiring details live in [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md); the long-form install guide is [INSTALL.md](INSTALL.md).
+
 ## Quick Start
 
 Two supported entrypoints:

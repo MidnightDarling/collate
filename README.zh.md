@@ -25,6 +25,26 @@
 
 **点校**是中国古代学者对传世文献断句、勘误、比对异本的传统工夫——这个工具箱把这套千年积淀的做法延伸到当代的 OCR 与 agent 场景。英文名 Collate 取的就是"校雠"的直接对应。
 
+## 安装
+
+一条命令——克隆仓库、装好 Python 依赖，并自动识别已装的 agent runtime（Claude Code / OpenCode / Hermes / Codex CLI / Cursor / Gemini CLI）一并接入：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/scripts/install.sh | bash
+```
+
+可选参数：`--target PATH`（默认 `~/.local/share/collate`）· `--no-deps` · `--no-runtimes` · `--dry-run` · `--help`。通过管道传参用 `bash -s -- <flags>`。
+
+手动安装：
+
+```bash
+git clone https://github.com/MidnightDarling/collate.git ~/.local/share/collate
+cd ~/.local/share/collate
+pip install --user -U -r requirements.txt
+```
+
+系统依赖：`poppler`（macOS 用 `brew install poppler`，Debian/Ubuntu 用 `apt install poppler-utils`）。分 runtime 的接入细节见 [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)；详细安装步骤见 [INSTALL.md](INSTALL.md)。
+
 ## 快速开始
 
 支持两种入口：
