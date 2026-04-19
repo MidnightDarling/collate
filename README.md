@@ -2,7 +2,7 @@
 
 # 点校 · Collate
 
-Read, think, and write history with your agents.
+Read, think, and write history with your agents.<br />
 From the scanned page to the final text, from a single x-ray to a field-wide map.
 
 ![Self-portrait of attention as observer](assets/readme-hero-v2.png)
