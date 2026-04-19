@@ -387,9 +387,11 @@ EOF
 if [[ " ${WIRED_RUNTIMES[*]} " == *" claude-code "* ]]; then
     cat <<EOF
 
-   ${C_GREEN}Claude Code${C_RESET} (wired):
-     Inside Claude Code, run:  ${C_CYAN}/plugin install ${TARGET}${C_RESET}
-     Then:                     ${C_CYAN}/collate:setup${C_RESET}
+   ${C_GREEN}Claude Code${C_RESET} (wired via symlink):
+     Quickest path (zero-clone):  ${C_CYAN}/plugin marketplace add MidnightDarling/collate${C_RESET}
+                                   ${C_CYAN}/plugin install collate@collate${C_RESET}
+     Already installed locally:   open Claude Code — the plugin auto-loads from ~/.claude/plugins/collate
+     First run:                   ${C_CYAN}/collate:setup${C_RESET}
 EOF
 fi
 

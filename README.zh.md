@@ -27,13 +27,20 @@
 
 ## 安装
 
-一条命令——克隆仓库、装好 Python 依赖，并自动识别已装的 agent runtime（Claude Code / OpenCode / Hermes / Codex CLI / Cursor / Gemini CLI）一并接入：
+**Claude Code 用户** —— 在 CLI 里两行，不用克隆仓库：
+
+```
+/plugin marketplace add MidnightDarling/collate
+/plugin install collate@collate
+```
+
+**其他 runtime**（OpenCode / Hermes agents / Codex CLI / Cursor / Gemini CLI）—— 一条 shell 命令克隆仓库、装 Python 依赖，并自动接入检测到的 runtime：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/scripts/install.sh | bash
 ```
 
-可选参数：`--target PATH`（默认 `~/.local/share/collate`）· `--no-deps` · `--no-runtimes` · `--dry-run` · `--help`。通过管道传参用 `bash -s -- <flags>`。
+参数：`--target PATH`（默认 `~/.local/share/collate`）· `--no-deps` · `--no-runtimes` · `--dry-run` · `--help`。通过管道传参用 `bash -s -- <flags>`。
 
 手动安装：
 

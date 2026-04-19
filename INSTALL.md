@@ -1,10 +1,38 @@
 # 安装
 
-两条路径：一键脚本或手动分步。其他 agent 运行时（OpenCode / Hermes agents / Codex CLI / Cursor / Gemini CLI / Kimi / MiniMax / OpenClaw）的接入细节见 [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)。
+三条路径：
+
+1. **Claude Code 插件 marketplace**（最优雅、零克隆）——下面第一节
+2. **一键 shell 脚本**——给其他 agent runtime 用的 `curl | bash`
+3. **手动分步**——完全受控
+
+其他 agent 运行时（OpenCode / Hermes agents / Codex CLI / Cursor / Gemini CLI / Kimi / MiniMax / OpenClaw）的接入细节见 [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)。
 
 ---
 
-## 一键安装（推荐）
+## 路径 1：Claude Code 插件 marketplace（推荐给 Claude Code 用户）
+
+在 Claude Code 会话里执行：
+
+```
+/plugin marketplace add MidnightDarling/collate
+/plugin install collate@collate
+```
+
+第一行把仓库注册为一个 marketplace；第二行从该 marketplace 装 collate 插件。Claude Code 会自动解析 `.claude-plugin/plugin.json` 和 `marketplace.json`，所有 skill / agent 立即进入上下文。
+
+Python 依赖需要另行安装（Claude Code 插件系统不自动处理 Python 依赖）：
+
+```bash
+cd ~/.claude/plugins/collate
+pip install --user -U -r requirements.txt
+```
+
+卸载：`/plugin uninstall collate`。
+
+---
+
+## 路径 2：一键 shell 脚本（给其他 runtime）
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/scripts/install.sh | bash
@@ -45,7 +73,7 @@ curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/script
 
 ---
 
-## 手动安装
+## 路径 3：手动分步
 
 ```bash
 git clone https://github.com/MidnightDarling/collate.git ~/.local/share/collate
@@ -57,13 +85,13 @@ pip install --user -U -r requirements.txt
 
 ### Claude Code
 
+上面 **路径 1** 的 marketplace 已是首选。如果不想走 marketplace（比如要用本地 fork），改为：
+
 ```
-/plugin install /path/to/collate
+/plugin install /Users/you/.local/share/collate
 ```
 
-或把仓库软链到 `~/.claude/plugins/collate`，Claude Code 启动时会自动发现。
-
-Marketplace 分发路径（待发布）：`/plugin install collate`。
+或直接把仓库软链到 `~/.claude/plugins/collate`，Claude Code 启动时会自动发现。
 
 ### OpenCode / Codex CLI
 

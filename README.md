@@ -27,13 +27,20 @@ The name Collate renders 点校, the classical Chinese scholarly term for punctu
 
 ## Install
 
-One command — clones the repo, installs Python dependencies, and auto-wires every agent runtime it detects (Claude Code, OpenCode, Hermes, Codex CLI, Cursor, Gemini CLI):
+**Claude Code** — two lines inside the CLI, nothing to clone:
+
+```
+/plugin marketplace add MidnightDarling/collate
+/plugin install collate@collate
+```
+
+**Every other runtime** (OpenCode, Hermes agents, Codex CLI, Cursor, Gemini CLI) — one shell command clones the repo, installs Python dependencies, and auto-wires whichever runtimes it detects:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/scripts/install.sh | bash
 ```
 
-Options: `--target PATH` (default `~/.local/share/collate`) · `--no-deps` · `--no-runtimes` · `--dry-run` · `--help`. Pass through with `bash -s -- <flags>`.
+Flags: `--target PATH` (default `~/.local/share/collate`) · `--no-deps` · `--no-runtimes` · `--dry-run` · `--help`. Pass through with `bash -s -- <flags>`.
 
 Manual alternative:
 
