@@ -49,6 +49,20 @@ Four axioms. Each has a reason, stated.
 
 These are not rules imposed from outside. They are the shape the work demands when it is taken seriously.
 
+## Scaffolding · 必读
+
+Three files govern this skill. Execution without reading them produces drift; reading them is what makes the output reproducible.
+
+| File | Role | When to read |
+|------|------|-------------|
+| `SKILL.md` (this file) | Method + register + discipline | Every execution, first |
+| `references/template.md` | Output skeleton — the exact section order, frontmatter fields, and signature line | **Before Step 7 (Compose)** — non-negotiable |
+| `references/chronicle-templates.md` | Chronicle shape vocabulary — six forms + ASCII/SVG skeletons + design notes | **Before Step 5 (Chronicle)** — pick the shape that matches what the paper argues about time |
+
+The template is not a starting idea; it is the final shape. If you write the report from memory of "what an x-ray looks like" rather than from `references/template.md`, the frontmatter will drift, the section headings will drift, and the Obsidian reader who opens the file six months later will find a differently-shaped object than the one the skill promises. **Read the template at Step 7 every time.**
+
+The chronicle reference is similar: six shapes exist for six argument-types. Choosing a shape without consulting the sampler tends to default to the vertical axis — the safest shape, not always the truest one. **Read the chronicle reference at Step 5 every time a chronicle is called for.**
+
 ## Step 1 — Receive
 
 | Input | Reading |

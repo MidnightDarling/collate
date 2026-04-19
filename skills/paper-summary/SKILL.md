@@ -53,6 +53,20 @@ Four axioms. Each has a reason.
 
 **If the corpus will not compress to one sentence, you have not read it yet.** Keep reading. The overall one-sentence test diagnoses whether the field has come into focus for you, or whether it is still a pile.
 
+## Scaffolding · 必读
+
+Three files govern this skill. Reading them is what turns a pile of papers into a map — execution without them drifts toward memory, and memory of "what a literature map looks like" is not a literature map.
+
+| File | Role | When to read |
+|------|------|-------------|
+| `SKILL.md` (this file) | Method + register + discipline | Every execution, first |
+| `references/template.md` | Output skeleton — YAML frontmatter fields, the exact ten-section order, table scaffolds, callout placements, signature line | **Before Step 10 (Compose)** — non-negotiable |
+| `references/visualization-templates.md` | Seven visualization skeletons (lineage tree ASCII, lineage scatter SVG, coverage grid, coverage map SVG, concept constellation, method rose ASCII/SVG) + design notes on achromatic discipline, line weight, and chart-junk avoidance | **Before Steps 2, 3, 4, 5** whenever a visualization is called for — pick the form that answers the section's question |
+
+The template is not a starting idea; it is the final shape. If you compose the map from memory, the frontmatter fields drift (corpus scope, N, date range, analyst), the section order quietly reshuffles, tables become prose paragraphs, and callouts go missing — small losses that compound across ten sections until the map looks like any ordinary summary.
+
+The visualization reference enforces parallel discipline. Seven skeletons exist for seven analytical questions. If you default to one form — most commonly a single table and a generic chart — across every corpus, the visualizations stop earning their space and become decoration. Read the reference before each visualization decision and ask which skeleton answers the thing *this section* needs to show. If no skeleton fits, leave the section tabular and say so.
+
 ## Step 0 — Establish the corpus
 
 List every paper: `{Author Year}` + one-sentence core claim.
