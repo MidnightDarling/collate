@@ -51,46 +51,49 @@ skills/<name>/
 
 ## 数据流
 
-一份扫描 PDF 从头到尾产生的文件：
+一份扫描 PDF 从头到尾产生的文件（权威规范：[references/workspace-layout.md](../references/workspace-layout.md)）：
 
 ```
 ~/Downloads/
-└── 论文.pdf                        [原件，永不动]
-    ├── 论文.prep/
-    │   ├── original.pdf            [prep-scan 备份]
-    │   ├── pages/
-    │   │   ├── page_001.png        [split_pages.py 拆页，300 DPI]
-    │   │   └── …
-    │   ├── cleaned_pages/
-    │   │   ├── page_001.png        [dewatermark + remove_margins 清理后]
-    │   │   └── …
-    │   ├── diff_pages/
-    │   │   ├── page_001.png        [visualize_prep.py 差异热图]
-    │   │   └── …
-    │   ├── cleaned.pdf             [pages_to_pdf.py 合回 PDF]
-    │   └── visual-preview.html     [visual-preview 可视化]
-    └── 论文.ocr/
-        ├── raw.md                  [OCR 原始]
-        ├── raw.review.md           [proofread 标注清单]
-        ├── final.md                [用户校对定稿]
-        ├── diff.html               [diff-review HTML]
-        ├── diff.summary.md         [diff-review 摘要]
-        ├── final.docx              [to-docx 产物]
-        ├── final.mp.html           [mp-format 产物]
-        ├── final.mp.md             [秀米兼容 markdown]
-        ├── preview.html            [ocr-run 对照预览]
-        ├── meta.json               [OCR 元信息]
-        └── assets/
-            └── figN.png            [OCR 提取的插图]
+└── 论文.pdf                               [原件，永不动]
+    └── 论文.ocr/                          [唯一工作区，自描述]
+        ├── README.md                       [每次 skill 结束自动刷新，人类入口]
+        ├── original.pdf                    [原件拷贝]
+        ├── raw.md                          [OCR 原始 Markdown]
+        ├── final.md                        [agent 校对后定稿]
+        ├── meta.json                       [OCR 元信息 + 标题/作者/年份]
+        ├── prep/                           [prep-scan 过程产物]
+        │   ├── pages/page_*.png            [split_pages.py 拆页]
+        │   ├── cleaned_pages/page_*.png    [dewatermark 后]
+        │   ├── trimmed_pages/page_*.png    [remove_margins 后，可选]
+        │   ├── diff_pages/page_*.png       [visualize_prep.py 差异热图]
+        │   └── cleaned.pdf                 [pages_to_pdf.py 合回]
+        ├── previews/                        [所有 HTML 预览 / 核验入口]
+        │   ├── visual-prep.html            [prep 清理效果]
+        │   ├── ocr-preview.html            [左图右文对照]
+        │   └── diff-review.html            [raw.md vs final.md]
+        ├── review/                          [校对过程产物]
+        │   ├── raw.review.md               [proofread 的 A/B/C 清单]
+        │   └── diff-review.summary.md      [diff-review 摘要]
+        ├── output/                          [最终交付]
+        │   ├── <title>_<author>_<year>_final.docx
+        │   ├── <title>_<author>_<year>_wechat.html
+        │   └── <title>_<author>_<year>_wechat.md
+        ├── assets/                          [OCR 提取的插图]
+        │   └── figN.png
+        └── _internal/                       [调试 / 起源数据，前缀示意"别动"]
+            ├── mineru_full.md              [MinerU 原始 markdown]
+            └── _import_provenance.json     [来源元信息]
 ```
 
 **命名约定**：
-- `.prep/` = prep-scan 产物
-- `.ocr/` = OCR 及后续产物
+- `.ocr/` = 唯一工作区（取代早期设计的 `.prep/ + .ocr/` 双目录）
+- `prep/ / previews/ / review/ / _internal/` = 过程文档，用户偶尔核验
+- `output/` = 最终交付，文件名内嵌 `<title>_<author>_<year>`，易找易寄
 - `raw.*` = 原始 / 自动产出
-- `final.*` = 用户定稿 / 最终交付
+- `final.*` = 定稿
 
-**不变原则**：原 PDF 永不动；所有中间产物放在 PDF 同级目录；可以整体复制 `.prep/` 或 `.ocr/` 到任何地方（相对路径设计）。
+**不变原则**：原 PDF 永不动；整个 `.ocr/` 工作区使用相对路径引用内部资源，可以整体打包或拷贝到任何地方直接离线浏览。
 
 ---
 
@@ -100,23 +103,28 @@ skills/<name>/
              setup
                │ （配 ~/.env 的 API key）
                ▼
-            prep-scan ──→ pages/ + cleaned_pages/ + cleaned.pdf
+            prep-scan ──→ <ws>.ocr/prep/{pages, cleaned_pages, cleaned.pdf}
                │                    │
                │                    ▼
                │             visual-preview  [质检闸门]
+               │             → previews/visual-prep.html
                ▼
-            ocr-run  ──→ raw.md + preview.html + meta.json
+            ocr-run  ──→ raw.md + meta.json
+                         + previews/ocr-preview.html
+                         + assets/ + _internal/
                │
                ▼
-           proofread  ──→ raw.review.md
+           proofread  ──→ review/raw.review.md
              (调 historical-proofreader agent)
                │
-               │ （用户按清单改）
+               │ （agent 按清单改）
                ▼
              final.md
                │
                ▼
-          diff-review  [质检闸门]  ──→ diff.html + summary.md
+          diff-review  [质检闸门]
+          ──→ previews/diff-review.html
+              + review/diff-review.summary.md
                │
                ▼
          ┌─────┴─────┐
@@ -124,7 +132,8 @@ skills/<name>/
       to-docx    mp-format
          │           │
          ▼           ▼
-     final.docx  final.mp.html
+   output/<title>_<author>_<year>_final.docx
+   output/<title>_<author>_<year>_wechat.{html,md}
 ```
 
 **三个质检闸门**是设计要点：

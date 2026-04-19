@@ -137,13 +137,26 @@ def merge_lines(lines: list[str]) -> str:
 
 
 def collect_pages(pdf_path: Path) -> list[Path]:
-    """Find the per-page PNGs produced by prep-scan."""
+    """Find the per-page PNGs produced by prep-scan.
+
+    Expected layout (canonical, see references/workspace-layout.md):
+        <ws>.ocr/prep/cleaned.pdf  → pages at <ws>.ocr/prep/pages/
+
+    Legacy fallbacks preserved for back-compat with the old
+    `<name>.prep/` sibling-directory layout.
+    """
+    # Canonical: pages/ sits next to cleaned.pdf inside <ws>.ocr/prep/
+    prep = pdf_path.parent / "pages"
+    if prep.is_dir():
+        return sorted(prep.glob("page_*.png"))
+
+    # Legacy A: pdf inside <name>.prep/, pages sibling of <name>.prep
     prep = pdf_path.parent.parent / (pdf_path.parent.name.replace(".prep", "") + ".prep") / "pages"
-    if not prep.is_dir():
-        # fallback: peer .prep/pages next to the PDF
-        prep = pdf_path.parent / "pages"
-    if not prep.is_dir():
-        prep = pdf_path.parent / (pdf_path.stem + ".prep") / "pages"
+    if prep.is_dir():
+        return sorted(prep.glob("page_*.png"))
+
+    # Legacy B: pages under <pdf-stem>.prep next to the pdf
+    prep = pdf_path.parent / (pdf_path.stem + ".prep") / "pages"
     return sorted(prep.glob("page_*.png"))
 
 

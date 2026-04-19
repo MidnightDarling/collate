@@ -299,18 +299,20 @@ meta.json 字段约定（proofread 会读这个）：
 
 ---
 
-## 生成 preview.html
+## 生成 previews/ocr-preview.html
 
-raw.md 落地后，做一份左原图 / 右 OCR 对照：
+raw.md 落地后，做一份左原图 / 右 OCR 对照（统一落在 `previews/`，便于核验入口集中管理）：
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/make_preview.py" \
     --markdown "$OUT/raw.md" \
-    --pages-dir "$(dirname "$OUT")/$STEM.prep/pages" \
-    --out "$OUT/preview.html"
+    --pages-dir "$OUT/prep/pages" \
+    --out "$OUT/previews/ocr-preview.html"
 ```
 
 `prep/pages/` 不存在时（用户未跑 prep-scan，直接提交 MinerU Desktop 产出），退回使用 MinerU `layout.json` 里的页面图。若也没有，跳过 preview 步骤并在汇报中注明原因（缺少逐页 PNG）。
+
+产出后调用 `scripts/workspace_readme.py --workspace "$OUT"` 刷新工作区 README。
 
 ---
 

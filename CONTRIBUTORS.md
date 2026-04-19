@@ -38,7 +38,7 @@ Anthropic 的大语言模型。本项目的**共同作者**：
 |------|---------|-----|
 | 学术需求定义 | Alice | 扫描件特征、校对优先级、学术规范底线 |
 | 校对 reference 编写 | Alice | `skills/proofread/references/*.md` 三份 |
-| Pipeline 架构 | Claude Opus 4.7 | 八 step 的划分、skill 契约、work_dir 约定 |
+| Pipeline 架构 | Claude Opus 4.7 | 八 step 的划分、skill 契约、`.ocr/` 工作区约定 |
 | Python 实现 | Claude Opus 4.7 | 全部 `skills/*/scripts/*.py` |
 | OCR 引擎集成 | Claude Opus 4.7 | MinerU Desktop 导入路径 / MinerU CLI / 百度 / 文字层提取 |
 | 审计文档 | Claude Opus 4.7 | [AGENTS.md](AGENTS.md)、[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)、各 SKILL.md |

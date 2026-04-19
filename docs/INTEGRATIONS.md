@@ -139,7 +139,7 @@ ANTHROPIC_API_KEY=...          # 用于 proofread subagent
 </use>
 ```
 
-子任务返回 `raw.review.md` 的完整文本，主 agent 落盘到 `<work_dir>/raw.review.md`。
+子任务返回 `raw.review.md` 的完整文本，主 agent 落盘到 `<basename>.ocr/review/raw.review.md`。
 
 ### 3.4 脚本执行
 
@@ -199,7 +199,7 @@ Cursor 没有 Task tool，用「新 chat tab」模拟 subagent：
 1. **主 tab** 负责 pipeline 编排
 2. **proofread tab** 的 system prompt 从 `agents/historical-proofreader.md` 的正文（跳过 YAML frontmatter）读入
 3. 主 tab 发「请校对 /abs/path/raw.md，文献类型 classics，reference 在 .../traditional-classics.md」
-4. proofread tab 按 checklist 产出 `raw.review.md` 全文，主 tab 复制到 `<work_dir>/raw.review.md`
+4. proofread tab 按 checklist 产出 `raw.review.md` 全文，主 tab 复制到 `<basename>.ocr/review/raw.review.md`
 
 ### 4.4 脚本执行
 
@@ -263,10 +263,10 @@ Codex CLI 原生支持 `bash(...)` 工具，跟 Claude Code 一样直接跑：
 
 ```bash
 python3 "$HISTORICAL_OCR_REVIEW_ROOT/skills/diff-review/scripts/md_diff.py" \
-    --raw "$WORK_DIR/raw.md" \
-    --final "$WORK_DIR/final.md" \
-    --review "$WORK_DIR/raw.review.md" \
-    --out "$WORK_DIR/audit.html"
+    --raw "$WS/raw.md" \
+    --final "$WS/final.md" \
+    --review "$WS/review/raw.review.md" \
+    --out "$WS/previews/diff-review.html"
 ```
 
 ### 5.5 CI 集成
@@ -304,7 +304,7 @@ Kimi K2（云端大脑，决策 + 校对）
 执行机（跑 Python 脚本的机器）
      │
      ▼
-work_dir/（产物落盘）
+<basename>.ocr/（产物落盘；README.md 自描述）
 ```
 
 ### 6.2 知识库上传
