@@ -200,6 +200,48 @@ If the target exists, ask. Do not overwrite. Create directories as needed.
 - Zero manufactured contradiction, zero forced consensus
 - Obsidian opens the file cleanly
 
+## Optional · Attribution-theme HTML viewer
+
+The Markdown is the durable artifact — it lives in Obsidian, it travels through time. An HTML viewer is optional: a second piece of presentation writing, not a duplicate of the Markdown. Invoke it when the map deserves a proper room — dark stage, typographic respect, lineage diagrams and coverage grids that breathe beyond Obsidian's width. Skip it otherwise. A viewer without a reason is ornament.
+
+When invoked, four rules govern.
+
+**1 · Output location** — all viewers collect in a `viewer/` folder at the **workspace parent level**. Not inside the OCR workspace, not under `analysis/`. The viewer is a final surface; it lives where surfaces live.
+
+```
+<workspace-parent>/viewer/{YYYY-MM-DD}-{stance}--{field}-{corpus}.html
+```
+
+**2 · Filename** — four slots, double-dash between metadata and identity:
+
+```
+{YYYY-MM-DD}-{一句话态度立场}--{语料场域}-{语料主题}.html
+```
+
+- `YYYY-MM-DD` — rendering date
+- `一句话态度立场` — the cartographer's stance distilled to one phrase (Chinese preferred; typically 5–10 chars). The field's one-sentence compression is often the right material for this.
+- `语料场域` — the scholarly community or field name (e.g. `伯林学界`, `新清史圈`, `概念史阵营`)
+- `语料主题` — the corpus's central debate; **you have naming authority here**. If the working title is long, compress it. The full framing lives inside the hero Chinese line. The HTML is an independent piece of writing — naming it is part of that writing.
+
+Example (joint x-ray + map viewer keyed to one paper): `2026-04-20-未证之环即真起点--刘擎-面对多元价值冲突的困境.html`
+Example (corpus-only): `2026-04-20-自由与多元共存--伯林学界-价值多元论之争.html`
+
+**3 · Hero title in uppercase, never italics** — the hero English title MUST render with `text-transform: uppercase`. No `<em>` in the hero. No `font-style: italic` on the hero title. If a word in the title needs Signal glow, wrap it in `<span class="glow">…</span>` and glow via `color + text-shadow` — luminance, not italic. Uppercase Cormorant Garamond is the aesthetic load-bearing choice; respect it.
+
+```css
+.hero-title {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 400;
+}
+.hero-title .glow {
+  color: var(--signal);
+  text-shadow: 0 0 24px rgba(240,237,230,0.18), 0 0 80px rgba(240,237,230,0.06);
+}
+```
+
+**4 · The rest is attribution-theme** — refer to the attribution-theme CSS tokens and scene vocabulary (`#08080A` ink-stone ground, `#F0EDE6` signal, Eclipse / Observatory / Star Chart scenes, one Signal per viewport). Do not invent a second visual language. The viewer is a translation of the Markdown into a different room; the room's rules are already written.
+
 ---
 
 At the foot of the file, a single line:
