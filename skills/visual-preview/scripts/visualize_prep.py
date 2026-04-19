@@ -225,42 +225,51 @@ def analyze_page(
 
 
 CSS = """
-body{margin:0;background:#f3ede3;color:#1d1c1b;
+body{margin:0;background:#1a1511;color:#ece3d5;
 font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;}
-header{position:sticky;top:0;z-index:20;background:#1d1c1b;color:#f3ede3;
-padding:14px 24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+header{position:sticky;top:0;z-index:20;background:#120e0a;color:#ece3d5;
+padding:14px 24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+border-bottom:1px solid #2a2218;}
 header h1{font-size:15px;margin:0;font-weight:500;letter-spacing:.05em;}
-header .stat{font-size:12px;padding:4px 10px;border-radius:2px;background:#2d2b29;}
-header .stat.warn{background:#4a2d26;color:#e08a72;}
-header .stat.ok{background:#2a3d2e;color:#9ec4a8;}
-header .actions{margin-left:auto;display:flex;gap:10px;}
-header button{background:#c97d5d;color:#fff;border:0;padding:6px 14px;
-border-radius:2px;cursor:pointer;font-size:13px;}
-header button:hover{background:#b86a48;}
+header .stat{font-size:12px;padding:4px 10px;border-radius:2px;
+background:#26201a;color:#c8bba9;}
+header .stat.warn{background:#4a2d1f;color:#e8b98f;}
+header .stat.ok{background:#2d3a2f;color:#9ec4a8;}
+header .hint-inline{font-size:12px;color:#a89584;margin-left:4px;}
+header .actions{margin-left:auto;display:flex;gap:10px;align-items:center;}
+header button{background:#c97d5d;color:#120e0a;border:0;padding:6px 14px;
+border-radius:2px;cursor:pointer;font-size:13px;font-weight:500;}
+header button:hover{background:#d88a6a;}
 main{padding:20px;max-width:1280px;margin:0 auto;}
-section.page{background:#fff;border:1px solid #d9cfc1;border-radius:2px;
+section.page{background:#2a2218;border:1px solid #3a2d23;border-radius:2px;
 margin-bottom:18px;overflow:hidden;}
 section.page.flag-warn{border-left:4px solid #c97d5d;}
-section.page .head{padding:10px 14px;background:#e8ddcd;font-size:12px;
-color:#6b6157;display:flex;gap:14px;align-items:center;letter-spacing:.05em;
+section.page .head{padding:10px 14px;background:#332a20;font-size:12px;
+color:#a89584;display:flex;gap:14px;align-items:center;letter-spacing:.05em;
 flex-wrap:wrap;}
-section.page .head .num{font-weight:600;color:#1d1c1b;}
+section.page .head .num{font-weight:600;color:#ece3d5;}
 section.page .head .metric{font-family:ui-monospace,monospace;font-size:11px;}
 section.page .head .switch{margin-left:auto;display:flex;gap:0;}
-section.page .head .switch button{background:#fff;border:1px solid #d9cfc1;
-padding:4px 12px;cursor:pointer;font-size:12px;color:#6b6157;border-right:0;}
-section.page .head .switch button:last-child{border-right:1px solid #d9cfc1;}
-section.page .head .switch button.active{background:#c97d5d;color:#fff;border-color:#c97d5d;}
-section.page .viewport{background:#1d1c1b;padding:14px;text-align:center;}
+section.page .head .switch button{background:#2a2218;border:1px solid #3a2d23;
+padding:4px 12px;cursor:pointer;font-size:12px;color:#a89584;border-right:0;}
+section.page .head .switch button:last-child{border-right:1px solid #3a2d23;}
+section.page .head .switch button.active{background:#c97d5d;color:#120e0a;
+border-color:#c97d5d;}
+section.page .viewport{background:#120e0a;padding:14px;text-align:center;}
 section.page .viewport img{max-width:100%;height:auto;background:#fff;
-box-shadow:0 2px 12px rgba(0,0,0,.3);}
-section.page .note{padding:8px 14px;background:#fff8ec;color:#7a5b00;
-font-size:12px;border-top:1px solid #e5dcc9;}
-.legend{background:#fff;padding:14px 18px;border:1px solid #d9cfc1;
-border-radius:2px;margin-bottom:18px;font-size:13px;color:#4b4237;line-height:1.7;}
+box-shadow:0 2px 14px rgba(0,0,0,.5);}
+section.page .note{padding:8px 14px;background:#3a2e1a;color:#e8b98f;
+font-size:12px;border-top:1px solid #2a2218;}
+.legend{background:#2a2218;padding:14px 18px;border:1px solid #3a2d23;
+border-radius:2px;margin-bottom:18px;font-size:13px;color:#ece3d5;line-height:1.75;}
+.legend b{color:#e8b98f;}
+.legend code{background:#120e0a;color:#c8bba9;padding:1px 6px;border-radius:2px;
+font-size:12px;}
 .legend .swatch{display:inline-block;width:14px;height:14px;vertical-align:middle;
-margin-right:6px;border:1px solid #d9cfc1;}
-.legend .swatch.red{background:rgba(255,0,0,.45);}
+margin-right:6px;border:1px solid #3a2d23;}
+.legend .swatch.red{background:rgba(255,80,80,.55);}
+.footer{padding:24px;text-align:center;color:#a89584;background:#120e0a;
+font-size:13px;margin-top:24px;border-top:1px solid #2a2218;}
 """
 
 
@@ -270,14 +279,14 @@ def page_flag(result: PageResult) -> tuple[str, str]:
     css = ""
     if result.cleaned_pct is not None and result.cleaned_pct > 20:
         notes.append(
-            f"清理比例 {result.cleaned_pct:.1f}% 过高——建议在差异热图里确认没有擦到正文。"
+            f"清理比 {result.cleaned_pct:.1f}%，有点多——差异图里看看红色是不是落在正文上。"
         )
         css = "flag-warn"
     if result.trimmed_pct > 15:
-        notes.append(f"裁边 {result.trimmed_pct:.1f}% 较多——确认首行正文未被切。")
+        notes.append(f"裁边 {result.trimmed_pct:.1f}%，看一下首行有没有被切掉。")
         css = "flag-warn"
     if result.diff_skipped_reason and "跳过" not in result.diff_skipped_reason:
-        notes.append(f"热图未生成：{result.diff_skipped_reason}")
+        notes.append(f"热图这页没生成：{result.diff_skipped_reason}")
     return css, " ".join(notes)
 
 
@@ -365,6 +374,7 @@ def build_html(prep: Path, results: list[PageResult]) -> str:
         f"<h1>{html.escape(prep.name)} · 清理效果预览</h1>"
         + "".join(header_stats)
         + "<div class='actions'>"
+        "<span class='hint-inline'>看看清理得怎么样，有哪页觉得过了告诉我 ☕</span>"
         "<button onclick=\"applyViewAll('original')\">全部原图</button>"
         "<button onclick=\"applyViewAll('cleaned')\">全部清理后</button>"
         "<button onclick=\"applyViewAll('diff')\">全部差异图</button>"
@@ -373,28 +383,30 @@ def build_html(prep: Path, results: list[PageResult]) -> str:
 
     legend_parts = [
         "<div class='legend'>",
-        "<b>怎么看：</b>每页三态切换。",
-        "<b>原图</b>——prep-scan 前扫描件原貌；",
-        "<b>清理后</b>——cleaned.pdf 里的样子；",
-        "<b>差异热图</b>——<span class='swatch red'></span> 半透明红色覆盖的就是被 prep-scan 擦掉或裁掉的区域。",
+        "<b>这一步做了什么：</b>把扫描原页的彩色馆藏章、水印、斜纹擦掉，"
+        "必要时顺手裁掉页眉页脚。每页三态可以切换——"
+        "<b>原图</b> 是扫描原貌，<b>清理后</b> 是进 OCR 之前的样子，"
+        "<b>差异热图</b> 里 <span class='swatch red'></span> 半透明红色就是被擦掉或裁掉的地方。",
     ]
     if warn_pages:
         legend_parts.append(
-            f"<br><br><b style='color:#a33;'>重点看：</b>第 {', '.join(map(str, warn_pages))} 页清理比例 > 20%，"
-            "建议打开「差异热图」核对红色区域是不是落在正文上。若误伤，prep-scan 加 <code>--keep-color</code> 或去掉 <code>--aggressive</code> 重跑。"
+            f"<br><br><b>这些页想让你多看一眼：</b>第 {', '.join(map(str, warn_pages))} 页清理比 > 20%。"
+            "打开「差异热图」看看红色是不是落在正文上——如果觉得擦过头了，"
+            "告诉我，我用 <code>--keep-color</code> 或去掉 <code>--aggressive</code> 再跑一次。"
         )
     if trim_warn_pages:
         legend_parts.append(
-            f"<br><b style='color:#a33;'>裁边检查：</b>第 {', '.join(map(str, trim_warn_pages))} 页裁了 > 15%，"
-            "确认首行正文没被切。"
+            f"<br><b>裁边稍多：</b>第 {', '.join(map(str, trim_warn_pages))} 页裁了 > 15%，"
+            "看一下首行有没有被切掉；如果被切了，我调宽裁边阈值重跑。"
         )
     if dirtiest:
         legend_parts.append(
-            f"<br><br><b>最脏页：</b>{', '.join(map(str, dirtiest))}（清理量最大，通常是馆藏章 / 水印最密集处）"
+            f"<br><br><b>最脏的几页：</b>{', '.join(map(str, dirtiest))}"
+            "（清理量最大的，通常是馆藏章、水印最密集的地方）"
         )
     if cleanest and cleaned_vals and min(cleaned_vals) < 1:
         legend_parts.append(
-            f"<br><b>最干净页：</b>{', '.join(map(str, cleanest))}（本来就没多少污染）"
+            f"<br><b>最干净的几页：</b>{', '.join(map(str, cleanest))}（本来就没多少污染）"
         )
     legend_parts.append("</div>")
     legend = "".join(legend_parts)
@@ -425,11 +437,17 @@ document.querySelectorAll('.switch button').forEach(function(b){
 </script>
 """
 
+    footer = (
+        "<div class='footer'>"
+        "觉得哪页清理得不对，告诉我就行，我来重跑。"
+        "</div>"
+    )
+
     return (
         "<!doctype html><html lang='zh-CN'><head><meta charset='utf-8'>"
         f"<title>{html.escape(prep.name)} · 清理预览</title>"
         f"<style>{CSS}</style></head><body>"
-        f"{head}<main>{legend}{sections}</main>{script}"
+        f"{head}<main>{legend}{sections}</main>{footer}{script}"
         "</body></html>"
     )
 

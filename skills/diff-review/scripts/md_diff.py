@@ -274,50 +274,60 @@ def judge_acceptance(
 
 
 CSS = """
-body{margin:0;background:#f3ede3;color:#1d1c1b;
+body{margin:0;background:#1a1511;color:#ece3d5;
 font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;}
-header{position:sticky;top:0;z-index:20;background:#1d1c1b;color:#f3ede3;
-padding:14px 24px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;}
+header{position:sticky;top:0;z-index:20;background:#120e0a;color:#ece3d5;
+padding:14px 24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+border-bottom:1px solid #2a2218;}
 header h1{font-size:15px;margin:0;font-weight:500;letter-spacing:.05em;}
-header .stat{font-size:13px;padding:4px 10px;border-radius:2px;background:#2d2b29;}
-header .stat.accepted{color:#7ec18f;}
-header .stat.rejected{color:#e08a72;}
-header .stat.outside{color:#e0c272;}
-header .actions{margin-left:auto;display:flex;gap:10px;}
-header button{background:#c97d5d;color:#fff;border:0;padding:6px 14px;
-border-radius:2px;cursor:pointer;font-size:13px;}
-header button:hover{background:#b86a48;}
+header .stat{font-size:12px;padding:4px 10px;border-radius:2px;
+background:#26201a;color:#c8bba9;}
+header .stat.accepted{background:#2d3a2f;color:#9ec4a8;}
+header .stat.rejected{background:#4a2018;color:#e8a898;}
+header .stat.outside{background:#4a3d1f;color:#e0c272;}
+header .hint-inline{font-size:12px;color:#a89584;margin-left:4px;}
+header .actions{margin-left:auto;display:flex;gap:10px;align-items:center;}
+header button{background:#c97d5d;color:#120e0a;border:0;padding:6px 14px;
+border-radius:2px;cursor:pointer;font-size:13px;font-weight:500;}
+header button:hover{background:#d88a6a;}
 main{padding:20px;max-width:1280px;margin:0 auto;}
-section.seg{background:#fff;border:1px solid #d9cfc1;border-radius:2px;
+section.seg{background:#2a2218;border:1px solid #3a2d23;border-radius:2px;
 margin-bottom:14px;overflow:hidden;}
-section.seg .head{padding:8px 14px;background:#e8ddcd;font-size:12px;
-color:#6b6157;display:flex;gap:12px;align-items:center;letter-spacing:.05em;}
-section.seg .head .tag{padding:2px 8px;border-radius:2px;font-weight:600;}
-.tag.equal{background:#efe8dc;color:#6b6157;}
-.tag.replace{background:#fbe5d6;color:#a3542f;}
-.tag.delete{background:#f1d1d1;color:#8a3535;}
-.tag.insert{background:#d4edda;color:#336341;}
-.tag.accepted{background:#d4edda;color:#1f4d2c;}
-.tag.rejected{background:#fbd7cd;color:#8f2b18;}
-.tag.outside{background:#fff3cd;color:#7a5b00;}
-.tag.unanchored{background:#ececec;color:#555;}
+section.seg .head{padding:8px 14px;background:#332a20;font-size:12px;
+color:#a89584;display:flex;gap:12px;align-items:center;letter-spacing:.05em;
+flex-wrap:wrap;}
+section.seg .head .tag{padding:2px 8px;border-radius:2px;font-weight:600;font-size:11px;}
+.tag.equal{background:#2d2822;color:#8a7d6c;}
+.tag.replace{background:#4a2d1f;color:#e8b98f;}
+.tag.delete{background:#4a2018;color:#e8a898;}
+.tag.insert{background:#2d3a2f;color:#9ec4a8;}
+.tag.accepted{background:#2d3a2f;color:#9ec4a8;}
+.tag.rejected{background:#4a2018;color:#e8a898;}
+.tag.outside{background:#4a3d1f;color:#e0c272;}
+.tag.unanchored{background:#2d2822;color:#8a7d6c;}
 section.seg .body{display:grid;grid-template-columns:1fr 1fr;gap:0;
-border-top:1px solid #d9cfc1;}
-section.seg .col{padding:14px 18px;font-family:"Songti SC","Source Han Serif SC",Georgia,serif;
-font-size:14px;line-height:1.9;white-space:pre-wrap;word-break:break-word;}
-section.seg .col.raw{border-right:1px solid #d9cfc1;background:#fcfaf6;}
-section.seg .col.final{background:#fff;}
+border-top:1px solid #3a2d23;}
+section.seg .col{padding:14px 18px;
+font-family:"Songti SC","Source Han Serif SC",Georgia,serif;
+font-size:14px;line-height:1.9;white-space:pre-wrap;word-break:break-word;
+color:#ece3d5;}
+section.seg .col.raw{border-right:1px solid #3a2d23;background:#1e1712;}
+section.seg .col.final{background:#2a2218;}
 section.seg .col .linehint{font-family:ui-monospace,monospace;font-size:11px;
-color:#a89d8f;margin-bottom:6px;letter-spacing:.05em;}
-del{background:#fbe5d6;color:#a33;text-decoration:line-through;}
-ins{background:#d4edda;color:#161;text-decoration:none;}
-section.seg .annotations{padding:10px 14px;background:#f6f1e6;
-border-top:1px solid #e5dcc9;font-size:13px;color:#4b4237;line-height:1.7;}
+color:#8a7d6c;margin-bottom:6px;letter-spacing:.05em;}
+del{background:#4a2018;color:#e8a898;text-decoration:line-through;
+padding:0 2px;border-radius:2px;}
+ins{background:#2d3a2f;color:#9ec4a8;text-decoration:none;
+padding:0 2px;border-radius:2px;}
+section.seg .annotations{padding:10px 14px;background:#221b14;
+border-top:1px solid #3a2d23;font-size:13px;color:#c8bba9;line-height:1.7;}
 section.seg .annotations .item{margin:4px 0;}
-section.seg .annotations .item .id{font-weight:600;color:#c97d5d;margin-right:6px;}
-section.seg .annotations .item .reason{color:#6b6157;font-size:12px;margin-left:8px;}
+section.seg .annotations .item .id{font-weight:600;color:#e8b98f;margin-right:6px;}
+section.seg .annotations .item .reason{color:#8a7d6c;font-size:12px;margin-left:8px;}
 section.seg.collapsed .body,section.seg.collapsed .annotations{display:none;}
 section.seg.collapsed .head{cursor:pointer;}
+.footer{padding:24px;text-align:center;color:#a89584;background:#120e0a;
+font-size:13px;margin-top:24px;border-top:1px solid #2a2218;}
 """
 
 
@@ -405,9 +415,9 @@ def render_segment(
         final_col = "\n\n".join(final_pieces)
     elif tag == "delete":
         raw_col = "".join(f"<del>{html.escape(p.text)}</del>" for p in raw_block)
-        final_col = "<span style='color:#a89d8f;font-style:italic;'>（此段在 final 中已删除）</span>"
+        final_col = "<span style='color:#8a7d6c;'>（这段在 final 里删掉了）</span>"
     elif tag == "insert":
-        raw_col = "<span style='color:#a89d8f;font-style:italic;'>（此段为 final 新增）</span>"
+        raw_col = "<span style='color:#8a7d6c;'>（这段是 final 新加的）</span>"
         final_col = "".join(f"<ins>{html.escape(p.text)}</ins>" for p in final_block)
 
     # Annotation list
@@ -416,8 +426,8 @@ def render_segment(
         items = []
         for a in annotations:
             status_label = {
-                "accepted": ("accepted", "接受"),
-                "rejected_or_missed": ("rejected", "漏改或拒绝"),
+                "accepted": ("accepted", "已接受"),
+                "rejected_or_missed": ("rejected", "漏改"),
                 "outside_fix": ("outside", "清单外"),
                 "unanchored": ("unanchored", "未锚定"),
             }.get(a.status, ("unanchored", a.status))
@@ -515,13 +525,14 @@ def build_html(
     title = f"{raw_path.stem} vs {final_path.stem}"
     head = (
         f"<header>"
-        f"<h1>{html.escape(title)} · Diff Review</h1>"
+        f"<h1>{html.escape(title)} · 自审对照</h1>"
         f"<span class='stat'>改动 {changed}/{total} 段</span>"
         f"<span class='stat accepted'>接受 {accepted}</span>"
-        f"<span class='stat rejected'>漏改/拒绝 {rejected}</span>"
+        f"<span class='stat rejected'>漏改 {rejected}</span>"
         f"<span class='stat outside'>清单外 {outside_fix}</span>"
         f"<span class='stat'>未锚 {unanchored}</span>"
         f"<div class='actions'>"
+        f"<span class='hint-inline'>把每处改动和清单条目对过了，你重点看漏改和清单外就够 ☕</span>"
         f"<button onclick=\"document.querySelectorAll('section.seg.collapsed').forEach(s=>s.classList.remove('collapsed'))\">展开全部</button>"
         f"</div>"
         f"</header>"
@@ -535,13 +546,20 @@ def build_html(
         "</script>"
     )
 
+    page_footer = (
+        "<div class='footer'>"
+        "有想讨论的条目告诉我就行，我保留了所有中间产物可以回溯。"
+        "</div>"
+    )
+
     return (
         "<!doctype html><html lang='zh-CN'><head><meta charset='utf-8'>"
-        f"<title>{html.escape(title)} · Diff Review</title>"
+        f"<title>{html.escape(title)} · 自审对照</title>"
         f"<style>{CSS}</style>"
         "</head><body>"
         f"{head}"
         f"<main>{''.join(body_sections)}{footer_html}</main>"
+        f"{page_footer}"
         f"{script}"
         "</body></html>"
     )

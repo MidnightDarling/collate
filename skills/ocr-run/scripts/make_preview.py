@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import os
 import re
 import sys
@@ -103,18 +104,51 @@ def count_source_pages(pages_dir: Path) -> int:
         return 0
 
 
-def build_html(pages: list[tuple[int, str]], pages_rel: str, title: str) -> str:
+def load_meta(markdown_path: Path) -> dict:
+    """Read meta.json sitting next to raw.md if it exists. Missing fields are OK."""
+    meta_path = markdown_path.parent / "meta.json"
+    if not meta_path.is_file():
+        return {}
+    try:
+        return json.loads(meta_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def engine_label(engine: str) -> str:
+    return {
+        "mineru": "MinerU（本地）",
+        "mineru-desktop": "MinerU（桌面版）",
+        "mineru-cloud": "MinerU（云 API）",
+        "baidu": "百度 OCR",
+    }.get(engine, engine or "未知引擎")
+
+
+def build_html(
+    pages: list[tuple[int, str]],
+    pages_rel: str,
+    title: str,
+    meta: dict,
+    has_page_markers: bool,
+) -> str:
+    low_conf = set(int(n) for n in meta.get("low_confidence_pages") or [])
     rows = []
     pages_rel = pages_rel.rstrip("/")  # always forward-slash join below
     for page_num, text in pages:
         img_name = f"page_{page_num:03d}.png"
         img_src = f"{pages_rel}/{img_name}" if pages_rel else img_name
         escaped = html.escape(text)
+        flag = ' data-low-conf="1"' if page_num in low_conf else ""
+        flag_badge = (
+            '<span class="flag">这页请多留意</span>'
+            if page_num in low_conf
+            else ""
+        )
         rows.append(
             f"""
-<section class="pair" data-page="{page_num}">
+<section class="pair"{flag} data-page="{page_num}">
   <div class="col left">
-    <div class="page-label">第 {page_num} 页</div>
+    <div class="page-label">第 {page_num} 页{flag_badge}</div>
     <img src="{img_src}" alt="page {page_num}" loading="lazy">
   </div>
   <div class="col right">
@@ -127,49 +161,83 @@ def build_html(pages: list[tuple[int, str]], pages_rel: str, title: str) -> str:
 </section>
 """
         )
-
     joined = "\n".join(rows)
+
+    # Header stats — only show fields that are present in meta.
+    stats: list[str] = []
+    engine = meta.get("engine")
+    if engine:
+        stats.append(f'<span class="stat">引擎 {html.escape(engine_label(engine))}</span>')
+    stats.append(f'<span class="stat">{len(pages)} 页</span>')
+    dur = meta.get("duration_seconds")
+    if isinstance(dur, (int, float)) and dur > 0:
+        stats.append(f'<span class="stat">用时 {dur:.1f} 秒</span>')
+    if low_conf:
+        pages_str = "、".join(f"第 {n} 页" for n in sorted(low_conf))
+        stats.append(f'<span class="stat warn">低置信 {html.escape(pages_str)}</span>')
+    align_note = (
+        "按页标记精准分页"
+        if has_page_markers
+        else "文本按段落估算分页"
+    )
+    stats.append(f'<span class="stat">{html.escape(align_note)}</span>')
+    stats_html = "".join(stats)
+
     return (
         "<!doctype html><html lang=\"zh-CN\"><head>"
         "<meta charset=\"utf-8\">"
         f"<title>{html.escape(title)} · 校对预览</title>"
         "<style>"
         "body{font-family:-apple-system,\"PingFang SC\",\"Helvetica Neue\",sans-serif;"
-        "margin:0;background:#f3ede3;color:#1d1c1b;}"
-        "header{position:sticky;top:0;background:#1d1c1b;color:#f3ede3;"
-        "padding:12px 24px;z-index:10;display:flex;gap:16px;align-items:center;}"
-        "header h1{font-size:16px;margin:0;font-weight:500;letter-spacing:.05em;}"
-        "header .actions{margin-left:auto;}"
+        "margin:0;background:#1a1511;color:#ece3d5;}"
+        "header{position:sticky;top:0;background:#120e0a;color:#ece3d5;"
+        "padding:14px 24px;z-index:10;display:flex;gap:12px;align-items:center;"
+        "flex-wrap:wrap;border-bottom:1px solid #2a2218;}"
+        "header h1{font-size:15px;margin:0;font-weight:500;letter-spacing:.05em;color:#ece3d5;}"
+        "header .stat{font-size:12px;padding:4px 10px;border-radius:2px;"
+        "background:#26201a;color:#c8bba9;letter-spacing:.03em;}"
+        "header .stat.warn{background:#4a2d1f;color:#e8b98f;}"
+        "header .actions{margin-left:auto;display:flex;gap:12px;align-items:center;}"
         "header button{background:#c97d5d;color:#fff;border:0;padding:8px 18px;"
-        "border-radius:2px;cursor:pointer;font-size:14px;}"
+        "border-radius:2px;cursor:pointer;font-size:14px;letter-spacing:.02em;}"
         "header button:hover{background:#b86a48;}"
-        "header .hint-inline{font-size:12px;color:#d9cfc1;margin-right:16px;}"
+        "header .hint-inline{font-size:12px;color:#a89584;}"
         ".pair{display:grid;grid-template-columns:1fr 1fr;gap:24px;"
-        "padding:24px;border-bottom:1px solid #d9cfc1;}"
-        ".col{background:#fff;border:1px solid #d9cfc1;border-radius:2px;overflow:hidden;}"
-        ".col img{width:100%;display:block;}"
-        ".page-label{padding:10px 14px;background:#e8ddcd;font-size:12px;"
-        "letter-spacing:.2em;color:#6b6157;}"
+        "padding:24px;border-bottom:1px solid #2a2218;align-items:start;}"
+        ".pair[data-low-conf=\"1\"]{background:#211810;}"
+        ".col{background:#2a2218;border:1px solid #3a2d23;border-radius:2px;"
+        "overflow:hidden;}"
+        ".col.left{position:sticky;top:76px;max-height:calc(100vh - 100px);"
+        "display:flex;flex-direction:column;}"
+        ".col.left .page-label{flex-shrink:0;}"
+        ".col.left img{flex:1;min-height:0;width:100%;object-fit:contain;"
+        "background:#1a1511;display:block;}"
+        ".col.right img{width:100%;display:block;}"
+        ".page-label{padding:10px 14px;background:#332a20;font-size:12px;"
+        "letter-spacing:.2em;color:#a89584;display:flex;gap:12px;align-items:center;}"
+        ".page-label .flag{font-size:11px;letter-spacing:.08em;padding:2px 8px;"
+        "background:#4a2d1f;color:#e8b98f;border-radius:2px;}"
         ".toolbar{display:flex;align-items:center;padding:10px 14px;"
-        "background:#e8ddcd;font-size:12px;color:#6b6157;}"
-        ".toolbar .hint{margin-left:auto;font-style:italic;}"
+        "background:#332a20;font-size:12px;color:#a89584;letter-spacing:.05em;}"
+        ".toolbar .hint{margin-left:auto;color:#8a7d6c;}"
         ".editable{margin:0;padding:20px;white-space:pre-wrap;"
-        "font-family:\"Songti SC\",\"Source Han Serif SC\",Georgia,serif;"
-        "font-size:15px;line-height:1.9;min-height:200px;outline:none;}"
-        ".editable:focus{background:#fff8ec;}"
-        ".footer{padding:40px;text-align:center;color:#6b6157;font-size:13px;}"
+        "font-family:\"Songti SC\",\"Source Han Serif SC\",\"Noto Serif SC\",Georgia,serif;"
+        "font-size:15px;line-height:1.95;min-height:200px;outline:none;color:#ece3d5;"
+        "caret-color:#e8b98f;}"
+        ".editable:focus{background:#342a20;}"
+        ".footer{padding:40px;color:#a89584;font-size:14px;line-height:1.8;"
+        "text-align:center;border-top:1px solid #2a2218;background:#120e0a;}"
         "</style></head><body>"
         "<header>"
         f"<h1>{html.escape(title)} — 校对预览</h1>"
+        f"{stats_html}"
         "<div class=\"actions\">"
-        "<span class=\"hint-inline\">改完点按钮下载 corrected.md，然后回 Claude Code 说「改完了」</span>"
+        "<span class=\"hint-inline\">你可以直接下载，或者告诉我你的其他需求 ☕</span>"
         "<button onclick=\"saveAll()\">下载修改后的 Markdown</button>"
         "</div></header>"
         + joined
         + "<div class=\"footer\">"
-        "浏览器不能直接写磁盘，所以按钮只能把右栏文字打包成 <code>corrected.md</code> 下载到你的下载目录。"
-        "<br>你不用自己搬文件——下载完回到 Claude Code 说「改完了」或「应用修改」，"
-        "Agent 会自动备份 <code>raw.md</code> 并把 <code>corrected.md</code> 替换上去，然后进入 proofread。"
+        "你不用自己搬文档，下载完了告诉我，我来处理。"
         "</div>"
         "<script>"
         "function saveAll(){"
@@ -205,6 +273,8 @@ def main() -> int:
     text = args.markdown.read_text(encoding="utf-8")
     total_pages = count_source_pages(args.pages_dir)
     pages = split_by_page(text, total_pages if total_pages > 0 else 1)
+    has_page_markers = bool(PAGE_MARKER.search(text))
+    meta = load_meta(args.markdown)
 
     # Use os.path.relpath so the HTML stays portable even when the output
     # directory is a sibling of the pages directory (needs `..`). We
@@ -216,7 +286,9 @@ def main() -> int:
         rel = args.pages_dir.resolve().as_posix()
     rel_url = rel.replace(os.sep, "/")
 
-    html_str = build_html(pages, rel_url, args.title or args.markdown.stem)
+    html_str = build_html(
+        pages, rel_url, args.title or args.markdown.stem, meta, has_page_markers
+    )
     args.out.write_text(html_str, encoding="utf-8")
     print(
         f"[make_preview] {len(pages)} pages "
