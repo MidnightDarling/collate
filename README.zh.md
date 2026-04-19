@@ -64,7 +64,7 @@ Human: final.docx + final.mp.html + 审计日志
 4. **ocr-run** — 默认走本地 MinerU CLI（`mineru[pipeline]`）；`OCR_ENGINE=baidu` 切换百度 OCR；`OCR_ENGINE=mineru-cloud` 走 MinerU 云 API（兼容保留）。产出：`raw.md` + 原件/识别并排 HTML + `meta.json`（引擎、用时、低置信页）。
 5. **proofread** — `historical-proofreader` agent 强制五步清单：结构健全性 → 字形扫描（按类型 reference grep）→ 规范扫描（标点、引号、DOI）→ 跨段一致性 → 专名核查。产出 `raw.review.md`，条目按 A（OCR 错）/ B（学术规范）/ C（存疑待考）分级，附行号、原文片段、建议、依据；末尾附执行自证表。
 6. **diff-review** — agent 自审闸门：对比 `raw.md` 与修改后的 `final.md`，生成段落级 HTML 报告，把每处改动与 `raw.review.md` 四态对应——采纳 / 漏改 / 清单外修正 / 未锚定改动。
-7. **to-docx** — python-docx Word 产出。统一规范：思源宋体 SC 正文 12pt、1.5 倍行距、上下左右全部 2 cm 页边距、段首缩进 2 字符、脚注连续编号。
+7. **to-docx** — python-docx Word 产出。统一规范：思源宋体 SC 正文 12pt、1.2 倍行距、字间距 0.2 pt、上下左右全部 2 cm 页边距、段首缩进 2 字符、脚注连续编号。
 8. **mp-format** — 公众号 HTML，全内联 CSS（公众号剥离外链样式表）；OpenCC t2s 繁简转换保留 blockquote（`>`）原貌；脚注集中文末；作者 / 来源卡片。同时输出 xiumi 兼容 Markdown 附件。
 
 ## 接入

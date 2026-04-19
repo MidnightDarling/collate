@@ -6,7 +6,8 @@
 # 规范要点：
 #   - 页边距上下左右全部 2 cm
 #   - 正文思源宋体（Source Han Serif SC）12 pt
-#   - 行距 1.5
+#   - 行距 1.2
+#   - 字间距 0.2 pt
 #   - 段首缩进 2 字
 #   - 标题思源宋体加粗
 
@@ -22,9 +23,9 @@ page:
 body:
   font: "Source Han Serif SC"   # 思源宋体 SC
   size: 12                      # pt
-  line_spacing: 1.5             # multiple
+  line_spacing: 1.2             # multiple
   first_line_indent_chars: 2    # 段首缩进 2 字符
-  character_spacing_pt: 0.0
+  character_spacing_pt: 0.2     # pt
 
 heading:
   font: "Source Han Serif SC"   # 思源宋体（加粗代替黑体）

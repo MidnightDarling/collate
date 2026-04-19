@@ -259,7 +259,8 @@ python skills/to-docx/scripts/md_to_docx.py \
 **规范**（由 Alice 定义，单一统一规范，全部输出一致）：
 
 - 正文思源宋体 SC 12pt
-- 行距 1.5
+- 行距 1.2
+- 字间距 0.2 pt
 - 段首缩进 2 字符
 - 页边距上下左右全部 2 cm
 - 脚注连续编号

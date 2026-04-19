@@ -3,7 +3,8 @@
 
 Default spec (defined in assets/presets/default.yaml):
   - 2 cm margins on all four sides
-  - Source Han Serif SC (思源宋体) body, 12 pt, 1.5 line spacing
+  - Source Han Serif SC (思源宋体) body, 12 pt, 1.2 line spacing
+  - 0.2 pt character spacing
   - 2-character first-line indent
 
 Markdown features supported:
@@ -54,8 +55,8 @@ TEMPLATES = {
         "margin_bottom": 2.0,
         "margin_left": 2.0,
         "margin_right": 2.0,
-        "line_spacing": 1.5,
-        "character_spacing_pt": 0.0,
+        "line_spacing": 1.2,
+        "character_spacing_pt": 0.2,
         "image_max_width_cm": 14.0,
         "image_max_file_kb": 800,
     },
@@ -90,9 +91,9 @@ def _flatten_yaml_preset(data: dict) -> dict:
         "margin_bottom": float(page.get("margin_bottom", 2.0)),
         "margin_left": float(page.get("margin_left", 2.0)),
         "margin_right": float(page.get("margin_right", 2.0)),
-        "line_spacing": float(body.get("line_spacing", 1.5)),
+        "line_spacing": float(body.get("line_spacing", 1.2)),
         "first_line_indent_chars": int(body.get("first_line_indent_chars", 2)),
-        "character_spacing_pt": float(body.get("character_spacing_pt", 0.0)),
+        "character_spacing_pt": float(body.get("character_spacing_pt", 0.2)),
         "image_max_width_cm": float(image.get("max_width_cm", 14.0)),
         "image_max_file_kb": int(image.get("max_file_kb", 800)),
     }
@@ -179,13 +180,12 @@ def set_cn_font(run, font_name: str, size_pt: int, char_spacing_pt: float = 0.0)
 
 
 def set_paragraph_indent(paragraph, first_line_chars: int, size_pt: int,
-                         line_spacing: float = 1.5) -> None:
+                         line_spacing: float = 1.2) -> None:
     pf = paragraph.paragraph_format
     pf.first_line_indent = Pt(first_line_chars * size_pt)
     # `line_spacing` float + rule=MULTIPLE makes python-docx write the
-    # MS Word equivalent of "multiple, 1.2". WD_LINE_SPACING.ONE_POINT_FIVE
-    # is a pre-baked alias for the 1.5 case; using the float form covers
-    # arbitrary values (e.g. 1.2) that the user prefers for dense review reads.
+    # MS Word equivalent of "multiple, 1.2". The float form covers any
+    # value the preset specifies.
     pf.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
     pf.line_spacing = line_spacing
 
@@ -236,8 +236,8 @@ def parse_inline(text: str) -> list[tuple[str, str]]:
 def add_rich_paragraph(doc, text: str, tpl: dict, footnotes: dict[str, str]) -> None:
     p = doc.add_paragraph()
     set_paragraph_indent(p, 2, tpl["body_size"],
-                         line_spacing=tpl.get("line_spacing", 1.5))
-    cs = tpl.get("character_spacing_pt", 0.0)
+                         line_spacing=tpl.get("line_spacing", 1.2))
+    cs = tpl.get("character_spacing_pt", 0.2)
     for kind, chunk in parse_inline(text):
         if kind == "footnote":
             fn_text = footnotes.get(chunk, "")
@@ -273,9 +273,9 @@ def add_heading(doc, text: str, level: int, tpl: dict) -> None:
     size = {1: 16, 2: 14, 3: 13}.get(level, 12)
     run = p.add_run(text)
     run.bold = True
-    set_cn_font(run, tpl["heading_font"], size, tpl.get("character_spacing_pt", 0.0))
+    set_cn_font(run, tpl["heading_font"], size, tpl.get("character_spacing_pt", 0.2))
     p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
-    p.paragraph_format.line_spacing = tpl.get("line_spacing", 1.5)
+    p.paragraph_format.line_spacing = tpl.get("line_spacing", 1.2)
     p.paragraph_format.space_before = Pt(12)
     p.paragraph_format.space_after = Pt(6)
 
@@ -285,10 +285,10 @@ def add_quote(doc, text: str, tpl: dict) -> None:
     p.paragraph_format.left_indent = Pt(tpl["body_size"] * 2)
     p.paragraph_format.right_indent = Pt(tpl["body_size"] * 2)
     p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
-    p.paragraph_format.line_spacing = tpl.get("line_spacing", 1.5)
+    p.paragraph_format.line_spacing = tpl.get("line_spacing", 1.2)
     run = p.add_run(text)
     set_cn_font(run, tpl["body_font"], tpl["body_size"] - 1,
-                tpl.get("character_spacing_pt", 0.0))
+                tpl.get("character_spacing_pt", 0.2))
     run.italic = False
 
 
@@ -437,9 +437,11 @@ def render(md_path: Path, out_path: Path, template: str, title_from_h1: bool) ->
             p = doc.add_paragraph()
             p.paragraph_format.left_indent = Pt(tpl["body_size"] * 2)
             p.paragraph_format.first_line_indent = Pt(-tpl["body_size"] * 2)
-            p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.ONE_POINT_FIVE
+            p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+            p.paragraph_format.line_spacing = tpl.get("line_spacing", 1.2)
             run = p.add_run(line)
-            set_cn_font(run, tpl["body_font"], tpl["body_size"])
+            set_cn_font(run, tpl["body_font"], tpl["body_size"],
+                        tpl.get("character_spacing_pt", 0.2))
             continue
 
         add_rich_paragraph(doc, line, tpl, footnotes)
