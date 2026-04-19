@@ -21,7 +21,7 @@ A toolkit for **agent runtimes**, not an end-user application. A human supplies 
 
 Beyond the pipeline, the toolkit provides a **reading layer** — skills and commands that read the OCR output as scholarship rather than as data: x-ray a single paper, map a corpus, audit citations, read the silences, define a concept, excavate the hidden thesis. The pipeline makes text readable; the reading layer reads it.
 
-Any agent architecture that can execute Python scripts and read structured text knowledge bases can use it: Claude Code, Cursor, Codex CLI, Kimi K2, MiniMax Agent, Gemini CLI, and others.
+Any agent architecture that can execute Python scripts and read structured text knowledge bases can use it: Claude Code, Cursor, Codex CLI, Gemini CLI, OpenCode, Hermes agents, Kimi / MiniMax agents, and others.
 
 The name Collate renders 点校, the classical Chinese scholarly term for punctuating and collating received texts — the millennia-old practice this toolkit extends with contemporary OCR and agent tooling.
 
@@ -111,14 +111,21 @@ Each lens reads differently: `chunqiu` reads silences, `kaozheng` verifies warra
 
 ## Integration
 
-See [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) for per-runtime setup. Overview:
+See [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) for per-runtime setup. Two shortcuts first:
 
 - **One-command mechanical path**: `python3 scripts/run_full_pipeline.py --pdf <input.pdf>`
 - **One-shot agent path**: `agents/ocr-pipeline-operator.md` + `agents/historical-proofreader.md`
-- **Claude Code**: `/plugin install <path>`; skills auto-discovered.
-- **Cursor / Codex CLI**: call `skills/*/scripts/*.py` directly; include `SKILL.md` and `references/` as model context.
-- **Kimi K2 / MiniMax Agent**: upload `agents/historical-proofreader.md` as system prompt; run Python scripts locally; pipe intermediates back into the dialog.
-- **Gemini CLI**: same as Cursor.
+
+Per-runtime install. Runtimes that auto-discover `AGENTS.md` are zero-config; the rest need a short rule file or wrapper manifest.
+
+- **Claude Code** — `/plugin install /path/to/collate`. Native `.claude-plugin/plugin.json` shipped; skills register as `/collate:<skill>`.
+- **OpenCode** — `cd /path/to/collate && opencode`. Native: `AGENTS.md` is auto-loaded (with `CLAUDE.md` as fallback). Skills can live in `.opencode/skills/` or reuse `~/.claude/skills/` via OpenCode's Claude Code compatibility layer.
+- **Hermes agents** — `cd /path/to/collate && hermes`. Native: `AGENTS.md` and `.hermes.md` are auto-loaded; skills copied to `~/.hermes/skills/`. Existing OpenClaw setups can switch over with `hermes claw migrate --workspace-target /path/to/collate`.
+- **Codex CLI** — `cd /path/to/collate && codex`. Codex walks up from CWD to the Git root and auto-loads `AGENTS.md`. Custom subagents go in `.codex/agents/*.toml`.
+- **Cursor** — write `.cursor/rules/collate.mdc` with frontmatter `alwaysApply: true` and the line `See AGENTS.md for the full agent contract.`; call `skills/*/scripts/*.py` via Cursor's shell tool. Legacy `.cursorrules` also still works.
+- **Gemini CLI** — clone the repo and load `AGENTS.md` as session context; invoke `skills/*/scripts/*.py` via the shell tool. A native `gemini-extension.json` wrapper (with `contextFileName: "AGENTS.md"`) that unlocks `gemini extensions install /path/to/collate` is on the roadmap.
+- **OpenClaw** — a native wrapper (`openclaw.plugin.json` + TypeScript entry, published to ClawHub or npm so `openclaw plugins install @collate/openclaw` just works) is on the roadmap. Existing OpenClaw users can migrate configs, skills, and `AGENTS.md` to Hermes via `hermes claw migrate` and use the Hermes integration above.
+- **Kimi / MiniMax agents** — upload `agents/historical-proofreader.md` as system prompt; run the Python scripts on an execution host (local or CI) and pipe intermediates back into the dialog.
 
 ## Dependencies
 

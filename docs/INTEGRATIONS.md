@@ -29,13 +29,16 @@ status: stable
 | Runtime | SKILL.md 自动装载 | Subagent 原生机制 | 环境变量注入 | 插件分发 | 推荐用法 |
 |---------|----------------|----------------|-----------|--------|-------|
 | Claude Code | ✓（`${CLAUDE_PLUGIN_ROOT}`） | Task tool | `~/.env` via hooks | claude-code-marketplace | 原生，零额外配置 |
+| OpenCode | ✓（原生 `AGENTS.md` + `skills/`） | 内置 spawn | 项目 `.env` + shell | git clone | 零配置，推荐 |
+| Hermes agents | ✓（原生 `AGENTS.md` + `skills/`） | `/spawn <agent.md>` | `~/.env` + 仓库 `.env` | git clone | 零配置，推荐 |
 | Cursor | 手动 `Read` | 独立 chat tab | 项目 `.env` | git clone | 需要 agent 会主动读 SKILL.md |
 | Codex CLI | 手动 `Read` | 新会话 + `-f <agent.md>` | shell `export` | git clone | 脚本可编排、适合 CI |
-| Kimi K2 | 上传为 knowledge base | file-api + 子会话 | API 请求头 | 知识库文件集 | 主对话 + 知识库模式 |
-| MiniMax | 上传为 knowledge base | sub-session API | API 请求头 | 知识库文件集 | 同 Kimi |
 | Gemini CLI | 手动 `Read` | 新 chat session | shell `export` | git clone | 同 Cursor |
+| OpenClaw | 需 `openclaw.plugin.json`（路线图） | 插件 hook | `openclaw config` | `openclaw plugins install <path>` | 仅消息自动化场景 |
+| Kimi | 上传为 knowledge base | file-api + 子会话 | API 请求头 | 知识库文件集 | 主对话 + 知识库模式 |
+| MiniMax | 上传为 knowledge base | sub-session API | API 请求头 | 知识库文件集 | 同 Kimi |
 
-**核心差异**：前四类（Claude Code / Cursor / Codex CLI / Gemini CLI）是本地 agent，可直接跑 Python 脚本；后两类（Kimi K2 / MiniMax）是云端 agent，需要本地有一台「执行机」代跑 shell，云端 agent 只做决策和校对。
+**核心差异**：**本地 agent**（Claude Code / OpenCode / Hermes agents / Cursor / Codex CLI / Gemini CLI / OpenClaw）可直接跑 Python 脚本；其中 Claude Code、OpenCode、Hermes agents 原生识别 `AGENTS.md` 与 `skills/`，其余需要手动把 `AGENTS.md` 放入 agent 上下文。**云端 agent**（Kimi / MiniMax）需要本地有一台「执行机」代跑 shell，云端 agent 只做决策和校对。
 
 ---
 
@@ -293,16 +296,16 @@ Codex CLI 适合在 GitHub Actions 里跑自动化 pipeline：
 
 ---
 
-## 6. Kimi K2
+## 6. Kimi
 
 **定位**：Moonshot 的云端 agent，上下文窗口大（200K+），适合长论文整篇上下文评审。
 
 ### 6.1 准备
 
-Kimi K2 不能直接跑本地 Python 脚本，需要一台「执行机」——本地开发机、云服务器或者 GitHub Actions runner。架构：
+Kimi 不能直接跑本地 Python 脚本，需要一台「执行机」——本地开发机、云服务器或者 GitHub Actions runner。架构：
 
 ```
-Kimi K2（云端大脑，决策 + 校对）
+Kimi（云端大脑，决策 + 校对）
      │
      │  HTTP / SSH 调度
      ▼
@@ -362,7 +365,7 @@ https://executor.example.com/run 让执行机代跑。请求格式：
 
 ### 6.4 Subagent 调度
 
-Kimi K2 的 Moonshot Assistant API 支持 `create_sub_run`，可以起一个子对话，system prompt 独立。核心逻辑：
+Kimi 的 Moonshot Assistant API 支持 `create_sub_run`，可以起一个子对话，system prompt 独立。核心逻辑：
 
 ```python
 # 执行机侧的 /subagent handler
@@ -379,13 +382,13 @@ def subagent_handler(req):
 
 ### 6.5 失败处理
 
-Kimi K2 的失败（API rate limit / 网络 / 上下文超长）要显式回传：执行机返回 HTTP 5xx + 结构化 body，主 agent 读到后按 [AGENTS.md#失败处理](../AGENTS.md) 的格式上报给人类。**不要** 让主 agent 静默重试超过两次。
+Kimi 的失败（API rate limit / 网络 / 上下文超长）要显式回传：执行机返回 HTTP 5xx + 结构化 body，主 agent 读到后按 [AGENTS.md#失败处理](../AGENTS.md) 的格式上报给人类。**不要** 让主 agent 静默重试超过两次。
 
 ---
 
 ## 7. MiniMax
 
-**定位**：同 Kimi K2，云端 agent 架构。MiniMax 的 `abab-chat` + Assistants SDK 适合中文密集型任务。
+**定位**：同 Kimi，云端 agent 架构。MiniMax 的 `abab-chat` + Assistants SDK 适合中文密集型任务。
 
 ### 7.1 准备
 
@@ -440,49 +443,226 @@ for event in minimax.runs.stream(run_id=main_run.id):
 
 ## 8. Gemini CLI
 
-**定位**：Google 的命令行 agent，上下文窗口 1M+，适合整本书级别的 PDF。
+**定位**：Google 的命令行 agent，上下文窗口 1M+，适合整本书级别的 PDF。扩展模型基于 `gemini-extension.json` + MCP server + 自定义命令（TOML）。
 
 ### 8.1 安装
+
+**当前（fallback，手动加载 AGENTS.md）**：
 
 ```bash
 git clone <repo-url> ~/dev/collate
 export COLLATE_ROOT=~/dev/collate
+gemini    # 交互式 CLI；首轮粘贴 AGENTS.md 作为上下文
 ```
 
-Gemini CLI 的 `settings.json` 里登记 system prompt 与工具：
+Gemini CLI 的用户配置在 `~/.gemini/settings.json`，可以在此登记 MCP server 与工具允许列表。扩展位于 `~/.gemini/extensions/<name>/`，根目录必须有 `gemini-extension.json`。
 
-```json
-{
-  "system_prompt_file": "~/dev/collate/AGENTS.md",
-  "tools": ["bash", "read", "write", "edit"],
-  "env_file": "~/.env"
-}
+**路线图（native extension）**：collate 仓库将补一份 `gemini-extension.json`，`contextFileName` 指向 `AGENTS.md`，并把八个 skill 拆成 `commands/` 下的 TOML，让：
+
+```bash
+gemini extensions install /path/to/collate
+# 或
+gemini extensions install https://github.com/MidnightDarling/collate
 ```
+
+一键生效。
 
 ### 8.2 环境变量
 
-Gemini CLI 支持 `env_file`，直接读 `~/.env`，与 Claude Code 行为一致。
+读 `~/.env`：
+
+```bash
+set -a; source ~/.env; set +a
+gemini
+```
+
+或用 `hermes config set`-style 的 `gemini config` 命令管理 secret。
 
 ### 8.3 Subagent 调度
 
-Gemini CLI 的 `gemini chat --session <new>` 起独立会话，用这个模拟 subagent：
+Gemini CLI 未提供 Claude Code 的 Task tool。等效模式：
 
-```bash
-gemini chat --session proofread \
-  --system "$COLLATE_ROOT/agents/historical-proofreader.md" \
-  --attach "$WORK_DIR/ocr/raw.md" \
-  --attach "$COLLATE_ROOT/skills/proofread/references/modern-chinese.md" \
-  --prompt "type=modern, 请按五步 checklist 校对 raw.md" \
-  > "$WORK_DIR/raw.review.md"
-```
+1. **主会话**：执行 pipeline 编排，碰到需要 proofread 时调 shell：
+   ```bash
+   gemini chat --non-interactive \
+     --prompt-file "$COLLATE_ROOT/agents/historical-proofreader.md" \
+     --context "$WORK_DIR/ocr/raw.md" \
+     --context "$COLLATE_ROOT/skills/proofread/references/modern-chinese.md" \
+     > "$WORK_DIR/review/raw.review.md"
+   ```
+2. 主会话读回 `raw.review.md` 继续。
+
+（注：`--non-interactive` 与 `--prompt-file` 均为 Gemini CLI 0.4+ 支持；低版本需手动起一个新的 `gemini` 交互会话并粘贴 agent.md 正文。）
 
 ### 8.4 脚本执行
 
-同 Claude Code / Codex，直接在 bash 里跑 Python 脚本。
+同 Claude Code / Codex，直接在 bash 里跑 Python 脚本；用 `allowed_tools` 把 `shell` 加入白名单即可。
 
 ---
 
-## 9. 公共环境变量
+## 9. OpenCode
+
+**定位**：SST 出品的开源终端 agent；内置三层扩展（skills / agents / plugins），原生识别 `AGENTS.md`，并提供 Claude Code 兼容层。适合团队里既有 Claude Code 用户又有 OpenCode 用户的混合场景。
+
+### 9.1 安装
+
+```bash
+curl https://opencode.ai/install | bash    # 或 npm i -g opencode-ai
+git clone <repo-url> ~/dev/collate
+cd ~/dev/collate && opencode
+```
+
+OpenCode 启动后会按以下顺序找规则文件：
+
+1. `./AGENTS.md`（项目根）
+2. `~/.config/opencode/AGENTS.md`（全局）
+3. `./CLAUDE.md`（Claude Code fallback）
+4. `~/.claude/CLAUDE.md`（Claude Code 全局 fallback）
+
+collate 仓库已有 `AGENTS.md`，OpenCode 零配置即可读到。
+
+### 9.2 Skills 与 Agents
+
+OpenCode 的 skill 目录：
+
+- `./.opencode/skills/`（项目）
+- `~/.opencode/skills/`（全局）
+- `~/.claude/skills/`（Claude Code 兼容层，默认启用；用 `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` 关闭）
+
+collate 的 skill 位于仓库 `skills/`，默认不在上述位置。两条落地路径：
+
+- **软链**：`ln -s "$PWD/skills" ~/.opencode/skills/collate`
+- **opencode.json 声明**：
+  ```json
+  {
+    "$schema": "https://opencode.ai/config.json",
+    "instructions": ["AGENTS.md", "skills/**/SKILL.md"]
+  }
+  ```
+
+Agents 定义：把 `agents/historical-proofreader.md` 复制到 `.opencode/agents/` 或 `~/.config/opencode/agents/`，OpenCode 会把它注册为 subagent（primary / subagent 模式由 frontmatter 的 `mode` 决定）。
+
+### 9.3 环境变量
+
+OpenCode 透传当前 shell 环境。项目级 `.env`：
+
+```bash
+set -a; source .env; set +a
+opencode
+```
+
+### 9.4 脚本执行
+
+OpenCode 默认开启 `bash` 工具；直接 `python skills/*/scripts/*.py` 即可。
+
+---
+
+## 10. Hermes agents
+
+**定位**：NousResearch 出品、自带学习回路的自改进 CLI agent，支持 15+ 消息网关（Telegram / Discord / Slack / WhatsApp …）。原生读取 `AGENTS.md` 与 `.hermes.md`，skill 兼容 agentskills.io 开放标准。对 OpenClaw 用户提供一键迁移路径。
+
+### 10.1 安装
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
+source ~/.bashrc        # 或 ~/.zshrc
+hermes setup            # 交互向导，配 LLM provider + 工具 + secret
+```
+
+支持 Linux / macOS / WSL2 / Android（Termux）。Windows 用 WSL2。
+
+### 10.2 接入 collate
+
+```bash
+git clone <repo-url> ~/dev/collate
+cd ~/dev/collate
+hermes                  # 或 hermes --tui
+```
+
+Hermes 启动横幅会显示加载的 AGENTS.md 与 skill 列表。系统 prompt 由以下几块拼：SOUL.md（人格）、MEMORY.md/USER.md（记忆）、`AGENTS.md`（项目契约）、bundled skills。
+
+### 10.3 Skills
+
+Hermes skill 目录：`~/.hermes/skills/`（bundled + hub-installed + agent-created）。
+
+把 collate skill 注册给 Hermes：
+
+```bash
+for s in setup prep-scan visual-preview ocr-run proofread diff-review to-docx mp-format; do
+    ln -s "$PWD/skills/$s" "$HOME/.hermes/skills/collate-$s"
+done
+```
+
+或用 Hermes skills hub：`hermes skills install <github-url>` 也支持 git 仓库。
+
+### 10.4 OpenClaw 迁移
+
+已有 OpenClaw 配置的用户：
+
+```bash
+hermes claw migrate --workspace-target ~/dev/collate
+```
+
+会迁移：SOUL.md、MEMORY.md/USER.md、用户创建的 skill（落到 `~/.hermes/skills/openclaw-imports/`）、消息平台 token、API key allowlist、workspace 下的 `AGENTS.md`。
+
+### 10.5 环境变量
+
+Hermes 读 `~/.hermes/.env` 与仓库级 `.env`。敏感凭据建议放前者。
+
+```bash
+hermes config set providers.anthropic.api_key "$ANTHROPIC_API_KEY"
+hermes config set providers.openai.api_key "$OPENAI_API_KEY"
+```
+
+---
+
+## 11. OpenClaw
+
+**定位**：开源 AI 助手框架，强项在 15+ 消息通道 + 跨网站控制；扩展通过「native 插件（TS/JS entry + `openclaw.plugin.json`）+ ClawHub / npm 分发」。用户量大，但本仓库当前主线是 Python + Markdown，不是 Native TS 插件，直接 `openclaw plugins install <path>` 对裸目录**不支持**。
+
+### 11.1 两条现实路径
+
+**路径 A：迁移到 Hermes（推荐）**
+
+OpenClaw 用户把配置迁到 Hermes 后就能获得对 collate 的全量支持：
+
+```bash
+hermes claw migrate --workspace-target ~/dev/collate
+cd ~/dev/collate && hermes
+```
+
+Hermes 与 OpenClaw 系出同门（Hermes 作者即 OpenClaw 作者），迁移工具成熟。
+
+**路径 B：写一个 thin wrapper plugin（路线图）**
+
+未来会发布一个 `@collate/openclaw` 包：
+
+- 根目录有 `openclaw.plugin.json`（含 `id: "collate"`、`configSchema`、工具列表）
+- 入口 `index.ts` 用 `definePluginEntry` 注册 agent tool，每个 tool 内部 shell 出去调 `python skills/*/scripts/*.py`
+- 发布到 ClawHub 或 npm，用户跑：
+  ```bash
+  openclaw plugins install @collate/openclaw
+  # 或 ClawHub-only：openclaw plugins install clawhub:@collate/openclaw
+  ```
+
+在包还没发之前，自建者可用 in-repo 插件工作区路径：把 wrapper 源码放 OpenClaw bundled plugin workspace 下，`pnpm install` + `openclaw plugins install collate` 即可。细节见 [OpenClaw 插件构建指南](https://docs.openclaw.ai/plugins/building-plugins)。
+
+### 11.2 消息侧场景（可选）
+
+OpenClaw 的原生强项是消息通道。典型用法：用户把扫描 PDF 附件发到 Telegram/Email → OpenClaw 网关触发 plugin → plugin 调 collate pipeline → 把 `final.docx` 附件回发。该路径需要的是「message handler」类型的 plugin，不是 agent tool plugin；本仓库不提供模板。
+
+### 11.3 环境变量
+
+```bash
+openclaw config set providers.anthropic.apiKey "$ANTHROPIC_API_KEY"
+openclaw config set providers.openai.apiKey "$OPENAI_API_KEY"
+```
+
+collate 的 OCR 相关 key（`MINERU_API_KEY` / `BAIDU_OCR_API_KEY`）由 plugin 自己的 `configSchema` 暴露，用户通过 `openclaw config` 注入。
+
+---
+
+## 12. 公共环境变量
 
 所有 runtime 都读取以下环境变量；缺失时 setup skill 会报错：
 
@@ -492,14 +672,14 @@ gemini chat --session proofread \
 | `BAIDU_API_KEY` | 百度 OCR API Key | — | `OCR_ENGINE=baidu` 时必需 |
 | `BAIDU_SECRET_KEY` | 百度 OCR Secret | — | 同上 |
 | `ANTHROPIC_API_KEY` | Claude API（proofread 用） | — | 非 Claude Code runtime 必需 |
-| `MOONSHOT_API_KEY` | Kimi API | — | Kimi K2 runtime 必需 |
+| `MOONSHOT_API_KEY` | Kimi API | — | Kimi runtime 必需 |
 | `MINIMAX_API_KEY` | MiniMax API | — | MiniMax runtime 必需 |
 | `COLLATE_ROOT` | 插件根绝对路径 | — | 非 Claude Code runtime 必需 |
 | `MINERU_CACHE_DIR` | MinerU 模型缓存路径 | `~/.cache/huggingface/hub` | 否 |
 
 ---
 
-## 10. 跨运行时故障排查
+## 13. 跨运行时故障排查
 
 | 症状 | 可能原因 | 解决 |
 |------|---------|-----|
@@ -513,7 +693,7 @@ gemini chat --session proofread \
 
 ---
 
-## 11. 扩展：接入新 runtime
+## 14. 扩展：接入新 runtime
 
 加入新 runtime 时按以下清单实现适配：
 
