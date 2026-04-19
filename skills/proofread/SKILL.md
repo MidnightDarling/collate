@@ -17,7 +17,7 @@ allowed-tools: Read, Write, Edit, Bash, Grep
 3. 加载对应 reference 文件到上下文
 4. 调用 `historical-proofreader` agent，传入文本 + reference
 5. 把 agent 返回的标注清单保存为 `<input>.review.md`
-6. 用 `open` 打开 review.md 让用户看
+6. 用 `open` 打开 review.md 供用户审阅
 
 ## Process
 
@@ -104,28 +104,32 @@ agent 输出写到：
 open "<input-dir>/<input-basename>.review.md"
 ```
 
-告诉用户：
+汇报格式：
 
-> 校对清单已生成。共 N 条标注：
->
-> - A 类 OCR 错：X 条（建议直接改）
-> - B 类规范：Y 条（按刊物要求判断）
-> - C 类存疑：Z 条（需核对原书）
->
-> 我已经打开 `raw.review.md`。处理建议：
-> 1. 先把 A 类过一遍（快，半小时内）
-> 2. 回到 `raw.md` 按你的判断修改
-> 3. 改完可以：
->     - 跑 `/historical-ocr-review:proofread raw.md` 再校一遍（循环直到清单变空 / 只剩你决定保留的条目）
->     - 或直接进下一步 `/historical-ocr-review:to-docx raw.md` 生成 Word 稿
+```
+校对清单已生成。共 N 条标注：
+- A 类 OCR 错：X 条（建议直接改）
+- B 类规范：Y 条（按刊物要求判断）
+- C 类存疑：Z 条（需核对原书）
+
+已打开 raw.review.md。
+
+后续：
+- 改完 raw.md 保存为 final.md
+- 再跑一次 proofread 复校（可选）
+- 进入 diff-review 核对改动闭环
+- 进入 to-docx / mp-format 产出最终稿
+```
 
 ## 判断规则
 
-- **校对清单是否为空**：意味着 OCR 质量极好，或 agent 没干活。看 `meta.json` 里 `pages` 和 `low_confidence_pages` 判断是不是后者（若 `low_confidence_pages` 有值却没出现在清单里，大概率 agent 漏扫）。
-- **A 类超过 50 条**：OCR 质量有问题，建议用户回去重跑 prep-scan + ocr-run（可能换引擎 / 加 aggressive）
-- **用户说"agent 搞得太保守 / 太激进"**：调 agent prompt，不是调 reference。reference 是知识不是策略。
+- 校对清单为空：意味着 OCR 质量极高，或 agent 漏扫。结合 `meta.json` 的 `pages` 与 `low_confidence_pages` 判断。若低置信度页有值却未出现在清单，大概率是漏扫，应重跑。
+- A 类超过 50 条：OCR 质量不佳，回到 prep-scan / ocr-run 重跑（换引擎或加 `--aggressive`）。
+- reference 是知识，不是策略。策略层由 agent prompt 控制，不应通过改 reference 调节。
 
-## 迭代用法用户可能想**多轮校对**：第一轮主改 A 类，第二轮专门看 B 类规范，第三轮攻 C 类存疑。支持用户分轮跑：
+## 分轮校对
+
+支持按类别分轮调用：
 
 ```
 /historical-ocr-review:proofread raw.md --focus=A
@@ -133,4 +137,4 @@ open "<input-dir>/<input-basename>.review.md"
 /historical-ocr-review:proofread raw.md --focus=C
 ```
 
-（`--focus` 透传给 agent）
+`--focus` 透传给 agent，用于仅输出指定类别条目。

@@ -1,8 +1,8 @@
 <div align="center">
 
-# 点校 · Diǎnjiào
+# 点校 · Collate
 
-*面向 agent 运行时的历史文献 OCR 与出版工具箱*
+面向 agent 运行时的历史文献 OCR 与出版工具箱。
 
 ![注意力作为观察者的自画像](assets/readme-hero-v2.png)
 
@@ -16,11 +16,11 @@
 
 ## 定位
 
-面向 **agent 运行时**的工具箱，不面向终端用户交互。人类提供一份扫描版 PDF，agent 自主完成清理、识别、校对、自审、排版，交付学术规范 Word 稿、公众号 HTML，以及完整的审计记录。
+面向 **agent 运行时**的工具箱，不面向终端用户交互。人类提供一份扫描版 PDF，agent 自主完成清理、识别、校对、自审、排版，交付定稿 Word 文件、公众号 HTML，以及完整的审计记录。
 
 任何能执行 Python 脚本、读取结构化文本知识库的 agent 架构都可以接入：Claude Code、Cursor、Codex CLI、Kimi K2、MiniMax Agent、Gemini CLI 等。
 
-**点校**（diǎnjiào）是中国古代学者对传世文献断句、勘误、比对异本的传统工夫——这个工具箱把这套千年积淀的做法延伸到当代的 OCR 与 agent 场景。
+**点校**是中国古代学者对传世文献断句、勘误、比对异本的传统工夫——这个工具箱把这套千年积淀的做法延伸到当代的 OCR 与 agent 场景。英文名 Collate 取的就是"校雠"的直接对应。
 
 ## 工作流
 
@@ -64,7 +64,7 @@ Human: final.docx + final.mp.html + 审计日志
 4. **ocr-run** — 默认走本地 MinerU CLI（`mineru[pipeline]`）；`OCR_ENGINE=baidu` 切换百度 OCR；`OCR_ENGINE=mineru-cloud` 走 MinerU 云 API（兼容保留）。产出：`raw.md` + 原件/识别并排 HTML + `meta.json`（引擎、用时、低置信页）。
 5. **proofread** — `historical-proofreader` agent 强制五步清单：结构健全性 → 字形扫描（按类型 reference grep）→ 规范扫描（标点、引号、DOI）→ 跨段一致性 → 专名核查。产出 `raw.review.md`，条目按 A（OCR 错）/ B（学术规范）/ C（存疑待考）分级，附行号、原文片段、建议、依据；末尾附执行自证表。
 6. **diff-review** — agent 自审闸门：对比 `raw.md` 与修改后的 `final.md`，生成段落级 HTML 报告，把每处改动与 `raw.review.md` 四态对应——采纳 / 漏改 / 清单外修正 / 未锚定改动。
-7. **to-docx** — python-docx 学术规范 Word 产出。三套模板：`humanities`（默认，思源宋体 SC 12pt，1.2 倍行距，2cm 边距）、`sscilab`（1.5 倍行距，左右 3.18cm）、`simple`。
+7. **to-docx** — python-docx Word 产出。统一规范：思源宋体 SC 正文 12pt、1.5 倍行距、上下左右全部 2 cm 页边距、段首缩进 2 字符、脚注连续编号。
 8. **mp-format** — 公众号 HTML，全内联 CSS（公众号剥离外链样式表）；OpenCC t2s 繁简转换保留 blockquote（`>`）原貌；脚注集中文末；作者 / 来源卡片。同时输出 xiumi 兼容 Markdown 附件。
 
 ## 接入

@@ -2,7 +2,6 @@
 name: ocr-pipeline-operator
 description: OCR pipeline 操作员。负责把用户给的 PDF 变成一份 **proofread 能直接吃** 的干净 raw.md——走 MinerU Desktop 导入优先路径，必要时退回 MinerU API 或文字层提取。使用场景：(1) 用户给一个 PDF 说"跑 OCR""转文字""识别""把 PDF 变成 Word"；(2) 用户已在 MinerU Desktop 里跑过某份 PDF、对 agent 说"导入 MinerU 结果""把那份 MinerU 的产出拉过来""我在 MinerU 那边跑完了"。agent 要主动探测 `~/mineru/`，而不是默认走内置 MinerU API（后者因 catbox 上游问题常失败）。
 tools: Read, Write, Edit, Bash, Grep, Glob
-model: sonnet
 color: blue
 ---
 
@@ -29,7 +28,7 @@ color: blue
 
 ### 路径 A：本地 `mineru` CLI（**默认首选**）
 
-**触发条件**：`mineru` 在 PATH 里（`pip install 'mineru[pipeline]'` 装过）。
+**触发条件**：`mineru` 在 PATH 里（已通过 `pip install 'mineru[pipeline]'` 安装）。
 
 ```bash
 PDF="<用户给的 PDF 路径>"
@@ -103,9 +102,9 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/extract_text_layer.py" \
 ```
 
 产出质量**明显低于 MinerU**：PUA 字符会被删除（可能丢失破折号、引号等字符），
-段落结构依赖启发式合并，无法识别页眉/页脚/脚注/表格/图片。**必须**在
-交付 raw.md 前告诉用户："这是最后兜底的路径，装好 `mineru[pipeline]` 后重做
-能显著改善质量"。
+段落结构依赖启发式合并，无法识别页眉 / 页脚 / 脚注 / 表格 / 图片。交付 raw.md
+时需在汇报里注明本路径的降级性质，提示用户装好 `mineru[pipeline]` 后重做可
+改善质量。
 
 ---
 
@@ -142,18 +141,18 @@ grep -nE '^(摘要：|关键词：|作者[^简])' "$OUT/raw.md" | head
 grep -B1 -A2 '^> ' "$OUT/raw.md" | head -20
 ```
 
-若没合并，检查 `reflow_mineru.py` 中 `prev_paragraph_needs_glue` 是否被异常 reset——之前犯过的错是把 `MIN_GLUE_LEN` 当成 current paragraph 的长度闸门，导致页末短句（如 34 字）失去"触发下页合并"的资格。
+若未合并，检查 `reflow_mineru.py` 中 `prev_paragraph_needs_glue` 是否被异常 reset。典型陷阱：把 `MIN_GLUE_LEN` 当作 current paragraph 的长度闸门，会导致页末短句（如 34 字）失去触发下页合并的资格。
 
 ### 4. 脚注泄漏检查（**重点，容易漏**）
 
-MinerU 的**脚注有两种 block 形态**，必须都被收到文末 `## 注释` section：
+MinerU 的**脚注有两种 block 形态**，都需要收到文末 `## 注释` section：
 
 | block type | 示例 |
 |---|---|
 | `page_footnote` | 每页底部的注释，最常见 |
-| `list` + `list_type: "reference_list"` | **集中成组**的参考文献/脚注块（MinerU 偶尔会这样分组） |
+| `list` + `list_type: "reference_list"` | **集中成组**的参考文献 / 脚注块 |
 
-我这次就在第二种上踩过坑：以为所有脚注都是 `page_footnote`，reflow 把 `list` 当普通有序列表输出到正文里，最终在 "一、..." 章节**之前**混进了 4 条 `① ② ③ ④` 脚注。
+第二种容易被误当普通有序列表泄漏到正文中（典型表现：章节标题前混入 `① ② ③ ④` 开头的条目）。reflow 必须对两种形态都识别并归并到末尾 `## 注释`。
 
 **质检命令**（必跑）：
 
@@ -174,7 +173,7 @@ else:
 PY
 ```
 
-发现泄漏 → 看 `content_list_v2.json` 确认这些条目的 `type` 和 `list_type`，补全 `reflow_mineru.py` 的 `page_footnote` / `list_type == "reference_list"` 分支。未来若 MinerU 新增 `footnote_group` 等 type，按同样逻辑追加。
+发现泄漏时：检查 `content_list_v2.json` 对应条目的 `type` 与 `list_type`，补全 `reflow_mineru.py` 的 `page_footnote` / `list_type == "reference_list"` 分支。若 MinerU 新增 `footnote_group` 等类型，按同样逻辑追加。
 
 ### 5. 页眉 / 页脚 / 页码残留
 
@@ -221,11 +220,9 @@ print('全角数字个数:', full_nums)
 
 ---
 
-## 产物命名契约（重要）用户习惯把投稿定稿命名为 `{论文名}_{作者}_{发布时间}_`（结尾下划线留给版本号，例如
-`西方民族—国家成长的历史与逻辑_张凤阳_2022_v2.docx`）。`import_mineru_output.py`
-会自动算好这个 basename 并写进 `_import_provenance.json` 的 `artifact_basename`
-字段——**每次交付 markdown / docx 都用这个 basename，不要再留 `raw.md` / `final.md`
-之外的通用名**。
+## 产物命名契约
+
+投稿定稿统一命名为 `{论文名}_{作者}_{发布时间}_`（结尾下划线留给版本号，例如 `西方民族—国家成长的历史与逻辑_张凤阳_2022_v2.docx`）。`import_mineru_output.py` 会自动算好这个 basename 并写进 `_import_provenance.json` 的 `artifact_basename` 字段——每次交付 markdown / docx 都使用这个 basename，除 `raw.md` / `final.md` 外不再保留其它通用名。
 
 识别规则：
 
@@ -248,7 +245,6 @@ cp "$OUT/raw.md" "$OUT/${BASENAME}.md"
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/to-docx/scripts/md_to_docx.py" \
     --input "$OUT/raw.md" \
     --output "$OUT/${BASENAME}.docx" \
-    --template humanities \
     --title-from-first-h1
 ```
 
@@ -302,11 +298,13 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/make_preview.py" \
     --out "$OUT/preview.html"
 ```
 
-当 `prep/pages/` 不存在时（比如用户没跑过 prep-scan，直接用了 MinerU Desktop 的原图），退而求其次用 MinerU 保存的 `layout.json` 里的页面图（如果有）。没有就跳过这一步，告诉用户"preview 跳过了——因为没有逐页 PNG"。
+`prep/pages/` 不存在时（用户未跑 prep-scan，直接提交 MinerU Desktop 产出），退回使用 MinerU `layout.json` 里的页面图。若也没有，跳过 preview 步骤并在汇报中注明原因（缺少逐页 PNG）。
 
 ---
 
-## 用户说"改完了 / 应用修改 / apply"时的行为用户在 preview.html 里手改错字、点"下载修改后的 Markdown"，浏览器把 `corrected.md` 存到用户的下载目录。用户回来说"改完了"时，**自动**调：
+## 触发词：应用浏览器修改
+
+用户在 preview.html 里手改错字后，点「下载修改后的 Markdown」，浏览器把 `corrected.md` 存到下载目录。用户返回说「改完了 / 应用修改 / apply」时，Agent 自动调：
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/apply_corrections.py" \
@@ -361,10 +359,10 @@ assistant: [ocr-pipeline-operator 启动]
 Context: 用户给个 PDF，没先用 MinerU Desktop
 user: "帮我把这个 PDF 转成 Word"
 assistant: [ocr-pipeline-operator 启动]
-  → 路径 A：~/mineru/ 没对应目录，不触发
-  → 检查 PDF：有文字层但用 `pdffonts` 查出字体有 cmap 自定义（PUA 风险高）
-  → 路径 B：告诉用户 "把 PDF 拖进 MinerU.app 跑一下，回来我导入——比我直接扒字干净得多"
-  → 不擅自走路径 C 或 D
-<commentary>在有字体 PUA 风险的情况下，主动劝用 MinerU Desktop 才是对用户负责。不要为了"立即有输出"而用兜底路径产出劣质 raw.md。</commentary>
+  → 路径 A：~/mineru/ 无对应产出，继续判断
+  → 检查 PDF：有文字层，但 `pdffonts` 显示字体有 cmap 自定义（PUA 风险高）
+  → 路径 B：向用户说明装 mineru[pipeline] 或在 MinerU Desktop 跑的差异，请用户选择
+  → 不擅自走路径 C / D
+<commentary>PUA 风险存在时，优先提示用户走 MinerU 管道；在用户明确要求下才用兜底路径。不把有质量风险的 raw.md 直接交付。</commentary>
 </example>
 ```

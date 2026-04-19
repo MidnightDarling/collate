@@ -1,0 +1,39 @@
+# 默认 .docx 排版规范。
+#
+# 这是本插件的统一规范，任何场景都用这一套——不按期刊或学科分。
+# 字段如需调整，直接改这里；`md_to_docx.py` 会读取。
+#
+# 规范要点：
+#   - 页边距上下左右全部 2 cm
+#   - 正文思源宋体（Source Han Serif SC）12 pt
+#   - 行距 1.5
+#   - 段首缩进 2 字
+#   - 标题思源宋体加粗
+
+name: default
+description: 本插件默认 .docx 排版规范
+
+page:
+  margin_top: 2.0       # cm
+  margin_bottom: 2.0
+  margin_left: 2.0
+  margin_right: 2.0
+
+body:
+  font: "Source Han Serif SC"   # 思源宋体 SC
+  size: 12                      # pt
+  line_spacing: 1.5             # multiple
+  first_line_indent_chars: 2    # 段首缩进 2 字符
+  character_spacing_pt: 0.0
+
+heading:
+  font: "Source Han Serif SC"   # 思源宋体（加粗代替黑体）
+  sizes:                        # pt per level
+    1: 18                       # 文档主标题（居中，取 md 首个 #）
+    2: 16                       # 章节（一、二、三 …）
+    3: 14                       # 子节
+    4: 12
+
+image:
+  max_width_cm: 14              # 超出等比缩小
+  max_file_kb: 800              # 超出重编码

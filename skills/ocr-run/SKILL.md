@@ -13,7 +13,9 @@ allowed-tools: Bash, Read, Write, Edit
 
 **为什么支持两个引擎**：
 - **MinerU**（上海 AI Lab）：对繁体、竖排、古籍版式、公式、表格识别更强，默认推荐。
-- **百度 OCR**（用户已有 key）：稳定、额度大、响应快，适合大批量现代简体论文。用户既有 key 不白用。用户的 `~/.env` 里 `OCR_ENGINE=mineru` 或 `OCR_ENGINE=baidu` 决定默认走哪个。命令行 `--engine=xxx` 可临时覆盖（比如用户想对比两个引擎的效果）。
+- **百度 OCR**：稳定、额度大、响应快，适合大批量现代简体论文。
+
+`~/.env` 里的 `OCR_ENGINE=mineru` 或 `OCR_ENGINE=baidu` 决定默认引擎。命令行 `--engine=xxx` 可临时覆盖。
 
 输出结构：
 
@@ -33,8 +35,8 @@ Agent **默认走 `run_mineru.py`**（本地 `mineru[pipeline]`），不再按 `
 环境变量选云 API：
 
 ```bash
-which mineru   # 装好了吗
-ls -d ~/mineru/"$STEM".pdf-* 2>/dev/null   # Desktop 跑过吗
+which mineru   # 检查 mineru CLI 是否在 PATH
+ls -d ~/mineru/"$STEM".pdf-* 2>/dev/null   # 检查 MinerU Desktop 是否有历史产出
 ```
 
 判断：
@@ -148,7 +150,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/make_preview.py" \
 HTML 是**本地文件，不联网**。两种使用模式：
 
 - **Agent 自主模式（默认）**：`preview.html` 仅作为 diff-review 的视觉参照，Agent 不依赖 human-in-browser 编辑。直接进入下一步 proofread。
-- **人工协作模式**（仅用户显式要求 "我要先肉眼过一遍"）：用户在浏览器里改右栏（`contenteditable`），点「下载修改后的 Markdown」导出 `corrected.md` 到下载目录，再由 Agent 用 Step 8 的 `apply_corrections.py` 回写。
+- **人工协作模式**（用户显式要求先自行校对时）：用户在浏览器里改右栏（`contenteditable`），点「下载修改后的 Markdown」导出 `corrected.md` 到下载目录，再由 Agent 用 Step 8 的 `apply_corrections.py` 回写。
 
 ### Step 6：写 meta.json
 
@@ -181,8 +183,8 @@ HTML 是**本地文件，不联网**。两种使用模式：
 OCR 完成（引擎：$ENGINE，$PAGES 页，耗时 $SECONDS 秒）
 
 - 原始 Markdown：$OUT/raw.md
-- 对照预览：   $OUT/preview.html（仅作视觉参照，不需 human 编辑）
-- 置信度偏低的页（启发式）：第 3、12、38 页 —— 已传给 proofread subagent 作"重点盯防"
+- 对照预览：   $OUT/preview.html（视觉参照，不需手工编辑）
+- 启发式低置信度页：第 3、12、38 页（已标记供 proofread 重点盯防）
 
 下一步（自动进行）：proofread → 应用清单 → diff-review → to-docx + mp-format
 ```
@@ -190,34 +192,34 @@ OCR 完成（引擎：$ENGINE，$PAGES 页，耗时 $SECONDS 秒）
 **人工协作模式**（仅用户显式要求）：
 
 ```
-OCR 完成。请先打开 preview.html 过一遍：
-  1. 打开 preview.html 手过一遍（10-15 分钟）
-  2. 改完点「下载修改后的 Markdown」，浏览器把 corrected.md 存到下载目录
-  3. 回来说一句「改完了」或「应用修改」，Agent 自动调 apply_corrections.py 回写
-  4. 然后进入 proofread
+OCR 完成。人工协作流程：
+1. 打开 preview.html 核验 / 手改
+2. 改完点「下载修改后的 Markdown」，corrected.md 存到下载目录
+3. 回到 agent 说「应用修改」，Agent 调 apply_corrections.py 回写
+4. 进入 proofread
 ```
 
-### Step 8（仅人工协作模式）：应用浏览器里的修改（触发词：「改完了」「应用修改」「我改好了」「apply」）
+### Step 8（仅人工协作模式）：应用浏览器里的修改
 
-当用户说完上面的触发词，Agent 要自动执行：
+触发词：「改完了」「应用修改」「我改好了」「apply」。触发后 Agent 执行：
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/apply_corrections.py" \
     --ocr-dir "$OUT"
 ```
 
-脚本行为（不需要用户动手）：
+脚本行为：
 
-1. 在用户 `~/Downloads/` 目录下找最新的 `corrected*.md`
-2. 把当前 `$OUT/raw.md` 备份成 `$OUT/raw.md.bak`（若已存在则加时间戳，不覆盖旧备份）
-3. 把 `corrected.md` 移动到 `$OUT/raw.md`
+1. 在 `~/Downloads/` 中找最新的 `corrected*.md`
+2. 把当前 `$OUT/raw.md` 备份为 `$OUT/raw.md.bak`（已存在则加时间戳）
+3. 将 `corrected.md` 移动到 `$OUT/raw.md`
 4. 打印替换后字节数 + 备份位置
 
-若用户显式指定了 corrected 路径（例如改存到了其他文件夹），Agent 传 `--corrected <path>` 覆盖自动查找。
+若用户显式指定 corrected 路径，Agent 传 `--corrected <path>` 覆盖自动查找。
 
-脚本的防御规则：空文件拒绝替换（退码 5）；下载目录找不到就提示用户确认文件落在哪里（退码 3）。这两种情况 Agent 不要硬闯，问用户要路径。
+防御规则：空文件拒绝替换（退码 5）；下载目录找不到提示用户确认路径（退码 3）。两种情况下不硬闯，询问用户。
 
-完成后告诉用户：
+完成后汇报：
 
 ```
 已应用修改：
@@ -227,7 +229,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/apply_corrections.py" \
 下一步：/historical-ocr-review:proofread $OUT/raw.md
 ```
 
-用 `open` 命令直接拉起 preview.html：
+用 `open` 命令拉起 preview.html：
 
 ```bash
 open "$OUT/preview.html"

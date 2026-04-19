@@ -5,37 +5,27 @@ argument-hint: "(无参数)"
 allowed-tools: Bash, Read, Write, Edit
 ---
 
-# 首次配置 — 15 分钟装机指南
+# 首次配置 — 环境初始化指南
 
 ## Task
 
-用户是处理历史文献的研究者，Mac 用户，**可能是非技术背景**，日常需要把扫描版论文（繁体古籍、民国排印本、现代简体论文）整理发公众号或投稿。你的任务是在 15 分钟内让用户的 Mac 完成三件事：
+用户通常使用 Mac 处理历史文献扫描件（繁体古籍、民国排印本、现代简体论文），并非都具备技术背景。本 skill 的目标是在一次会话内完成三件事：
 
-1. 具备运行本插件的 Python 环境（3.9+、opencv、pillow、poppler）
-2. 配置好 OCR 引擎——**百度 OCR（用户已有 key）** 或 **MinerU（推荐，需新注册）** 其中一个
-3. 通过一次 API 探活，确认真的可用
+1. 建立本插件的 Python 运行环境（3.9+，opencv、pillow、poppler 等依赖）
+2. 预装并预热 MinerU 本地 CLI（默认路径）；或按需启用百度 OCR / MinerU 云 API 兼容分支
+3. 通过一次探活确认引擎可用
 
-失败时不要假装成功——用户明天要用这个干活。
+任一步失败时必须显性终止，不要跳过或静默兜底。
 
 ## Process
 
-### Step 1：判断用户的技术位置
+### Step 1：确认用户环境
 
-一开始先问一句（原文输出）：
+首先确认：
 
-> 我会带你一步步装好。先确认一件事：
-> 你是不是第一次用命令行 / 终端？
->
-> （不用担心 OCR 引擎的账号——新版插件用 **本地 MinerU**，不需要任何 key
-> 也不需要上传到云。首次装约 10 分钟，以后每份 PDF 90 秒左右跑完，
-> 数据全程留在你电脑里。）
-
-根据回答分支：
-- **用户说"不懂终端"** → 把每个命令的作用用一句中文说清楚再让用户跑
-- **其他回答** → 直接进 Step 2
-
-**历史分支（仅在用户明说"我有百度 key 想复用"或"我想走 MinerU 云 API"时走）** →
-Step 4B / 4C，但你要先告诉用户"那两条路已经不是默认，本地装效果更好且免账号"。
+- 用户是否用过命令行 / 终端？不熟悉终端的用户需要逐条解释命令含义。
+- 默认走本地 MinerU CLI（无需账号、不上传、首次装机约 10 分钟、之后每份 PDF 约 90 秒）。
+- 仅在用户明确表示"已有百度 OCR key 想复用"或"需要 MinerU 云 API"时，改走 Step 4A / 兼容分支，并说明这两条路径已非默认。
 
 ### Step 2：检查 Python（Mac）
 
@@ -48,13 +38,13 @@ python3 --version
 - 版本 ≥ 3.9 → 直接下一步
 - 版本 < 3.9 或报 `command not found` → 让用户跑 `brew install python@3.11`（如果没装 Homebrew 先跑下面这句）
 
-Homebrew 没装的情况下：
+Homebrew 未安装时先装：
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-告诉用户：这是 Mac 的软件管家，装一次受用一生。
+Homebrew 是 macOS 的包管理器，后续所有系统级依赖都通过它安装。
 
 ### Step 3：装所有依赖（一条命令）
 
@@ -143,30 +133,25 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/baidu_client.py" --check-a
 
 返回 `AUTH_OK` → 继续。返回 `AUTH_FAIL` → key 或 secret 不对，让用户重查。
 
-#### 分支 B — 注册 MinerU
+#### 分支 B — 注册 MinerU 云 API（可选）
 
-**原文给用户看**（照抄，不要改措辞）：
+向用户说明 MinerU 云 API 的注册步骤：
 
-> MinerU 是上海 AI Lab 做的 PDF OCR 服务，对历史文献（繁体、竖排、古籍版式）的识别效果比通用 OCR 好一档。免费额度每月够用。注册步骤：
->
-> 1. 打开 <https://mineru.net>
-> 2. 右上角「登录/注册」，用手机号注册
-> 3. 登录后左侧栏「API 管理」→「新建 Token」
-> 4. Token 名字随便写（比如 `historical-ocr`）
-> 5. 复制生成的 key（`sk-` 开头）
-> 6. 粘贴回来给我
+1. 访问 <https://mineru.net>，使用手机号注册
+2. 登录后进入左侧栏「API 管理」→「新建 Token」
+3. 复制生成的 key（以 `sk-` 开头）
 
 拿到 key 后：
 
-- 格式校验：应该是 `sk-` 开头、64 位左右字母数字。不对就让用户重复制。
-- 写 `~/.env`（追加或覆盖）：
+- 格式校验：应为 `sk-` 开头、约 64 位字母数字
+- 写入 `~/.env`（追加或覆盖）：
 
 ```
-MINERU_API_KEY=<用户给的>
-OCR_ENGINE=mineru
+MINERU_API_KEY=<用户提供的 key>
+OCR_ENGINE=mineru-cloud
 ```
 
-**不要把 key 内容打到终端**——安全考虑。只确认「已保存」。
+**不要把 key 内容回显到终端**——仅确认已写入。
 
 验证：
 
@@ -181,44 +166,21 @@ MINERU_API_KEY=$(grep "^MINERU_API_KEY=" ~/.env | cut -d= -f2-) \
 - `401` → key 错了，让用户重配
 - 其他 → 网络或服务问题，建议稍后重试
 
-### Step 5：欢迎进入工作流
+### Step 5：工作流概述
 
-成功后，用中文告诉用户（照抄）：
+配置完成后，向用户概述后续 skill 链：
 
-> 装好了。接下来你的工作流：
->
-> **① 拿到扫描版 PDF（比如档案局扫的民国报刊、知网下载的论文、古籍影印本）**
->
-> 把 PDF 放到桌面或下载里，对我说「帮我处理这个 PDF」或跑：
-> `/historical-ocr-review:prep-scan ~/Downloads/论文.pdf`
->
-> 插件会去掉馆藏章、知网水印、页眉页脚。
->
-> **② OCR**
->
-> `/historical-ocr-review:ocr-run ~/Downloads/论文.prep/cleaned.pdf`
->
-> 出来一份 Markdown 和一个左图右文的对照网页（preview.html），你可以先肉眼过一遍把明显错字改了。
->
-> **③ 校对**
->
-> `/historical-ocr-review:proofread ~/Downloads/论文.ocr/raw.md`
->
-> 这一步是插件的核心——会按「繁体古籍 / 民国排印 / 现代简体」三套史学知识给你标红可疑字、异体字、专名、旧式标点。**所有改动都只是建议**，由你决定接受哪条。
->
-> **④ 公众号排版**
->
-> `/historical-ocr-review:mp-format ~/Downloads/论文.ocr/final.md`
->
-> 生成微信公众号 HTML，复制到秀米或直接粘贴到公众号后台。
+1. `prep-scan` — 对扫描版 PDF 做预处理，去水印、去馆藏章、可选裁边
+2. `ocr-run` — 调用 MinerU / 百度 OCR 识别为 Markdown，附原图对照预览
+3. `proofread` — 按文献类型（古籍 / 民国 / 现代）输出 A/B/C 分级校对清单
+4. `diff-review` — 比对 raw.md 与 final.md，生成改动自审报告
+5. `to-docx` — 导出学术规范 Word 稿
+6. `mp-format` — 导出公众号 HTML
 
-### Step 6：留个示例让用户试手
-
-建议用户第一次不要拿重要的论文，先跑 `examples/` 里的示例 PDF 走一遍。熟悉流程再处理真稿。
+详见 README.md 的 Workflow 章节，以及各 skill 内部说明。
 
 ## 注意事项
 
-- **不要把任何 API key 打到屏幕**。这是基础安全，也避免用户截图发朋友圈时泄露。
-- **遇到错误就停下报错**，不要"假装配置成功"。用户明天要用这个，带病上线会让用户对整个工具丧失信心。
-- 如果用户装 pip 包时连不上 PyPI（国内网络），建议用户换源：`pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple`
-- 全程中文，口气温和。用户是学者不是工程师。
+- **不要把任何 API key 回显到终端**——始终通过 `~/.env` 文件传递。
+- **任一步失败时显性终止**，不要跳过或伪装成功。
+- 国内网络无法访问 PyPI 时，切换镜像：`pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple`。

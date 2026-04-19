@@ -19,7 +19,7 @@ python-dotenv>=1.0       # read ~/.env
 markdown>=3.5            # md → HTML for mp-format
 beautifulsoup4>=4.12     # HTML cleanup for mp-format
 python-docx>=1.1         # to-docx writer
-pyyaml>=6.0              # load humanities / sscilab / … presets in assets/presets/
+pyyaml>=6.0              # load YAML preset in assets/presets/default.yaml
 opencc-python-reimplemented>=0.1.7  # 繁简转换 for mp-format
 
 # === Group 2: MinerU local pipeline =======================================

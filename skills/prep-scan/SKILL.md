@@ -32,9 +32,9 @@ allowed-tools: Bash, Read, Write, Edit
 test -f "<pdf-path>" && file "<pdf-path>" | grep -qi pdf || echo "NOT_A_PDF"
 ```
 
-如果 `NOT_A_PDF`，停下告诉用户："这个文件不是 PDF，请确认路径。"
+若返回 `NOT_A_PDF`，终止并报告路径或格式问题。
 
-**检查是不是"已 OCR 的文字版 PDF"**（比如知网下载的"CAJ 转 PDF"其实带文本层）：
+**检查是不是"已 OCR 的文字版 PDF"**（例如知网下载的"CAJ 转 PDF"带有文本层）：
 
 ```bash
 python3 -c "
@@ -46,12 +46,12 @@ with open('<pdf-path>', 'rb') as f:
 "
 ```
 
-- `TEXT_LAYER` → 告诉用户："这个 PDF 已经有文字层了，理论上可以直接提取文字而不需要 OCR。我先帮你把水印去掉，但 OCR 这一步可以跳过，直接进 proofread。" 继续处理图像水印（文字层不影响）。
-- `SCAN_ONLY` → 正常走完整流程
+- `TEXT_LAYER`：PDF 已含文字层，OCR 步骤可跳过。继续处理图像水印（文字层不影响）。
+- `SCAN_ONLY`：走完整流程。
 
 ### Step 2：建工作目录
 
-历史学者的 PDF 常在 `~/Downloads/` 或 `~/Desktop/`。在**同级**建 `.prep` 目录，不动用户原文件：
+在 PDF **同级**建 `.prep` 目录，不改动用户原文件：
 
 ```bash
 PDF="<pdf-path>"
@@ -62,7 +62,7 @@ mkdir -p "$WORK/pages" "$WORK/cleaned_pages" "$WORK/trimmed_pages"
 cp "$PDF" "$WORK/original.pdf"
 ```
 
-**为什么要备份**：用户可能一个月后才发现某页被误删，有 original 能回滚。
+`original.pdf` 作为原始备份保留，供后续回滚。
 
 ### Step 3：拆页成 PNG
 
@@ -93,9 +93,9 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/dewatermark.py" \
 2. **灰度对角水印**：典型知网/维普的对角大字水印。Hough 变换检测一致角度的线性重复文本，擦除后 inpaint。
 3. **浅灰重复水印**：如"读秀学术搜索"整页淡水印。形态学顶帽变换提取浅色重复纹，减去。
 
-`--aggressive` 把阈值放宽，适合水印特别顽固的情况，代价是可能擦掉淡墨字。只在用户明确说"水印还在"时才加。
+`--aggressive`：放宽阈值，适合顽固水印，代价是可能擦掉淡墨字。水印未清理干净时再加。
 
-`--keep-color` 关掉颜色通道处理——处理**彩色历史地图、影印彩图**时用，用户说"这张是彩图别动颜色"就加。
+`--keep-color`：关闭颜色通道处理。处理彩色历史地图、影印彩图时使用。
 
 ### Step 5：裁页眉页脚
 
@@ -119,13 +119,13 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/remove_margins.py" \
 | 古籍（版心鱼尾 + 书口） | **跳过此步**，古籍的版式信息本身就是研究对象 |
 | 档案影像（档号脚注要留） | **跳过此步** |
 
-**判断办法**：打开 `$WORK/pages/page_001.png` 肉眼看第一页——
+**判断依据**：打开 `$WORK/pages/page_001.png` 确认第一页内容——
 
 - 页眉是"XX 史研究 2023 年第 3 期"这类 → 裁
 - 页眉是"北京大学学报（哲学社会科学版）"但整页只有两行 → 不裁（可能是封面）
 - 页眉是古籍版心鱼尾 → 不裁
 
-不确定就问用户。
+类型不明时询问用户。
 
 ### Step 6：合回 PDF
 
@@ -140,24 +140,24 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/pages_to_pdf.py" \
 
 ### Step 7：报告 + 对照抽样
 
-用中文告诉用户：
+汇报格式：
 
-> 清理完成。
->
-> - **原件备份**：`$WORK/original.pdf`（一个月内别动这个目录可以回滚）
-> - **清理版**：`$WORK/cleaned.pdf`
->
-> 我打开了前 3 页的对照图给你核验（`$WORK/pages/page_001.png` 原 vs `$WORK/cleaned_pages/page_001.png` 清理后）：
->   - 看看是否有**正文字被误擦**
->   - 看看是否还有**残留水印**
->
-> 如果**正文被误伤** → 告诉我，重跑时加 `--keep-color`；
-> 如果**水印还在** → 重跑时加 `--aggressive`。
->
-> 没问题就进下一步：
-> `/historical-ocr-review:ocr-run $WORK/cleaned.pdf`
+```
+清理完成。
+- 原件备份：$WORK/original.pdf
+- 清理版：$WORK/cleaned.pdf
 
-用 `open` 命令直接拉起前 3 页对照图让用户看：
+已打开前 3 页对照图核验：
+  $WORK/pages/page_001.png      （原图）
+  $WORK/cleaned_pages/page_001.png  （清理后）
+
+若正文被误伤 → 重跑加 --keep-color
+若水印残留   → 重跑加 --aggressive
+
+下一步：/historical-ocr-review:ocr-run $WORK/cleaned.pdf
+```
+
+对照图打开：
 
 ```bash
 open "$WORK/pages/page_001.png" "$WORK/cleaned_pages/page_001.png"
@@ -165,12 +165,12 @@ open "$WORK/pages/page_001.png" "$WORK/cleaned_pages/page_001.png"
 
 ## 判断规则
 
-- **发现 PDF 是古籍竖排** → 本地 MinerU CLI 当前不支持 `--layout`，提示用户在 ocr-run 阶段改用 `baidu_client.py --layout vertical` 或 `mineru_client.py --layout vertical`（云端 API）。
-- **发现 PDF 第一页是扉页 / 版权页** → 问用户是否把第一页从最终输出里剔除（公众号推送一般不要版权页）。
-- **PDF 超过 200 页** → 建议按章节拆分处理；单次处理过大会超云 OCR 配额（若走云端），且难以核验。
+- PDF 为古籍竖排：本地 MinerU CLI 当前不支持 `--layout`，在 ocr-run 阶段改用 `baidu_client.py --layout vertical` 或 `mineru_client.py --layout vertical`（云端 API）。
+- 第一页为扉页 / 版权页：询问用户是否从最终输出剔除。
+- PDF 超过 200 页：建议按章节拆分处理，避免云 OCR 配额超限和核验困难。
 
 ## 失败兜底
 
-- OpenCV 报 `libGL error` → `brew install opencv`
-- pdf2image 报 `Unable to get page count` → poppler 没装好，让用户跑 `brew install poppler`
-- PDF 加密（少见，但知网付费文献偶见）→ 告诉用户手动去密（预览.app 另存为 PDF 通常就能解）
+- OpenCV 报 `libGL error`：`brew install opencv`
+- pdf2image 报 `Unable to get page count`：poppler 未安装，`brew install poppler`
+- PDF 加密：用 macOS 预览.app「另存为 PDF」通常可去密

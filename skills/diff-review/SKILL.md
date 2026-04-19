@@ -267,4 +267,4 @@ raw.md  ──→  proofread  ──→  raw.review.md
        to-docx + mp-format
 ```
 
-diff-review 是**校对质量闸门**，不是可选步骤。用户的习惯应该是"改完必跑 diff"。
+diff-review 是**校对质量闸门**，属于流程必经步骤：改完 final.md 后先跑 diff，再进入 to-docx / mp-format。

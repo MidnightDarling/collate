@@ -1,8 +1,8 @@
 <div align="center">
 
-# 点校 · Diǎnjiào
+# 点校 · Collate
 
-*Agent toolkit for OCR and publishing of scanned historical Chinese documents*
+Agent toolkit for OCR and publishing of scanned historical Chinese documents.
 
 ![Self-portrait of attention as observer](assets/readme-hero-v2.png)
 
@@ -16,11 +16,11 @@
 
 ## Scope
 
-A toolkit for **agent runtimes**, not an end-user application. A human supplies a scanned PDF; the agent autonomously cleans, recognizes, proofreads, self-audits, and typesets, delivering a publication-ready Word document, a WeChat Official Account HTML, and a complete audit trail.
+A toolkit for **agent runtimes**, not an end-user application. A human supplies a scanned PDF; the agent autonomously cleans, recognizes, proofreads, self-audits, and typesets, delivering a finished Word document, a WeChat Official Account HTML, and a complete audit trail.
 
 Any agent architecture that can execute Python scripts and read structured text knowledge bases can use it: Claude Code, Cursor, Codex CLI, Kimi K2, MiniMax Agent, Gemini CLI, and others.
 
-The name *diǎnjiào* (点校) is the classical Chinese scholarly term for punctuating and collating received texts — the millennia-old practice this toolkit extends with contemporary OCR and agent tooling.
+The name Collate renders 点校, the classical Chinese scholarly term for punctuating and collating received texts — the millennia-old practice this toolkit extends with contemporary OCR and agent tooling.
 
 ## Workflow
 
@@ -64,7 +64,7 @@ Each skill is a self-contained directory: `SKILL.md` (operational instructions t
 4. **ocr-run** — defaults to local MinerU CLI (`mineru[pipeline]`); `OCR_ENGINE=baidu` switches to Baidu OCR; `OCR_ENGINE=mineru-cloud` uses the MinerU cloud API (compatibility path). Outputs: `raw.md` + side-by-side source/OCR HTML + `meta.json` (engine, timing, low-confidence pages).
 5. **proofread** — the `historical-proofreader` agent executes a mandatory five-step checklist: structural sanity → glyph scanning (grep against type-specific references) → convention scanning (punctuation, quotes, DOI) → cross-paragraph consistency → proper-noun review. Produces `raw.review.md` with A (OCR error) / B (academic convention) / C (open question) tiers; each item includes line number, source snippet, suggestion, rationale. An execution-proof table is appended.
 6. **diff-review** — agent self-audit gate: diffs `raw.md` against the post-edit `final.md`, produces a paragraph-level HTML report correlating each change with four states from `raw.review.md` — accepted suggestion, missed, outside-checklist fix, unanchored note.
-7. **to-docx** — python-docx academic Word output. Three templates: `humanities` (default; Source Han Serif SC 12pt, 1.2 line spacing, 2cm margins), `sscilab` (1.5 line spacing, 3.18cm side margins), `simple`.
+7. **to-docx** — python-docx Word output. Single unified spec: Source Han Serif SC 12pt body, 1.5 line spacing, 2cm margins on all sides, 2-character first-line indent, continuous footnote numbering.
 8. **mp-format** — WeChat Official Account HTML with fully inline CSS (WeChat strips external stylesheets); OpenCC t2s simplification that preserves blockquote (`>`) content in original form; footnotes collected at the end; byline and source bar. Also emits a xiumi-compatible markdown sidecar.
 
 ## Integration

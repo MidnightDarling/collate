@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reverse-engineer a humanities-preset YAML from a Word template.
+"""Reverse-engineer a YAML preset from a Word template.
 
 Workflow the user follows: an editor sends them a `.docx` with the journal's
 house style baked in (margins, body font, heading sizes, line spacing).

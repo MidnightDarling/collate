@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Convert a proofread markdown to a humanities-conforming Word document.
+"""Convert a proofread markdown to a .docx using this plugin's default spec.
 
-Target audience: submission to Chinese social-sciences journals. Default
-styling matches the common 《历史研究》/《近代史研究》 conventions — Songti
-body, SimHei headings, 1.5 line spacing, 2-character paragraph indent.
+Default spec (defined in assets/presets/default.yaml):
+  - 2 cm margins on all four sides
+  - Source Han Serif SC (思源宋体) body, 12 pt, 1.5 line spacing
+  - 2-character first-line indent
 
 Markdown features supported:
   - ATX headings (#, ##, ###)
@@ -16,7 +17,7 @@ Markdown features supported:
 
 Usage:
     python3 md_to_docx.py --input final.md --output final.docx \
-        --template humanities --title-from-first-h1
+        --title-from-first-h1
 """
 from __future__ import annotations
 
@@ -40,48 +41,19 @@ except ImportError:
     yaml = None  # YAML preset support is optional; fall back to built-in dict
 
 
-# Built-in presets. Mirror the corresponding `assets/presets/<name>.yaml`
-# files so anyone running a stale install without the YAMLs still gets
-# the same three templates the user is used to. The YAML form (preferred) is
-# read by load_template() first; the dict is only a fallback.
+# Built-in preset. Mirrors `assets/presets/default.yaml` so the script still
+# works when PyYAML isn't installed. The YAML form (preferred) is read by
+# load_template() first; this dict is only a fallback.
 TEMPLATES = {
-    "humanities": {
+    "default": {
         "body_font": "Source Han Serif SC",
         "body_size": 12,
-        "heading_font": "SimHei",
+        "heading_font": "Source Han Serif SC",
         "heading_sizes": {1: 18, 2: 16, 3: 14, 4: 12},
         "margin_top": 2.0,
         "margin_bottom": 2.0,
         "margin_left": 2.0,
         "margin_right": 2.0,
-        "line_spacing": 1.2,
-        "character_spacing_pt": 0.2,
-        "image_max_width_cm": 14.0,
-        "image_max_file_kb": 800,
-    },
-    "sscilab": {
-        "body_font": "Source Han Serif SC",
-        "body_size": 12,
-        "heading_font": "SimHei",
-        "heading_sizes": {1: 18, 2: 16, 3: 14, 4: 12},
-        "margin_top": 2.54,
-        "margin_bottom": 2.54,
-        "margin_left": 3.18,
-        "margin_right": 3.18,
-        "line_spacing": 1.5,
-        "character_spacing_pt": 0.0,
-        "image_max_width_cm": 14.0,
-        "image_max_file_kb": 800,
-    },
-    "simple": {
-        "body_font": "SimSun",
-        "body_size": 11,
-        "heading_font": "SimHei",
-        "heading_sizes": {1: 16, 2: 14, 3: 12, 4: 11},
-        "margin_top": 2.0,
-        "margin_bottom": 2.0,
-        "margin_left": 2.5,
-        "margin_right": 2.5,
         "line_spacing": 1.5,
         "character_spacing_pt": 0.0,
         "image_max_width_cm": 14.0,
@@ -112,13 +84,13 @@ def _flatten_yaml_preset(data: dict) -> dict:
     return {
         "body_font": body.get("font", "Source Han Serif SC"),
         "body_size": int(body.get("size", 12)),
-        "heading_font": heading.get("font", "SimHei"),
+        "heading_font": heading.get("font", "Source Han Serif SC"),
         "heading_sizes": heading_sizes or {1: 18, 2: 16, 3: 14, 4: 12},
         "margin_top": float(page.get("margin_top", 2.0)),
         "margin_bottom": float(page.get("margin_bottom", 2.0)),
         "margin_left": float(page.get("margin_left", 2.0)),
         "margin_right": float(page.get("margin_right", 2.0)),
-        "line_spacing": float(body.get("line_spacing", 1.2)),
+        "line_spacing": float(body.get("line_spacing", 1.5)),
         "first_line_indent_chars": int(body.get("first_line_indent_chars", 2)),
         "character_spacing_pt": float(body.get("character_spacing_pt", 0.0)),
         "image_max_width_cm": float(image.get("max_width_cm", 14.0)),
@@ -290,7 +262,7 @@ def add_heading(doc, text: str, level: int, tpl: dict) -> None:
     # Use python-docx's built-in Heading styles so Word's navigation pane,
     # outline view, and auto-generated TOC all recognise the document
     # structure. Custom font + size are layered on top so the visual design
-    # still matches the humanities template.
+    # matches the active preset.
     style_name = f"Heading {level}" if 1 <= level <= 9 else "Heading 1"
     try:
         p = doc.add_paragraph(style=style_name)
@@ -480,7 +452,9 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True, type=Path)
     ap.add_argument("--output", required=True, type=Path)
-    ap.add_argument("--template", choices=list(TEMPLATES), default="humanities")
+    ap.add_argument("--template", default="default",
+                    help="preset name under assets/presets/<name>.yaml "
+                         "or a path to a custom .yaml")
     ap.add_argument("--title-from-first-h1", action="store_true")
     args = ap.parse_args()
 

@@ -115,7 +115,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/visual-preview/scripts/visualize_prep.py" 
 open "$PREP/visual-preview.html"
 ```
 
-告诉用户：
+汇报格式：
 
 ```
 可视化已生成：<PREP>/visual-preview.html
@@ -123,13 +123,13 @@ open "$PREP/visual-preview.html"
 - 总页数：N
 - 平均清理：X.X%
 - 平均裁边：Y.Y%
-- 可能过度清理的页：[3, 12, 38]  ← 重点看，看正文有没有被误伤
-- 特别干净的页：[5, 7, 20]      ← 一般无需盯
+- 可能过度清理的页：[3, 12, 38]  重点核验有无正文误伤
+- 特别干净的页：[5, 7, 20]
 
-每页三个视图切换：
-  [原图] —— 清理前长什么样
-  [清理后] —— cleaned.pdf 里的样子
-  [差异热图] —— 红色高亮的就是被擦掉 / 裁掉的区域
+每页三视图切换：
+  原图      清理前
+  清理后    cleaned.pdf 当前版本
+  差异热图  红色区域为擦除 / 裁边位置
 ```
 
 ---
@@ -163,7 +163,7 @@ prep-scan ──→ pages/ + cleaned_pages/
            ocr-run
 ```
 
-用户的习惯应该是："prep 完就看 visual-preview"——这是清理环节的质检闸门，不是可选。清理错了后面 OCR 全白跑。
+visual-preview 是清理环节的质检闸门：prep-scan 完成后先过一遍 visual-preview 确认擦除与裁边是否妥当，再进入 ocr-run。若清理误伤正文而未及时发现，后续 OCR 结果将不可用。
 
 ---
 

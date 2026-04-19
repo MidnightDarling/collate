@@ -253,18 +253,20 @@ python skills/diff-review/scripts/md_diff.py \
 python skills/to-docx/scripts/md_to_docx.py \
     --input <work_dir>/final.md \
     --output <work_dir>/final.docx \
-    --template humanities \
     [--title-from-first-h1]    # 用 final.md 首个 H1 作为文档标题
 ```
 
-**模板**：
-- `humanities`（默认）— 思源宋体 SC 12pt，1.2 行距，2cm 页边距。适合期刊投稿与学界交流。
-- `sscilab` — 1.5 行距，3.18cm 左右边距，适合社科院系内格式。
-- `simple` — 宋体，1.5 行距，无特殊装饰。
+**规范**（由 Alice 定义，单一统一规范，全部输出一致）：
 
-> 如需基于现有 docx 反推模板配置，可用 `python skills/to-docx/scripts/extract_template_config.py --template <sample.docx> --out <new-template.yaml>`。日常不需要。
+- 正文思源宋体 SC 12pt
+- 行距 1.5
+- 段首缩进 2 字符
+- 页边距上下左右全部 2 cm
+- 脚注连续编号
 
-**Agent 决策**：调用方无额外指定时，默认 `humanities`。
+规范定义在 `skills/to-docx/assets/presets/default.yaml`，修改直接改这里。
+
+> 如需基于现有 docx 反推 YAML preset，可用 `python skills/to-docx/scripts/extract_template_config.py --template <sample.docx> --out <new-preset.yaml>`。日常不需要。
 
 ---
 
@@ -403,7 +405,7 @@ low_confidence_pages: [3, 7, 12]    # optional, from ocr-run meta.json
 | ocr-run 产出 raw.md 空或过短 | 终止；回传原 PDF 信息 + OCR 日志；常见于 layout 错误 |
 | proofread subagent 未返回 checklist 执行证明 | 视为失败，重跑 subagent 一次；仍失败 → 终止 |
 | diff-review 发现 missed-A | 自动回到第 6 步补漏，再跑 diff-review；两轮仍有 missed-A → 回传人类 |
-| to-docx 字体找不到 | 降级为 `simple` 模板；在交付时注明降级原因 |
+| to-docx 字体找不到 | 继续生成 docx（Word 会做字体替换）；在交付时注明字体缺失情况 |
 
 **回传给人类的消息结构**：
 
