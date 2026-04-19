@@ -2,7 +2,7 @@
 
 # 点校 · Collate
 
-Agent toolkit for OCR and publishing of scanned historical Chinese documents.
+Read, think, and write history with your agents — from the scanned page to the final text, from a single paper's x-ray to a field-wide map.
 
 ![Self-portrait of attention as observer](assets/readme-hero-v2.png)
 
