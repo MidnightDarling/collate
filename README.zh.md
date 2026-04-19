@@ -18,6 +18,8 @@
 
 面向 **agent 运行时**的工具箱，不面向终端用户交互。人类提供一份扫描版 PDF，agent 自主完成清理、识别、校对、自审、排版，交付定稿 Word 文件、公众号 HTML，以及完整的审计记录。
 
+流水线之外还有一层**阅读层**——把 OCR 出来的文本作为学术而非数据来读的 skill 与命令：为单篇论文透视、为文献族群绘图、核查引证、读沉默、为概念命名、挖作者不敢明说的真论题。流水线让文本可读，阅读层真的去读它。
+
 任何能执行 Python 脚本、读取结构化文本知识库的 agent 架构都可以接入：Claude Code、Cursor、Codex CLI、Kimi K2、MiniMax Agent、Gemini CLI 等。
 
 **点校**是中国古代学者对传世文献断句、勘误、比对异本的传统工夫——这个工具箱把这套千年积淀的做法延伸到当代的 OCR 与 agent 场景。英文名 Collate 取的就是"校雠"的直接对应。
@@ -78,6 +80,33 @@ Human: final.docx + final.mp.html + 审计日志
 6. **diff-review** — agent 自审闸门：对比 `raw.md` 与修改后的 `final.md`，生成段落级 HTML 报告，把每处改动与 `raw.review.md` 四态对应——采纳 / 漏改 / 清单外修正 / 未锚定改动。
 7. **to-docx** — python-docx Word 产出。统一规范：思源宋体 SC 正文 12pt、1.2 倍行距、字间距 0.2 pt、上下左右全部 2 cm 页边距、段首缩进 2 字符、脚注连续编号。
 8. **mp-format** — 公众号 HTML，全内联 CSS（公众号剥离外链样式表）；OpenCC t2s 繁简转换保留 blockquote（`>`）原貌；脚注集中文末；作者 / 来源卡片。同时输出 xiumi 兼容 Markdown 附件。
+
+## 文本生成之后：阅读层
+
+上面的流水线在 `final.md` 干净之后结束。阅读层从那里开始。文本可靠了，工具箱才把它当作学术来读——不是为了概述，而是为了进入历史学家之间的那场对话。
+
+### 阅读 skill
+
+两个 skill 以不同尺度读 OCR 后的文本，都是 Obsidian 原生格式。
+
+- **xray-paper** — 为单篇历史论文做 X 光透视：还原作者追问的问题（问题意识）、定位论文在学术传统中的位置（学派谱系）、梳理论文的时间脉络、凝结与既有判断发生结构性碰撞的认知卡片。触发语："分析这篇论文"、"X-ray 这篇文章"、"帮我定位这篇论文的位置"。产出：`<workspace>/analysis/{stem}_xray.md`，含 YAML frontmatter、callout、ASCII 年代纪、SVG 位置图。
+
+- **paper-summary** — 把 5–30 篇论文作为一个学术场绘制地图：史料基础、学派谱系、时空覆盖、方法论分布、概念争议、理论借用、未竟难题、新手入门路径。触发语："综述这批文献"、"给这批论文绘图"、"这个场域现在什么样"。产出：`<workspace>/analysis/literature-map.md` 或 `docs/literature-map/{corpus-name}.md`。
+
+两个 skill 都可选渲染 **attribution-theme HTML viewer**——一份独立的呈现写作：Cormorant Garamond 大写英文 hero、Ink Stone 暗色舞台、强调以 luminance 承载而非斜体、谱系图与覆盖图在 Obsidian 栏宽之外舒展。所有 viewer 集中在 `<workspace-parent>/viewer/` 下，文件名约定 `{YYYY-MM-DD}-{一句话态度立场}--{作者}-{论文名字}.html`。
+
+### 解读命令
+
+四个基于视角的 slash 命令，各以一个传统或人物命名。全部在 OCR 后、校对后的文本上运行，写入独立的解读报告——永不改动源文件。
+
+| 命令 | 传统 | 干什么 |
+|------|------|--------|
+| `/chunqiu` | 春秋笔法 | 读禁忌、读定谳、读有意模糊——作者不愿明说的那部分 |
+| `/kaozheng` | 乾嘉考证 | 审察论证、核查引证、测试证据桥——warrant 站得住吗？ |
+| `/prometheus` | 普罗米修斯 | 为一个历史概念盗火定义；输出一张 attribution-theme SVG 卡片 |
+| `/real-thesis` | — | 挖出作者反复绕但不敢正面写出的那个真论题 |
+
+每个视角读的东西不一样：`chunqiu` 读沉默，`kaozheng` 核 warrant，`prometheus` 给概念命名，`real-thesis` 挖未明说者。选与论文所问相配的那个视角。
 
 ## 接入
 

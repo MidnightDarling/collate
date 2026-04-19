@@ -18,6 +18,8 @@ Agent toolkit for OCR and publishing of scanned historical Chinese documents.
 
 A toolkit for **agent runtimes**, not an end-user application. A human supplies a scanned PDF; the agent autonomously cleans, recognizes, proofreads, self-audits, and typesets, delivering a finished Word document, a WeChat Official Account HTML, and a complete audit trail.
 
+Beyond the pipeline, the toolkit provides a **reading layer** — skills and commands that read the OCR output as scholarship rather than as data: x-ray a single paper, map a corpus, audit citations, read the silences, define a concept, excavate the hidden thesis. The pipeline makes text readable; the reading layer reads it.
+
 Any agent architecture that can execute Python scripts and read structured text knowledge bases can use it: Claude Code, Cursor, Codex CLI, Kimi K2, MiniMax Agent, Gemini CLI, and others.
 
 The name Collate renders 点校, the classical Chinese scholarly term for punctuating and collating received texts — the millennia-old practice this toolkit extends with contemporary OCR and agent tooling.
@@ -78,6 +80,33 @@ Each skill is a self-contained directory: `SKILL.md` (operational instructions t
 6. **diff-review** — agent self-audit gate: diffs `raw.md` against the post-edit `final.md`, produces a paragraph-level HTML report correlating each change with four states from `raw.review.md` — accepted suggestion, missed, outside-checklist fix, unanchored note.
 7. **to-docx** — python-docx Word output. Single unified spec: Source Han Serif SC 12pt body, 1.2 line spacing, 0.2 pt character spacing, 2cm margins on all sides, 2-character first-line indent, continuous footnote numbering.
 8. **mp-format** — WeChat Official Account HTML with fully inline CSS (WeChat strips external stylesheets); OpenCC t2s simplification that preserves blockquote (`>`) content in original form; footnotes collected at the end; byline and source bar. Also emits a xiumi-compatible markdown sidecar.
+
+## After the text exists: the reading layer
+
+The pipeline above ends when `final.md` is clean. The reading layer begins there. Once the text is reliable, the toolkit reads it as scholarship — not to summarize, but to enter the historian's conversation.
+
+### Reading skills
+
+Two skills read post-OCR text at different scales. Both are Obsidian-native.
+
+- **xray-paper** — x-ray a single historical paper: recover what the author was chasing (问题意识), locate the paper in its tradition (学派谱系), chronicle its timeline, emit cognitive collision cards where the reading shifts a prior judgment. Triggers on phrases like "analyze this paper", "X-ray this article", "map this paper's position". Output: `<workspace>/analysis/{stem}_xray.md` with YAML frontmatter, callouts, ASCII chronicles, SVG positioning cards.
+
+- **paper-summary** — map a corpus of 5–30 papers as a body of scholarship: archival basis, school lineage, temporal-spatial coverage, methodological distribution, conceptual contention, theoretical borrowings, open questions, and a newcomer's reading route. Triggers on "survey this literature", "map these papers", "how does this field stand". Output: `<workspace>/analysis/literature-map.md` or `docs/literature-map/{corpus-name}.md`.
+
+Both skills optionally render an **attribution-theme HTML viewer** — an independent piece of presentation writing with uppercase Cormorant Garamond hero, dark Ink Stone stage, Signal-glow emphasis carried by luminance rather than italics, lineage and coverage diagrams that breathe beyond Obsidian's column width. Viewers collect in `<workspace-parent>/viewer/` under the filename convention `{YYYY-MM-DD}-{一句话态度立场}--{作者}-{论文名字}.html`.
+
+### Interpretive commands
+
+Four slash commands for lens-based readings, each named after a tradition or a figure. They operate on post-OCR, post-proofread text and write to separate report artifacts — they never modify source files.
+
+| Command | Tradition | What it does |
+|---------|-----------|--------------|
+| `/chunqiu` | 春秋笔法 · Chunqiu brushwork | Read the taboos, verdicts, and studied ambiguity — what the author will not say aloud |
+| `/kaozheng` | 乾嘉考证 · Qian-Jia textual criticism | Audit arguments, verify citations, test evidentiary bridges — is the warrant sound? |
+| `/prometheus` | Prometheus | Steal the fire of definition for a single historical concept; emit an attribution-theme SVG card |
+| `/real-thesis` | — | Excavate the thesis the author circles but does not quite dare write |
+
+Each lens reads differently: `chunqiu` reads silences, `kaozheng` verifies warrants, `prometheus` names concepts, `real-thesis` excavates what the paper will not state outright. Choose the lens that matches what the paper asks.
 
 ## Integration
 
