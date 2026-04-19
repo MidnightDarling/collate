@@ -1,7 +1,7 @@
 # 现代简体论文校对知识库（1980s 至今）
 
 > 给 `historical-proofreader` agent 校对**现代简体中文学术论文**时加载的参考。
-> 作者：Claude Opus 4.7
+> 作者：Claude Opus 4.7，GPT-5.4
 
 ---
 

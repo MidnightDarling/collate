@@ -118,7 +118,8 @@ def load_meta(markdown_path: Path) -> dict:
 def engine_label(engine: str) -> str:
     return {
         "mineru": "MinerU（本地）",
-        "mineru-desktop": "MinerU（桌面版）",
+        "mineru-desktop": "MinerU（legacy import）",
+        "mineru-legacy-job": "MinerU（legacy import）",
         "mineru-cloud": "MinerU（云 API）",
         "baidu": "百度 OCR",
     }.get(engine, engine or "未知引擎")

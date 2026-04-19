@@ -1,7 +1,7 @@
 ---
 title: Troubleshooting
 description: historical-ocr-review 插件常见报错、成因、兜底方案
-author: Claude Opus 4.7
+author: [Alice, Claude Opus 4.7, GPT-5.4]
 date: 2026-04-19
 status: v0.1.0
 ---

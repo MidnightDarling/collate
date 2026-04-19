@@ -43,15 +43,13 @@ Agent **默认走 `run_mineru.py`**（本地 `mineru[pipeline]`），不再按 `
 
 ```bash
 which mineru   # 检查 mineru CLI 是否在 PATH
-ls -d ~/mineru/"$STEM".pdf-* 2>/dev/null   # 检查 MinerU Desktop 是否有历史产出
 ```
 
 判断：
 
 | 条件 | 路径 |
 |---|---|
-| `mineru` 在 PATH 且 `~/mineru/` 没对应产出 | **路径 A**：`run_mineru.py` 本地跑 |
-| `~/mineru/` 已有 Desktop 产出 | 路径 A'：`import_mineru_output.py --job-dir` 直接导入 |
+| `mineru` 在 PATH | **路径 A**：`run_mineru.py` 本地跑 |
 | `mineru` 没装 | 路径 B：提示 `pip install 'mineru[pipeline]'` 或跑 `/historical-ocr-review:setup` |
 | 离线 / 环境装不上 / PDF 有可用文字层且用户急 | 路径 D：`extract_text_layer.py` 兜底（质量会打折） |
 

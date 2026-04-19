@@ -37,6 +37,11 @@ Human ◄── <ws>.ocr/README.md  （指向 output/ 与 previews/）
 
 整个 `.ocr/` 工作区自描述：根目录 `README.md` 由 `scripts/workspace_readme.py` 在每个 skill 结束时刷新，给人类一个清晰的入口。
 
+**一条命令模式**：
+
+- **shell / CI / 本地编排**：`python3 scripts/run_full_pipeline.py --pdf <input.pdf>`
+- **agent runtime**：以 `agents/ocr-pipeline-operator.md` 作为单一入口；它负责调用上面的总编排脚本、在 `raw.md` 就位后起 `historical-proofreader` subagent、再重入总编排脚本完成 `final.md` / `diff-review` / `docx` / `wechat`。
+
 每一步的详细契约见下。
 
 ---
@@ -77,6 +82,7 @@ python skills/prep-scan/scripts/pages_to_pdf.py \
 
 **输入**：原始 `input.pdf`。
 **产物**（全部归入 `<ws>.ocr/prep/`）：`pages/`（原图 PNG）、`cleaned_pages/`（去水印后 PNG）、`trimmed_pages/`（裁边后 PNG，可选）、`cleaned.pdf`。
+**工作区收口**：若走一条命令模式，`scripts/run_full_pipeline.py` 还会补齐 `prep/original.pdf`、根目录 `source.pdf`、`_internal/_pipeline_status.json`，并刷新根 README。
 **算法**：HSV + 连通域面积过滤去彩色馆藏章；灰度旋转 + `MORPH_OPEN` 去对角水印；高斯模糊 + 顶帽变换 + 正文保护去浅灰重复水印。`split_pages.py` 自动探测原生 DPI，上限为 `min(--dpi, max(native, 150))`，不会把 72 dpi 扫描拉到 300 dpi 劣质插值。
 
 **Agent 决策**：
@@ -101,7 +107,7 @@ python skills/visual-preview/scripts/visualize_prep.py \
     [--no-diff]      # 跳过差异热图，只出原图/清理后对照
 ```
 
-**产物**：`<ws>.ocr/previews/visual-prep.html`（每页三态：原图 / 清理后 / 差异热图）。同时在 stderr 回显平均清理比例与"过度清理候选页"列表。HTML 以相对路径引用 `../prep/pages/` 和 `../prep/cleaned_pages/`，整个 `.ocr/` 目录可原样拷走离线浏览。
+**产物**：`<ws>.ocr/previews/visual-prep.html`（每页三态：原图 / 当前 OCR 输入版本 / 差异热图）。同时在 stderr 回显平均清理比例与"过度清理候选页"列表。若存在 `trimmed_pages/`，脚本以它作为"当前 OCR 输入版本"；否则退回 `cleaned_pages/`。HTML 以相对路径引用 `../prep/pages/` 与 `../prep/{trimmed_pages|cleaned_pages}/`，整个 `.ocr/` 目录可原样拷走离线浏览。
 **工作区根 README**：skill 收尾会刷新 `<ws>.ocr/README.md`，把这次预览挂到"过程文档"区块里。
 
 **Agent 决策**（以脚本内置阈值为准）：
@@ -206,7 +212,9 @@ python skills/ocr-run/scripts/extract_text_layer.py \
 
 ## 6. 应用 proofread 清单（raw.md → final.md）
 
-**此步无独立脚本**。由 agent 读入 `<ws>.ocr/raw.md` 与 `<ws>.ocr/review/raw.review.md`，按下列策略生成 `<ws>.ocr/final.md`：
+**默认入口**：`python3 scripts/apply_review.py --raw <ws>.ocr/raw.md --review <ws>.ocr/review/raw.review.md --out <ws>.ocr/final.md`
+
+一条命令模式下，总编排脚本会在 `review/raw.review.md` 出现后自动调用它。agent 仍然要对结果负责：`apply_review.py` 只做**保守的、可定位的**替换和 C 类注释落盘；若有未自动采纳的条目，diff-review 会把它们显性打出来。
 
 | 清单类别 | 默认处理 |
 |---------|---------|
@@ -321,25 +329,43 @@ low_confidence_pages: [3, 7, 12]    # optional, from ocr-run meta.json
 4. **跨段一致性** — 段末逗号核查、重复段检测、低置信度页加倍核
 5. **专名核对** — 人名、地名、机构的 C 类条目
 
-**subagent 输出**：`raw.review.md`，格式：
+**subagent 输出**：`raw.review.md`，格式（**canonical**）：
 
 ```markdown
-# Review: <原 md 文件名>
+# 校对报告：<文件名>
 
-## A（OCR 错）
-- line 42 | 原文："戊戍纪年" | 建议："戊戌纪年" | 理由：天干地支字形错
-- ...
+## A 类 — 极可能是 OCR 错
 
-## B（学术规范）
-- line 17 | 原文："" 内含 `；`| 建议：改半角；| 理由：GB/T 标点
-- ...
+### A1. 天干地支字形错 · Line 42
 
-## C（存疑待考）
-- line 88 | 原文："某甲" | 建议：未定 | 理由：清末别名，疑指某乙，需人工核
-- ...
+**原文**：
+> 戊戍纪年
 
-## 全局注记
-- 全文 "曰/日" 大约 12 处，未逐一标注，建议整体通读核查。
+**建议**：戊戌纪年
+
+**理由**：天干地支字形错
+
+## B 类 — 规范问题
+
+### B1. 标点半全角混用 · Line 17
+
+**原文**：
+> "" 内含 ；
+
+**建议**：改半角；
+
+**理由**：GB/T 标点
+
+## C 类 — 存疑待考
+
+### C1. 清末别名待核 · Line 88
+
+**原文**：
+> 某甲
+
+**建议**：未定
+
+**理由**：清末别名，疑指某乙，需人工核
 
 ## Checklist 执行证明
 | 步骤 | 命中数 |
@@ -348,6 +374,8 @@ low_confidence_pages: [3, 7, 12]    # optional, from ocr-run meta.json
 | 字形扫描 | 27 |
 | ...  |
 ```
+
+`md_diff.py` 与 `scripts/apply_review.py` 以这套格式为准；同时兼容旧版 `## A（...） + bullet` 产物，只作读取，不再作为发布格式继续扩散。
 
 **禁止**：subagent 不得修改 raw.md；不得跳过任何一步 checklist。
 

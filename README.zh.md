@@ -6,7 +6,7 @@
 
 ![注意力作为观察者的自画像](assets/readme-hero-v2.png)
 
-> 建立：2026-04-19 · Alice 与 Claude Opus 4.7 共笔 · 代码 Apache-2.0，引用材料 CC-BY-4.0
+> 建立：2026-04-19 · Alice、Claude Opus 4.7 与 GPT-5.4 共笔 · 代码 Apache-2.0，引用材料 CC-BY-4.0
 
 [English](README.md) · [中文](README.zh.md)
 
@@ -21,6 +21,18 @@
 任何能执行 Python 脚本、读取结构化文本知识库的 agent 架构都可以接入：Claude Code、Cursor、Codex CLI、Kimi K2、MiniMax Agent、Gemini CLI 等。
 
 **点校**是中国古代学者对传世文献断句、勘误、比对异本的传统工夫——这个工具箱把这套千年积淀的做法延伸到当代的 OCR 与 agent 场景。英文名 Collate 取的就是"校雠"的直接对应。
+
+## 快速开始
+
+支持两种入口：
+
+- **机械总入口**：`python3 scripts/run_full_pipeline.py --pdf /绝对路径/文件.pdf`
+- **完整 agent 入口**：从 [agents/ocr-pipeline-operator.md](agents/ocr-pipeline-operator.md) 开始；它会调总编排脚本、起 `historical-proofreader`、再重入总编排脚本并给出交付总结。
+
+当前 canonical OCR 路径是**仓库脚本直接调用 OCR 引擎**：
+
+- 默认：本地 `mineru[pipeline]` CLI
+- 兼容降级：MinerU 云端 API 或百度 OCR
 
 ## 工作流
 
@@ -71,6 +83,8 @@ Human: final.docx + final.mp.html + 审计日志
 
 每个 runtime 的接入步骤见 [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)。简述：
 
+- **一条命令的机械路径**：`python3 scripts/run_full_pipeline.py --pdf <input.pdf>`
+- **一次请求的 agent 路径**：`agents/ocr-pipeline-operator.md` + `agents/historical-proofreader.md`
 - **Claude Code**：`/plugin install <path>`；skills 自动发现。
 - **Cursor / Codex CLI**：直接调 `skills/*/scripts/*.py`；把 `SKILL.md` 与 `references/` 作为模型上下文。
 - **Kimi K2 / MiniMax Agent**：把 `agents/historical-proofreader.md` 作为 system prompt；Python 脚本本地跑，中间产物回传对话。
@@ -132,4 +146,4 @@ mineru[pipeline]
 - **引用材料**（docs/、skills/*/references/、README、AGENTS.md、原创插图）：[CC-BY-4.0](LICENSE-REFERENCES)
 - **第三方依赖**保留各自许可——见 [NOTICE](NOTICE)
 
-版权 2026 Alice <Mcyunying@gmail.com>。与 Claude Opus 4.7（Anthropic）共笔；按 AI 协作作品的适用法律，版权由 Alice 独家持有，作者身份（authorship）为联合。详见 [NOTICE](NOTICE) 与 [CONTRIBUTORS.md](CONTRIBUTORS.md)。
+版权 2026 Alice <Mcyunying@gmail.com>。与 Claude Opus 4.7（Anthropic）及 GPT-5.4（OpenAI）共笔；按 AI 协作作品的适用法律，版权由 Alice 独家持有，作者身份（authorship）为联合。详见 [NOTICE](NOTICE) 与 [CONTRIBUTORS.md](CONTRIBUTORS.md)。

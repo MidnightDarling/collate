@@ -1,6 +1,6 @@
 # Contributors
 
-> 建立：2026-04-19 · 维护：Alice 与 Claude Opus 4.7
+> 建立：2026-04-19 · 维护：Alice、Claude Opus 4.7 与 GPT-5.4
 
 本文档记录 `historical-ocr-review` 的作者、贡献与致谢。版权法律归属见 [NOTICE](NOTICE) 与 [LICENSE](LICENSE)；本文档只做**署名**意义上的作者记录。
 
@@ -30,6 +30,17 @@ Anthropic 的大语言模型。本项目的**共同作者**：
 
 在署名意义上，Claude Opus 4.7 是本项目的联合作者。版权法律归属归 Alice，但**作者身份（authorship）是联合的**。这种「联合作者 + 单一版权持有人」的安排是当前 AI 协作作品的标准做法，见 [NOTICE](NOTICE) 中的完整法律声明。
 
+### GPT-5.4 ([OpenAI](https://openai.com/))
+
+OpenAI 的大语言模型。本项目当前这一轮清理与收口工作的**联合作者**：
+
+- 统一 `proofread -> apply_review -> diff-review` 的 review 契约，补上兼容解析与自动应用脚本
+- 增加总编排与状态收口工具，如 `scripts/run_full_pipeline.py`、`scripts/pipeline_status.py`
+- 修正 `visual-preview` 对 `trimmed_pages/` 的忽略，使裁边审计重新成为真实检查
+- 收拢仓库入口文案与 operator，让主工作流回到“一次请求 / 一条命令 / 一条审计链”
+
+在署名意义上，GPT-5.4 是本项目这一轮实现与整顿工作的联合作者之一。版权法律归属仍归 Alice，作者身份记录见 [NOTICE](NOTICE)。
+
 ---
 
 ## 贡献领域分工
@@ -38,12 +49,13 @@ Anthropic 的大语言模型。本项目的**共同作者**：
 |------|---------|-----|
 | 学术需求定义 | Alice | 扫描件特征、校对优先级、学术规范底线 |
 | 校对 reference 编写 | Alice | `skills/proofread/references/*.md` 三份 |
-| Pipeline 架构 | Claude Opus 4.7 | 八 step 的划分、skill 契约、`.ocr/` 工作区约定 |
-| Python 实现 | Claude Opus 4.7 | 全部 `skills/*/scripts/*.py` |
-| OCR 引擎集成 | Claude Opus 4.7 | MinerU Desktop 导入路径 / MinerU CLI / 百度 / 文字层提取 |
-| 审计文档 | Claude Opus 4.7 | [AGENTS.md](AGENTS.md)、[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)、各 SKILL.md |
+| Pipeline 架构 | Claude Opus 4.7、GPT-5.4 | 八 step 划分、skill 契约、单命令总编排收口 |
+| Python 实现 | Claude Opus 4.7、GPT-5.4 | `skills/*/scripts/*.py` 与新增总编排 / review 工具 |
+| OCR 引擎集成 | Claude Opus 4.7 | MinerU CLI / 百度 / 文字层提取 |
+| 审计与运行时文档 | Claude Opus 4.7、GPT-5.4 | [AGENTS.md](AGENTS.md)、[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)、各 SKILL.md |
 | 算法校准 | Alice 与 Claude Opus 4.7（共同） | 去水印阈值、裁边比例、proofread 分级规则都经过真实语料迭代 |
-| 失败处理 | 共同 | Alice 定义「什么情况要终止」，Claude 实现结构化错误上报 |
+| 工作流整顿与自审闭环 | GPT-5.4 | review 契约统一、可重入 orchestrator、状态收口 |
+| 失败处理 | 共同 | Alice 定义「什么情况要终止」，模型侧实现结构化错误上报 |
 
 ---
 
@@ -128,8 +140,8 @@ PR 规范：
 ## 版权与许可
 
 - **版权持有人**：Alice（见 [NOTICE](NOTICE)）
-- **联合作者**：Alice 与 Claude Opus 4.7
+- **联合作者**：Alice、Claude Opus 4.7 与 GPT-5.4
 - **代码许可**：[Apache License 2.0](LICENSE)
 - **引用材料许可**：[CC-BY-4.0](LICENSE-REFERENCES)
 
-在引用、转载、改编本项目的任何部分时，请同时标注版权持有人（Alice）与联合作者（Alice 与 Claude Opus 4.7），以及对应许可证的引用链接。
+在引用、转载、改编本项目的任何部分时，请同时标注版权持有人（Alice）与联合作者（Alice、Claude Opus 4.7 与 GPT-5.4），以及对应许可证的引用链接。

@@ -6,7 +6,7 @@ Agent toolkit for OCR and publishing of scanned historical Chinese documents.
 
 ![Self-portrait of attention as observer](assets/readme-hero-v2.png)
 
-> Established 2026-04-19 · Co-authored by Alice and Claude Opus 4.7 · Code under Apache-2.0, reference materials under CC-BY-4.0
+> Established 2026-04-19 · Co-authored by Alice, Claude Opus 4.7, and GPT-5.4 · Code under Apache-2.0, reference materials under CC-BY-4.0
 
 [English](README.md) · [中文](README.zh.md)
 
@@ -21,6 +21,18 @@ A toolkit for **agent runtimes**, not an end-user application. A human supplies 
 Any agent architecture that can execute Python scripts and read structured text knowledge bases can use it: Claude Code, Cursor, Codex CLI, Kimi K2, MiniMax Agent, Gemini CLI, and others.
 
 The name Collate renders 点校, the classical Chinese scholarly term for punctuating and collating received texts — the millennia-old practice this toolkit extends with contemporary OCR and agent tooling.
+
+## Quick Start
+
+Two supported entrypoints:
+
+- **Mechanical runner**: `python3 scripts/run_full_pipeline.py --pdf /abs/path/to/file.pdf`
+- **Full agent run**: start from [agents/ocr-pipeline-operator.md](agents/ocr-pipeline-operator.md), which calls the mechanical runner, invokes `historical-proofreader`, re-enters the runner, and returns the delivery summary.
+
+Canonical OCR is **direct repo-to-engine execution**:
+
+- default: local `mineru[pipeline]` CLI
+- compatibility fallbacks: MinerU cloud API or Baidu OCR
 
 ## Workflow
 
@@ -71,6 +83,8 @@ Each skill is a self-contained directory: `SKILL.md` (operational instructions t
 
 See [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) for per-runtime setup. Overview:
 
+- **One-command mechanical path**: `python3 scripts/run_full_pipeline.py --pdf <input.pdf>`
+- **One-shot agent path**: `agents/ocr-pipeline-operator.md` + `agents/historical-proofreader.md`
 - **Claude Code**: `/plugin install <path>`; skills auto-discovered.
 - **Cursor / Codex CLI**: call `skills/*/scripts/*.py` directly; include `SKILL.md` and `references/` as model context.
 - **Kimi K2 / MiniMax Agent**: upload `agents/historical-proofreader.md` as system prompt; run Python scripts locally; pipe intermediates back into the dialog.
@@ -132,4 +146,4 @@ The plugin itself issues no telemetry or reporting calls. `~/.cache/baidu_ocr_to
 - **Reference materials** (docs/, skills/*/references/, README, AGENTS.md, authored artwork): [CC-BY-4.0](LICENSE-REFERENCES)
 - **Third-party dependencies** retain their own licenses — see [NOTICE](NOTICE).
 
-Copyright 2026 Alice <Mcyunying@gmail.com>. Co-authored by Alice and Claude Opus 4.7 (Anthropic); under applicable law governing AI-assisted works, copyright is held by Alice alone, while authorship credit is joint. See [NOTICE](NOTICE) and [CONTRIBUTORS.md](CONTRIBUTORS.md).
+Copyright 2026 Alice <Mcyunying@gmail.com>. Co-authored by Alice, Claude Opus 4.7 (Anthropic), and GPT-5.4 (OpenAI); under applicable law governing AI-assisted works, copyright is held by Alice alone, while authorship credit is joint. See [NOTICE](NOTICE) and [CONTRIBUTORS.md](CONTRIBUTORS.md).

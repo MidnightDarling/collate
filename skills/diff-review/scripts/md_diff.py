@@ -26,6 +26,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+ROOT = Path(__file__).resolve().parents[3]
+HELPERS = ROOT / "scripts"
+if str(HELPERS) not in sys.path:
+    sys.path.insert(0, str(HELPERS))
+
+from review_contract import ReviewItem, parse_review  # noqa: E402
+
 
 # ---------- Data classes ----------
 
@@ -36,19 +43,6 @@ class Paragraph:
     line_start: int  # 1-based inclusive
     line_end: int    # 1-based inclusive
     index: int       # sequential index within the document
-
-
-@dataclass
-class ReviewItem:
-    category: str                       # A / B / C
-    item_id: str                        # A3
-    title: str
-    line_number: Optional[int]
-    fragment: str
-    suggestion: str
-    status: str = "unanchored"          # accepted / rejected_or_missed / outside_fix / unanchored
-    anchored_paragraph_idx: Optional[int] = None
-    reason: str = ""                    # why this status
 
 
 # ---------- Paragraph splitting ----------
@@ -91,59 +85,6 @@ def find_paragraph_by_line(paragraphs: list[Paragraph], line: int) -> Optional[i
         if p.line_start <= line <= p.line_end:
             return p.index
     return None
-
-
-# ---------- review.md parsing ----------
-
-
-REVIEW_HEADER_RE = re.compile(
-    r"^###\s+([ABC]\d+)\.\s+(.*?)(?:\s+·\s+Line\s+(\d+))?\s*$"
-)
-
-
-def parse_review(path: Path) -> list[ReviewItem]:
-    """Parse ### A3. title · Line N entries from a raw.review.md file."""
-    text = path.read_text(encoding="utf-8")
-    lines = text.splitlines()
-    items: list[ReviewItem] = []
-    i = 0
-    while i < len(lines):
-        m = REVIEW_HEADER_RE.match(lines[i])
-        if not m:
-            i += 1
-            continue
-        item_id = m.group(1)
-        title = (m.group(2) or "").strip()
-        ln = int(m.group(3)) if m.group(3) else None
-        fragment_lines: list[str] = []
-        suggestion = ""
-        j = i + 1
-        while j < len(lines):
-            peek = lines[j]
-            if REVIEW_HEADER_RE.match(peek):
-                break
-            if peek.startswith("## ") or peek.startswith("# "):
-                break
-            if peek.startswith("> "):
-                fragment_lines.append(peek[2:].rstrip())
-            if "**建议**" in peek or peek.startswith("**建议"):
-                rest = peek.split("**建议**", 1)[-1]
-                rest = rest.lstrip("：:*").strip()
-                if rest:
-                    suggestion = rest
-                elif j + 1 < len(lines):
-                    suggestion = lines[j + 1].strip()
-            j += 1
-        items.append(ReviewItem(
-            category=item_id[0],
-            item_id=item_id,
-            title=title,
-            line_number=ln,
-            fragment=" ".join(fragment_lines).strip(),
-            suggestion=suggestion,
-        ))
-        i = j
-    return items
 
 
 # ---------- Alignment ----------

@@ -1,7 +1,7 @@
 ---
 title: 跨运行时接入手册
 date: 2026-04-19
-author: [Claude Opus 4.7, Alice]
+author: [Alice, Claude Opus 4.7, GPT-5.4]
 status: stable
 ---
 
@@ -18,6 +18,11 @@ status: stable
 1. **读文件**：读 `skills/<name>/SKILL.md` 与 `agents/<name>.md` 进入上下文
 2. **跑 shell**：用命令行调 `python skills/*/scripts/*.py`
 3. **起子对话**：把 `agents/historical-proofreader.md` 作为 system prompt 起一个独立对话（或等价机制），回传结构化产物
+
+推荐入口分成两层：
+
+- **机械总入口**：`python3 scripts/run_full_pipeline.py --pdf <input.pdf>`
+- **完整 agent 入口**：`agents/ocr-pipeline-operator.md`，它会在 `raw.md` 就位后调 `historical-proofreader`，再重入总编排脚本
 
 运行时能力矩阵：
 
@@ -52,7 +57,7 @@ status: stable
 ```bash
 WS="$(dirname "$INPUT_PDF")/$(basename "$INPUT_PDF" .pdf).ocr"
 mkdir -p "$WS"/{prep,previews,review,output,assets,_internal}
-cp "$INPUT_PDF" "$WS/original.pdf"
+cp "$INPUT_PDF" "$WS/prep/original.pdf"
 ```
 
 各子目录分工：
@@ -64,7 +69,7 @@ cp "$INPUT_PDF" "$WS/original.pdf"
 | `review/` | `raw.review.md` 等校对清单 | 过程 |
 | `output/` | `<title>_<author>_<year>_final.docx` / `_wechat.{html,md}` | **最终交付** |
 | `assets/` | MinerU 抽出的图片 | 被 raw.md / final.md 引用 |
-| `_internal/` | `mineru_full.md` / `_import_provenance.json` 等调试产物 | 下划线前缀示意"别动" |
+| `_internal/` | `mineru_full.md` / `_import_provenance.json` / `_pipeline_status.json` 等调试产物 | 下划线前缀示意"别动" |
 
 无论哪个 runtime，中间产物不清理；每个 skill 结束后会自动刷新 `$WS/README.md`，给人类一个清晰的入口。
 

@@ -1,7 +1,7 @@
 # 繁体古籍校对知识库
 
 > 给 `historical-proofreader` agent 校对**繁体古籍**（明清及以前刊本、民国影印善本）时加载的参考。
-> 作者：Claude Opus 4.7
+> 作者：Claude Opus 4.7，GPT-5.4
 
 ---
 

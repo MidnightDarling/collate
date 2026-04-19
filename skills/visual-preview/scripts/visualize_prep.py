@@ -3,7 +3,7 @@
 
 Contract: skills/visual-preview/SKILL.md Step 3. Produces:
   - `<prep-dir>/diff_pages/page_N.png` — heatmap overlay (red highlights on
-    pixels that differ between pages/ and cleaned_pages/)
+    pixels that differ between pages/ and the current OCR input pages)
   - `<out>` (default `<prep-dir>/visual-preview.html`) — single-file offline
     viewer with three-state toggle (original / cleaned / diff) per page
 
@@ -15,7 +15,7 @@ in a sibling directory like `<workspace>/previews/` (current convention, see
 Exit codes:
   0   success
   2   prep dir or subdirs missing
-  3   pages/cleaned_pages file-count mismatch
+  3   pages/current-pages file-count mismatch
   5   other
 """
 from __future__ import annotations
@@ -84,10 +84,18 @@ def imwrite_unicode(path: Path, img: np.ndarray, params=None) -> bool:
 # ---------- Pairing ----------
 
 
+def current_pages_dir(prep: Path) -> Path:
+    """Prefer trimmed_pages/ when present; otherwise cleaned_pages/."""
+    trimmed = prep / "trimmed_pages"
+    if trimmed.is_dir() and any(trimmed.glob("page_*.png")):
+        return trimmed
+    return prep / "cleaned_pages"
+
+
 def collect_pairs(prep: Path) -> list[tuple[int, Path, Path]]:
-    """Return sorted [(page_num, orig_path, clean_path), ...]."""
+    """Return sorted [(page_num, orig_path, current_path), ...]."""
     orig_dir = prep / "pages"
-    clean_dir = prep / "cleaned_pages"
+    clean_dir = current_pages_dir(prep)
     orig_map: dict[int, Path] = {}
     clean_map: dict[int, Path] = {}
     for p in orig_dir.glob("page_*.png"):
@@ -304,7 +312,7 @@ def page_flag(result: PageResult) -> tuple[str, str]:
     return css, " ".join(notes)
 
 
-def build_page_section(result: PageResult, prep_rel: str) -> str:
+def build_page_section(result: PageResult, prep_rel: str, current_dir_name: str) -> str:
     """Build one `<section>` for a page.
 
     `prep_rel` is the relative path from the HTML output file to the prep dir
@@ -327,9 +335,9 @@ def build_page_section(result: PageResult, prep_rel: str) -> str:
 
     img_tag = (
         f"<img "
-        f"src='{prefix}cleaned_pages/{html.escape(result.clean_name)}' "
+        f"src='{prefix}{html.escape(current_dir_name)}/{html.escape(result.clean_name)}' "
         f"data-original='{prefix}pages/{html.escape(result.orig_name)}' "
-        f"data-cleaned='{prefix}cleaned_pages/{html.escape(result.clean_name)}' "
+        f"data-cleaned='{prefix}{html.escape(current_dir_name)}/{html.escape(result.clean_name)}' "
         f"data-diff='{data_diff}' "
         f"alt='page {result.page_num}' loading='lazy'>"
     )
@@ -358,6 +366,7 @@ def build_page_section(result: PageResult, prep_rel: str) -> str:
 
 
 def build_html(prep: Path, results: list[PageResult], prep_rel: str = ".") -> str:
+    current_dir_name = current_pages_dir(prep).name
     n = len(results)
     cleaned_vals = [r.cleaned_pct for r in results if r.cleaned_pct is not None]
     avg_cleaned = sum(cleaned_vals) / len(cleaned_vals) if cleaned_vals else 0.0
@@ -407,7 +416,7 @@ def build_html(prep: Path, results: list[PageResult], prep_rel: str = ".") -> st
         "<div class='legend'>",
         "<b>这一步做了什么：</b>把扫描原页的彩色馆藏章、水印、斜纹擦掉，"
         "必要时顺手裁掉页眉页脚。每页三态可以切换——"
-        "<b>原图</b> 是扫描原貌，<b>清理后</b> 是进 OCR 之前的样子，"
+        "<b>原图</b> 是扫描原貌，<b>清理后</b> 是当前准备用于 OCR 的版本，"
         "<b>差异热图</b> 里 <span class='swatch red'></span> 半透明红色就是被擦掉或裁掉的地方。",
     ]
     if warn_pages:
@@ -433,7 +442,7 @@ def build_html(prep: Path, results: list[PageResult], prep_rel: str = ".") -> st
     legend_parts.append("</div>")
     legend = "".join(legend_parts)
 
-    sections = "\n".join(build_page_section(r, prep_rel) for r in results)
+    sections = "\n".join(build_page_section(r, prep_rel, current_dir_name) for r in results)
 
     script = """
 <script>
@@ -490,8 +499,8 @@ def main() -> int:
     if not prep.is_dir():
         print(f"prep 目录不存在：{prep}", file=sys.stderr)
         return 2
-    if not (prep / "pages").is_dir() or not (prep / "cleaned_pages").is_dir():
-        print(f"缺 pages/ 或 cleaned_pages/ 子目录", file=sys.stderr)
+    if not (prep / "pages").is_dir() or not current_pages_dir(prep).is_dir():
+        print(f"缺 pages/ 或 cleaned_pages/trimmed_pages/ 子目录", file=sys.stderr)
         return 2
 
     pairs = collect_pairs(prep)

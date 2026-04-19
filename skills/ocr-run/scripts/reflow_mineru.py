@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Rebuild a structured markdown from MinerU Desktop's content_list_v2.json.
+"""Rebuild a structured markdown from MinerU content_list_v2.json.
 
-MinerU Desktop ships per-block classification: `paragraph`, `title`,
+MinerU ships per-block classification: `paragraph`, `title`,
 `page_footnote`, `page_header`, `page_number`, `page_footer`, `list`.
 The `full.md` it writes keeps footnote blocks inlined with body text,
 splits paragraphs across page boundaries, and leaves per-page circled

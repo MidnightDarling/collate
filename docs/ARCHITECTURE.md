@@ -1,7 +1,7 @@
 ---
 title: Architecture
 description: historical-ocr-review 插件的内部架构、数据流、skill 职责边界、设计决策
-author: Claude Opus 4.7
+author: [Alice, Claude Opus 4.7, GPT-5.4]
 date: 2026-04-19
 status: v0.1.0
 ---
@@ -20,11 +20,18 @@ historical-ocr-review/
 ├── README.md                       用户入口
 ├── AGENTS.md                       给未来接管的 agent 看
 ├── INSTALL.md                      三个宿主的装法
+├── scripts/
+│   ├── run_full_pipeline.py        机械总编排入口
+│   ├── apply_review.py             review 清单保守应用器
+│   ├── review_contract.py          proofread / diff-review 共用解析契约
+│   ├── pipeline_status.py          `_pipeline_status.json` 读写
+│   └── workspace_readme.py         工作区 README 刷新
 ├── docs/
 │   ├── ARCHITECTURE.md             本文
 │   └── TROUBLESHOOTING.md          常见报错
 ├── agents/
-│   └── historical-proofreader.md   唯一的 subagent（校对专家）
+│   ├── historical-proofreader.md   唯一的 subagent（校对专家）
+│   └── ocr-pipeline-operator.md    一次请求的总操作员入口
 └── skills/
     ├── setup/                      首次配置
     ├── prep-scan/                  PDF 预处理
@@ -58,11 +65,12 @@ skills/<name>/
 └── 论文.pdf                               [原件，永不动]
     └── 论文.ocr/                          [唯一工作区，自描述]
         ├── README.md                       [每次 skill 结束自动刷新，人类入口]
-        ├── original.pdf                    [原件拷贝]
+        ├── source.pdf                      [进入 OCR 阶段的 PDF 副本]
         ├── raw.md                          [OCR 原始 Markdown]
         ├── final.md                        [agent 校对后定稿]
         ├── meta.json                       [OCR 元信息 + 标题/作者/年份]
         ├── prep/                           [prep-scan 过程产物]
+        │   ├── original.pdf                [原件拷贝]
         │   ├── pages/page_*.png            [split_pages.py 拆页]
         │   ├── cleaned_pages/page_*.png    [dewatermark 后]
         │   ├── trimmed_pages/page_*.png    [remove_margins 后，可选]
@@ -74,7 +82,7 @@ skills/<name>/
         │   └── diff-review.html            [raw.md vs final.md]
         ├── review/                          [校对过程产物]
         │   ├── raw.review.md               [proofread 的 A/B/C 清单]
-        │   └── diff-review.summary.md      [diff-review 摘要]
+        │   └── diff-summary.md             [diff-review 摘要]
         ├── output/                          [最终交付]
         │   ├── <title>_<author>_<year>_final.docx
         │   ├── <title>_<author>_<year>_wechat.html
@@ -83,7 +91,8 @@ skills/<name>/
         │   └── figN.png
         └── _internal/                       [调试 / 起源数据，前缀示意"别动"]
             ├── mineru_full.md              [MinerU 原始 markdown]
-            └── _import_provenance.json     [来源元信息]
+            ├── _import_provenance.json     [来源元信息]
+            └── _pipeline_status.json       [总编排状态机]
 ```
 
 **命名约定**：
@@ -100,40 +109,34 @@ skills/<name>/
 ## Skill 依赖关系
 
 ```
-             setup
-               │ （配 ~/.env 的 API key）
-               ▼
-            prep-scan ──→ <ws>.ocr/prep/{pages, cleaned_pages, cleaned.pdf}
-               │                    │
-               │                    ▼
-               │             visual-preview  [质检闸门]
-               │             → previews/visual-prep.html
-               ▼
-            ocr-run  ──→ raw.md + meta.json
-                         + previews/ocr-preview.html
-                         + assets/ + _internal/
+         agent / shell entry
                │
                ▼
-           proofread  ──→ review/raw.review.md
-             (调 historical-proofreader agent)
+   scripts/run_full_pipeline.py
                │
-               │ （agent 按清单改）
-               ▼
-             final.md
+               ├── prep-scan
+               ├── visual-preview
+               ├── ocr-run
+               │       └── raw.md + meta.json + assets/
                │
-               ▼
-          diff-review  [质检闸门]
-          ──→ previews/diff-review.html
-              + review/diff-review.summary.md
+               ├── (pause when review/raw.review.md missing)
                │
                ▼
-         ┌─────┴─────┐
-         ▼           ▼
-      to-docx    mp-format
-         │           │
-         ▼           ▼
-   output/<title>_<author>_<year>_final.docx
-   output/<title>_<author>_<year>_wechat.{html,md}
+   historical-proofreader agent
+               │
+               ▼
+      review/raw.review.md
+               │
+               ▼
+   scripts/run_full_pipeline.py  (re-enter)
+               │
+               ├── apply_review.py -> final.md
+               ├── diff-review -> previews/diff-review.html + review/diff-summary.md
+               ├── to-docx
+               └── mp-format
+               │
+               ▼
+      output/<title>_<author>_<year>_{final,wechat}.*
 ```
 
 **三个质检闸门**是设计要点：
@@ -142,7 +145,7 @@ skills/<name>/
 2. **proofread 的 Checklist 执行证明表**——确认 agent 已执行字形扫描
 3. **diff-review**（改完之后）——核对采纳与漏改条目
 
-任一闸门失效即退化为黑盒交付。插件的定位是让用户在每一步都可复查，而非追求端到端自动化。
+任一闸门失效即退化为黑盒交付。插件的定位不是神秘自动化，而是**可重入、可核查、可解释的自动化**。
 
 ---
 
@@ -162,9 +165,9 @@ skills/<name>/
 
 macOS 上 `cv2.imread` 对含中文路径的部分 PNG 会返回 None，且同一目录下行为不一致。所有脚本的图像 I/O 改走 `cv2.imdecode(np.fromfile(...))` / `cv2.imencode + tofile` 以绕过路径编码问题。参见 [skills/visual-preview/scripts/visualize_prep.py](../skills/visual-preview/scripts/visualize_prep.py) 的 `imread_unicode` / `imwrite_unicode`。
 
-### 4. OCR 双引擎 fallback
+### 4. OCR 主线与兼容降级
 
-MinerU 对繁体竖排古籍识别率更高，百度对现代简体更稳定且配额更大。`~/.env` 的 `OCR_ENGINE` 决定默认引擎，`--engine=xxx` 可单次覆盖——用于引擎对比或降级切换。
+当前主线是本地 `mineru[pipeline]` CLI。云端 MinerU 与百度 OCR 保留为兼容分支，用于本地 CLI 不可用时的降级与对比，而不是文档层的默认入口。
 
 ### 5. diff-review 的"接近"判定
 

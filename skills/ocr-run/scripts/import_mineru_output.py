@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Import MinerU Desktop output into the plugin's `.ocr/` layout.
+"""Import legacy MinerU job output into the plugin's `.ocr/` layout.
 
-MinerU Desktop writes every job into `~/mineru/<pdf-basename>.pdf-<uuid>/`
-with files named:
+Some legacy MinerU runners write each job into a directory such as
+`~/mineru/<pdf-basename>.pdf-<uuid>/` with files named:
     - full.md                         (MinerU's own markdown)
     - content_list_v2.json            (structured block list; what we actually use)
     - <jobid>_content_list.json       (legacy v1 schema; ignored here)
@@ -214,22 +214,22 @@ def build_meta(content_list: Path) -> dict:
                 low_conf.append(idx)
 
     return {
-        "engine": "mineru-desktop",
+        "engine": "mineru-legacy-job",
         "layout": "horizontal",
         "lang": "zh-hans",
         "pages": pages,
-        # MinerU Desktop does not surface per-block confidence in the public
+        # Legacy MinerU job exports do not surface per-block confidence in the public
         # JSON, so we report null rather than fabricate a number.
         "avg_confidence": None,
         "low_confidence_pages": low_conf,
         "duration_seconds": None,
-        "source": "imported from ~/mineru via import_mineru_output.py",
+        "source": "imported via import_mineru_output.py",
     }
 
 
 def copy_origin_pdf(job_dir: Path, out_dir: Path) -> None:
     """Copy the PDF MinerU actually processed into .ocr/source.pdf for audit."""
-    # CLI: <stem>/auto/<stem>_origin.pdf ; Desktop: <uuid>_origin.pdf at root.
+    # CLI: <stem>/auto/<stem>_origin.pdf ; legacy job export: <uuid>_origin.pdf at root.
     pdfs = list(job_dir.rglob("*_origin.pdf"))
     if pdfs:
         shutil.copy2(pdfs[0], out_dir / "source.pdf")
@@ -242,7 +242,7 @@ def copy_images(job_dir: Path, out_dir: Path) -> int:
     `![caption](assets/<basename>)`, so the targets must live where
     md_to_docx expects them. Returns the number of files copied.
     """
-    # CLI: <stem>/auto/images/ ; Desktop: <uuid>/images/
+    # CLI: <stem>/auto/images/ ; legacy job export: <uuid>/images/
     candidates = list(job_dir.rglob("images"))
     src = next((p for p in candidates if p.is_dir()), None)
     if src is None:
@@ -264,7 +264,7 @@ def main() -> int:
     ap.add_argument("--out", required=True, type=Path,
                     help="Target .ocr/ directory to populate")
     ap.add_argument("--mineru-dir", type=Path, default=Path.home() / "mineru",
-                    help="MinerU Desktop output root (default: ~/mineru)")
+                    help="legacy MinerU job root (default: ~/mineru)")
     ap.add_argument("--job-dir", type=Path,
                     help="Skip auto-discovery and use this job directory")
     args = ap.parse_args()
@@ -278,17 +278,17 @@ def main() -> int:
         job = find_job_dir(args.mineru_dir, args.pdf)
         if job is None:
             print(
-                f"no MinerU output for '{args.pdf.stem}' under {args.mineru_dir}. "
-                "Submit the PDF via MinerU Desktop first.",
+                f"no legacy MinerU job output for '{args.pdf.stem}' under {args.mineru_dir}. "
+                "Provide a matching job directory first.",
                 file=sys.stderr,
             )
             return 3
         print(f"[import_mineru] using {job}")
 
-    # MinerU Desktop writes `content_list_v2.json` at the job root.
+    # Some legacy MinerU job runners write `content_list_v2.json` at the job root.
     # The `mineru` CLI writes `<stem>/auto/<stem>_content_list_v2.json` —
-    # accept either layout so the same agent flow works whether the user opened
-    # the Desktop app or we ran the library locally.
+    # accept either layout so the same importer works for legacy job exports
+    # and for local library runs.
     content_list = job / "content_list_v2.json"
     if not content_list.is_file():
         candidates = list(job.rglob("*content_list_v2.json"))
@@ -311,7 +311,7 @@ def main() -> int:
     run_reflow(content_list, args.out / "raw.md", Path(__file__).resolve().parent)
 
     # 2. also keep MinerU's original full.md alongside for comparison / audit.
-    #    CLI layout puts it at `<stem>/auto/<stem>.md`; Desktop puts it as
+    #    CLI layout puts it at `<stem>/auto/<stem>.md`; legacy job exports put it as
     #    `full.md` at the job root. Check both.
     full_candidates = [job / "full.md", *list(job.rglob("*.md"))]
     for full in full_candidates:

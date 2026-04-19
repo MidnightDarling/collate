@@ -95,35 +95,34 @@ def pipeline_stage(workspace: Path) -> tuple[str, list[str]]:
 
     if not has_prep and not has_raw:
         return ("空工作区 — 还没跑任何 skill", [
-            "/historical-ocr-review:prep-scan <path-to-pdf>",
+            "python3 scripts/run_full_pipeline.py --pdf <path-to-pdf>",
         ])
     if has_prep and not has_raw:
         nxt = []
         if not has_visual:
             nxt.append("/historical-ocr-review:visual-preview <workspace>   # 核查清理效果")
-        nxt.append("/historical-ocr-review:ocr-run <workspace>/source.pdf")
+        nxt.append("python3 scripts/run_full_pipeline.py --workspace <workspace>")
         return ("prep-scan 已完成 — 待 OCR", nxt)
     if has_raw and not has_review:
         return ("OCR 已完成 — 待校对", [
             "/historical-ocr-review:proofread <workspace>/raw.md",
+            "生成 review/raw.review.md 后：python3 scripts/run_full_pipeline.py --workspace <workspace>",
         ])
     if has_review and not has_final:
-        return ("校对清单已生成 — 待用户修改 raw.md → final.md", [
-            "（用户动作）按 review/raw.review.md 修改 raw.md，保存为 final.md",
-            "（之后）/historical-ocr-review:diff-review <workspace>/raw.md <workspace>/final.md",
+        return ("校对清单已生成 — 待 agent 应用 review 清单并继续导出", [
+            "python3 scripts/run_full_pipeline.py --workspace <workspace>",
         ])
     if has_final and not has_diff:
         return ("定稿已出 — 待闭环核对", [
-            "/historical-ocr-review:diff-review <workspace>/raw.md <workspace>/final.md",
+            "python3 scripts/run_full_pipeline.py --workspace <workspace>",
         ])
     if has_final and has_diff and not has_docx:
         return ("闭环已核 — 待出交付", [
-            "/historical-ocr-review:to-docx <workspace>/final.md",
-            "/historical-ocr-review:mp-format <workspace>/final.md    # 如需公众号版",
+            "python3 scripts/run_full_pipeline.py --workspace <workspace>",
         ])
     if has_docx and not has_mp:
         return ("Word 稿已出 — 可继续出公众号版", [
-            "/historical-ocr-review:mp-format <workspace>/final.md",
+            "python3 scripts/run_full_pipeline.py --workspace <workspace>",
         ])
     if has_docx and has_mp:
         return ("全部交付物已生成 — 完成 ✓", [])
