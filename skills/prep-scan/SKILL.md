@@ -58,7 +58,7 @@ PDF="<pdf-path>"
 DIR=$(dirname "$PDF")
 BASE=$(basename "$PDF" .pdf)
 WORK="$DIR/$BASE.prep"
-mkdir -p "$WORK/pages" "$WORK/cleaned_pages"
+mkdir -p "$WORK/pages" "$WORK/cleaned_pages" "$WORK/trimmed_pages"
 cp "$PDF" "$WORK/original.pdf"
 ```
 
@@ -100,22 +100,24 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/dewatermark.py" \
 ### Step 5：裁页眉页脚
 
 ```bash
-# 默认裁上下各 8%
+# 默认裁上下各 8%；输出到独立目录，不覆盖 cleaned_pages
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/remove_margins.py" \
     --in "$WORK/cleaned_pages" \
-    --out "$WORK/cleaned_pages" \
+    --out "$WORK/trimmed_pages" \
     --header-ratio 0.08 \
     --footer-ratio 0.08
 ```
+
+> 独立目录的意义：保留 `cleaned_pages/` 作为"仅去水印、未裁边"的中间态，一旦裁过头可以从这里直接重新裁，不必从 `pages/` 重跑去水印。
 
 **这一步要看文献类型决定**：
 
 | 情况 | 处理 |
 |------|------|
-| 现代期刊（有刊名页眉 + 页码） | 默认 8% 裁掉 |
-| 民国报刊（刊名页眉要留作考据） | 用 `--no-margin-trim` 跳过 |
-| 古籍（版心鱼尾 + 书口） | 用 `--no-margin-trim`，古籍的版式信息本身就是研究对象 |
-| 档案影像（档号脚注要留） | 用 `--no-margin-trim` |
+| 现代期刊（有刊名页眉 + 页码） | 默认 8% 裁掉，Step 6 用 `trimmed_pages` 合 PDF |
+| 民国报刊（刊名页眉要留作考据） | **跳过此步**，Step 6 直接用 `cleaned_pages` 合 PDF |
+| 古籍（版心鱼尾 + 书口） | **跳过此步**，古籍的版式信息本身就是研究对象 |
+| 档案影像（档号脚注要留） | **跳过此步** |
 
 **判断办法**：打开 `$WORK/pages/page_001.png` 肉眼看第一页——
 
@@ -128,8 +130,11 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/remove_margins.py" \
 ### Step 6：合回 PDF
 
 ```bash
+# 跑过裁边（现代期刊） → 用 trimmed_pages
+# 跳过裁边（古籍/档案/民国报刊） → 用 cleaned_pages
+SRC="$WORK/trimmed_pages"   # 或 "$WORK/cleaned_pages"
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/pages_to_pdf.py" \
-    --in "$WORK/cleaned_pages" \
+    --in "$SRC" \
     --out "$WORK/cleaned.pdf"
 ```
 
@@ -160,9 +165,9 @@ open "$WORK/pages/page_001.png" "$WORK/cleaned_pages/page_001.png"
 
 ## 判断规则
 
-- **发现 PDF 是古籍竖排** → 提示用户 OCR 时走 `--layout vertical`（ocr-run 支持）
-- **发现 PDF 第一页是扉页 / 版权页** → 问她是否把第一页从最终输出里剔除（公众号推送一般不要版权页）
-- **PDF 超过 200 页** → 建议她按章节拆分处理，单次处理过大会超 OCR 配额且难以核验
+- **发现 PDF 是古籍竖排** → 本地 MinerU CLI 当前不支持 `--layout`，提示用户在 ocr-run 阶段改用 `baidu_client.py --layout vertical` 或 `mineru_client.py --layout vertical`（云端 API）。
+- **发现 PDF 第一页是扉页 / 版权页** → 问用户是否把第一页从最终输出里剔除（公众号推送一般不要版权页）。
+- **PDF 超过 200 页** → 建议按章节拆分处理；单次处理过大会超云 OCR 配额（若走云端），且难以核验。
 
 ## 失败兜底
 

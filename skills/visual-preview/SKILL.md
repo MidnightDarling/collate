@@ -91,7 +91,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/visual-preview/scripts/visualize_prep.py" 
 - 平均 `trimmed_pct`
 - 最脏页（`cleaned_pct` 最高的前 3 页）——可能是原有大章印或水印密集
 - 最干净页（`cleaned_pct` 最低的前 3 页）——可能是本来就没污染
-- **异常页**：`cleaned_pct > 15%` 的页 —— 过度清理候选，JN 重点看
+- **异常页**：`cleaned_pct > 20%` 的页 —— 过度清理候选，重点看（阈值与脚本 visualize_prep.py 内置常量一致）
 
 **3.5 HTML 输出（单文件离线）**
 

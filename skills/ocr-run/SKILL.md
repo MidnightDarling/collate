@@ -69,16 +69,29 @@ mkdir -p "$OUT/assets"
 
 ### Step 3：判断文献 hint（传给引擎）
 
-从 `<pdf-basename>.prep/pages/page_001.png` 采样第一页做**快速视觉判断**（你 Claude 看图，不调脚本）：
+从 `<pdf-basename>.prep/pages/page_001.png` 采样第一页做**快速视觉判断**（Agent 直接看图，不调脚本）：
+
+**本地 MinerU CLI（默认）——无 `--layout` 参数，`--lang` 用三字代码**：
+
+| 观察 | `--lang` |
+|------|---------|
+| 横排 + 简体 / 繁简混杂（含民国排印本） | `ch` |
+| 横排 + 繁体 + 新式标点 | `chinese_cht` |
+| 竖排 + 繁体 + 版心鱼尾（古籍） | 本地 CLI 竖排效果欠佳，改走云端或百度分支 |
+| 英文 / 日文 / 韩文为主 | `en` / `japan` / `korean` |
+
+**云端 MinerU / 百度 OCR（兼容分支）——支持 `--layout`，`--lang` 用 BCP-47 码**：
 
 | 观察 | `--layout` | `--lang` |
 |------|-----------|---------|
-| 竖排 + 繁体 + 版心鱼尾 | vertical | zh-hant |
-| 横排 + 繁体 + 新式标点 | horizontal | zh-hant |
-| 横排 + 简体 | horizontal | zh-hans |
-| 繁简混杂（民国排印本、早期译著） | horizontal | mixed |
+| 竖排 + 繁体 + 版心鱼尾 | `vertical` | `zh-hant` |
+| 横排 + 繁体 + 新式标点 | `horizontal` | `zh-hant` |
+| 横排 + 简体 | `horizontal` | `zh-hans` |
+| 繁简混杂（民国排印本、早期译著） | `horizontal` | `zh-hans`（简体为主） |
 
-用户没指定时，用你的判断。不确定就问她一句："这份文献是繁体竖排、繁体横排还是简体？"
+> 语言码**不要跨引擎复用**：把 `zh-hans` 传给本地 MinerU CLI 会失败；把 `ch` 传给百度也会失败。
+
+用户未指定时，Agent 自行判断；视觉上无法定性（繁简各半、页眉水印大）时，问一句："这份文献是繁体竖排、繁体横排还是简体？"
 
 ### Step 4：调 OCR（默认本地 `mineru`）
 
@@ -136,11 +149,10 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/make_preview.py" \
     --out "$OUT/preview.html"
 ```
 
-HTML 是**本地文件，不联网**。打开后：
+HTML 是**本地文件，不联网**。两种使用模式：
 
-- **左栏**：逐页 PDF 截图（高清）
-- **右栏**：对应段落的 OCR 文本，`contenteditable` 可直接改
-- **顶栏**：「下载修改后的 Markdown」按钮——浏览器无法直接写磁盘，所以按钮只能下载一份 `corrected.md` 到下载目录。用户拿到 `corrected.md` 后手动替换 `raw.md`（preview.html 的 footer 给出了具体命令和备份建议），再进入 proofread 步骤。
+- **Agent 自主模式（默认）**：`preview.html` 仅作为 diff-review 的视觉参照，Agent 不依赖 human-in-browser 编辑。直接进入下一步 proofread。
+- **人工协作模式**（仅用户显式要求 "我要先肉眼过一遍"）：用户在浏览器里改右栏（`contenteditable`），点「下载修改后的 Markdown」导出 `corrected.md` 到下载目录，再由 Agent 用 Step 8 的 `apply_corrections.py` 回写。
 
 ### Step 6：写 meta.json
 
@@ -167,24 +179,29 @@ HTML 是**本地文件，不联网**。打开后：
 
 ### Step 7：报告
 
+**Agent 自主模式**（默认，端到端跑完 pipeline）：
+
 ```
-OCR 完成（引擎：$ENGINE，47 页，耗时 3 分 35 秒）
+OCR 完成（引擎：$ENGINE，$PAGES 页，耗时 $SECONDS 秒）
 
-- 原始 Markdown：<open> $OUT/raw.md
-- 对照预览：<open> $OUT/preview.html  ← 先打开这个，在浏览器里手改明显错字
-- 平均置信度：暂不可得（MinerU 与百度 accurate_basic 接口都不返回 per-page 置信度，这里写 null）
-- 置信度偏低的页（启发式，字符数显著低于中位数或 OCR 失败）：第 3、12、38 页 —— 重点盯一下
+- 原始 Markdown：$OUT/raw.md
+- 对照预览：   $OUT/preview.html（仅作视觉参照，不需 human 编辑）
+- 置信度偏低的页（启发式）：第 3、12、38 页 —— 已传给 proofread subagent 作"重点盯防"
 
-下一步建议：
+下一步（自动进行）：proofread → 应用清单 → diff-review → to-docx + mp-format
+```
+
+**人工协作模式**（仅用户显式要求）：
+
+```
+OCR 完成。请先打开 preview.html 过一遍：
   1. 打开 preview.html 手过一遍（10-15 分钟）
-  2. 改完点「下载修改后的 Markdown」，浏览器会把 corrected.md 存到你的下载目录
-  3. 回来对我说一句「改完了」或「应用修改」，我会自动把 corrected.md 替换到位
-     （我会先备份原 raw.md 到 raw.md.bak，再移入 corrected.md，不需要你敲命令）
-  4. 然后跑 /historical-ocr-review:proofread $OUT/raw.md
-     校对 Agent 会按「繁体古籍 / 民国排印 / 现代简体」的史学知识给你标红建议
+  2. 改完点「下载修改后的 Markdown」，浏览器把 corrected.md 存到下载目录
+  3. 回来说一句「改完了」或「应用修改」，Agent 自动调 apply_corrections.py 回写
+  4. 然后进入 proofread
 ```
 
-### Step 8：应用浏览器里的修改（触发词：「改完了」「应用修改」「我改好了」「apply」）
+### Step 8（仅人工协作模式）：应用浏览器里的修改（触发词：「改完了」「应用修改」「我改好了」「apply」）
 
 当用户说完上面的触发词，Agent 要自动执行：
 

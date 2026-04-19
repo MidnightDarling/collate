@@ -1,6 +1,6 @@
 ---
 name: diff-review
-description: 使用场景：JN 按 raw.review.md 清单改完稿后，对 raw.md（OCR 原始）和 final.md（她的定稿）做对比。说"看我改了哪些""对比一下""diff""校对完了让我看看""我到底接受了哪些建议""我漏改了啥""改动统计""核对一下改动""闭环检查"都走这个 skill。生成段落级 HTML diff，关联 raw.review.md 的 A/B/C 标注，让她一目了然：接受了哪些 agent 建议、拒绝了哪些、自创了哪些、agent 标过但她手滑漏改了哪些。主动触发，不必等她说 "diff-review"。
+description: 使用场景：按 raw.review.md 清单改完稿后，对 raw.md（OCR 原始）和 final.md（定稿）做对比。说"看我改了哪些""对比一下""diff""校对完了让我看看""我到底接受了哪些建议""我漏改了啥""改动统计""核对一下改动""闭环检查"都走这个 skill。生成段落级 HTML diff，关联 raw.review.md 的 A/B/C 标注，一目了然：接受了哪些 agent 建议、拒绝了哪些、清单外修正了哪些、agent 标过但漏改了哪些。主动触发，不必等她说 "diff-review"。
 argument-hint: "<raw-md-path> <final-md-path> [--review=<raw.review.md 路径>]"
 allowed-tools: Read, Write, Edit, Bash
 ---
@@ -13,7 +13,7 @@ allowed-tools: Read, Write, Edit, Bash
 
 1. **她接受了 agent 的哪些建议？**（自己脑子里记不住改了哪些）
 2. **她拒绝或漏改了哪些？**（最常见：手滑漏掉一两条 A 类）
-3. **她自创了哪些 agent 没标的改动？**（积累她自己的校对风格）
+3. **清单外修正了哪些 agent 未标注的段？**（用于积累校对风格）
 
 不核对就改，等于校对没闭环——她可能漏了明显的 OCR 错就拿去生成 Word，回头被编辑或读者发现，返工。
 
@@ -113,7 +113,7 @@ raw.review.md 里每条 A/B/C 标注遵循固定格式：
 |---------|---------|
 | `accepted` | 标注所在段在 final.md 被改写，且改动**接近** agent 建议 |
 | `rejected_or_missed` | 标注所在段在 final.md 未被改写（opcode=equal） |
-| `own_edit` | 段落被改写但没有任何 agent 标注锚在该段 |
+| `outside_fix` | 段落被改写但没有任何 agent 标注锚在该段 |
 | `unanchored` | review.md 条目 line_number 为 null（如"全文标点混用"），列为参考不打状态 |
 
 **"接近"判定**：不要求精确字符匹配。策略：
@@ -132,7 +132,7 @@ raw.review.md 里每条 A/B/C 标注遵循固定格式：
 **字符级改动**：删 X 字 / 增 Y 字 / 净 +Z 字
 **接受 agent 建议**：N / 共 M 条有锚标注（X%）
 **拒绝或漏改**：N 条 —— 重点核！
-**自创改动**：N 处
+**清单外修正**：N 处
 
 ---
 
@@ -148,7 +148,7 @@ raw.review.md 里每条 A/B/C 标注遵循固定格式：
 - B1（标题全 H1）：全文仍是 H1，未降级 —— 会影响 to-docx
 - ...
 
-## 自创改动（agent 未标的）
+## 清单外修正（agent 未标注的段）
 
 - Line 45：raw "涉及" → final "关涉"（语义微调）
 - Line 102：新增脚注 [43]
@@ -164,7 +164,7 @@ raw.review.md 里每条 A/B/C 标注遵循固定格式：
 
 顶部工具条：
 - 文件名 + 修改段数 / 总段数
-- 接受 N 条 / 拒绝 M 条 / 自创 K 处（每个数字点击跳对应区）
+- 接受 N 条 / 拒绝 M 条 / 清单外 K 处（每个数字点击跳对应区）
 - "展开所有未修改段" 按钮
 - "导出 Markdown 摘要" 按钮（下载 summary.md）
 
@@ -202,7 +202,7 @@ open "${FINAL%.md}.diff.html"
 - 总改动：N 段 / 字符 +X -Y
 - 接受 agent 建议：X 条
 - 拒绝或漏改：Y 条 ← 重点看
-- 自创改动：Z 处
+- 清单外修正：Z 处
 
 打开了：<final>.diff.html
 摘要：<final>.diff.summary.md

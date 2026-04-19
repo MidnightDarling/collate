@@ -6,7 +6,7 @@ Contract: skills/diff-review/SKILL.md Step 3.1-3.6. This script implements:
   - Paragraph-level alignment via difflib.SequenceMatcher
   - Character-level intra-paragraph diff for replace segments
   - review.md annotation parsing and cross-status labeling
-    (accepted / rejected_or_missed / own_edit / unanchored)
+    (accepted / rejected_or_missed / outside_fix / unanchored)
   - Inline-styled single-file HTML + Markdown summary
 
 Exit codes:
@@ -46,7 +46,7 @@ class ReviewItem:
     line_number: Optional[int]
     fragment: str
     suggestion: str
-    status: str = "unanchored"          # accepted / rejected_or_missed / own_edit / unanchored
+    status: str = "unanchored"          # accepted / rejected_or_missed / outside_fix / unanchored
     anchored_paragraph_idx: Optional[int] = None
     reason: str = ""                    # why this status
 
@@ -258,7 +258,7 @@ def judge_acceptance(
         return ("accepted", "段落被删除（通常是废字符 / 重复段 的 A 类被接受）")
     keys = extract_key_chars(item.suggestion)
     if not keys:
-        return ("own_edit", "建议无法抽出关键字，交给 JN 人工核")
+        return ("outside_fix", "建议无法抽出关键字，需人工核查")
     final_hits = sum(1 for k in keys if k in final_para.text)
     raw_hits = sum(1 for k in keys if k in raw_para.text)
     if final_hits > raw_hits:
@@ -266,7 +266,7 @@ def judge_acceptance(
     if final_hits == 0 and raw_hits == 0:
         return ("accepted", "关键字在两边都不存在——可能建议是删除某字符，视作接受")
     if final_hits == raw_hits and raw_para.text != final_para.text:
-        return ("own_edit", "段落被改但关键字数相同，JN 用了不同改法")
+        return ("outside_fix", "段落被改但关键字数相同，采用了不同改法")
     return ("rejected_or_missed", "关键字未进入 final")
 
 
@@ -282,7 +282,7 @@ header h1{font-size:15px;margin:0;font-weight:500;letter-spacing:.05em;}
 header .stat{font-size:13px;padding:4px 10px;border-radius:2px;background:#2d2b29;}
 header .stat.accepted{color:#7ec18f;}
 header .stat.rejected{color:#e08a72;}
-header .stat.own{color:#e0c272;}
+header .stat.outside{color:#e0c272;}
 header .actions{margin-left:auto;display:flex;gap:10px;}
 header button{background:#c97d5d;color:#fff;border:0;padding:6px 14px;
 border-radius:2px;cursor:pointer;font-size:13px;}
@@ -299,7 +299,7 @@ section.seg .head .tag{padding:2px 8px;border-radius:2px;font-weight:600;}
 .tag.insert{background:#d4edda;color:#336341;}
 .tag.accepted{background:#d4edda;color:#1f4d2c;}
 .tag.rejected{background:#fbd7cd;color:#8f2b18;}
-.tag.own{background:#fff3cd;color:#7a5b00;}
+.tag.outside{background:#fff3cd;color:#7a5b00;}
 .tag.unanchored{background:#ececec;color:#555;}
 section.seg .body{display:grid;grid-template-columns:1fr 1fr;gap:0;
 border-top:1px solid #d9cfc1;}
@@ -367,14 +367,14 @@ def render_segment(
     if annotations:
         accepted = sum(1 for a in annotations if a.status == "accepted")
         rejected = sum(1 for a in annotations if a.status == "rejected_or_missed")
-        own = sum(1 for a in annotations if a.status == "own_edit")
+        outside_fix = sum(1 for a in annotations if a.status == "outside_fix")
         bits = []
         if accepted:
             bits.append(f"<span class='tag accepted'>接受 {accepted}</span>")
         if rejected:
             bits.append(f"<span class='tag rejected'>漏改 {rejected}</span>")
-        if own:
-            bits.append(f"<span class='tag own'>自创 {own}</span>")
+        if outside_fix:
+            bits.append(f"<span class='tag outside'>清单外 {outside_fix}</span>")
         ann_summary = " ".join(bits)
 
     # Body (two columns)
@@ -418,7 +418,7 @@ def render_segment(
             status_label = {
                 "accepted": ("accepted", "接受"),
                 "rejected_or_missed": ("rejected", "漏改或拒绝"),
-                "own_edit": ("own", "自创"),
+                "outside_fix": ("outside", "清单外"),
                 "unanchored": ("unanchored", "未锚定"),
             }.get(a.status, ("unanchored", a.status))
             suggest = html.escape(a.suggestion) if a.suggestion else "（无建议文本）"
@@ -459,7 +459,7 @@ def build_html(
 ) -> str:
     accepted = sum(1 for i in items if i.status == "accepted")
     rejected = sum(1 for i in items if i.status == "rejected_or_missed")
-    own = sum(1 for i in items if i.status == "own_edit")
+    outside_fix = sum(1 for i in items if i.status == "outside_fix")
     unanchored = sum(1 for i in items if i.status == "unanchored")
     changed = sum(1 for op in opcodes if op[0] != "equal")
     total = len(opcodes)
@@ -477,19 +477,19 @@ def build_html(
         annotations: list[ReviewItem] = []
         for idx in range(i1, i2):
             annotations.extend(items_by_raw_idx.get(idx, []))
-        # own_edit detection: paragraph changed but no anchored annotation
+        # outside_fix detection: paragraph changed but no anchored annotation
         if tag != "equal" and not annotations and (raw_block or final_block):
-            own_ann = ReviewItem(
+            fix_ann = ReviewItem(
                 category="-",
                 item_id="--",
-                title="自创改动（agent 未标注该段）",
+                title="清单外修正（agent 未在该段标注）",
                 line_number=None,
                 fragment="",
                 suggestion="",
-                status="own_edit",
+                status="outside_fix",
                 reason="此段有改动但无对应 review 标注",
             )
-            annotations = [own_ann]
+            annotations = [fix_ann]
         body_sections.append(render_segment(
             tag, raw_block, final_block,
             (i1, i2), (j1, j2),
@@ -519,7 +519,7 @@ def build_html(
         f"<span class='stat'>改动 {changed}/{total} 段</span>"
         f"<span class='stat accepted'>接受 {accepted}</span>"
         f"<span class='stat rejected'>漏改/拒绝 {rejected}</span>"
-        f"<span class='stat own'>自创 {own}</span>"
+        f"<span class='stat outside'>清单外 {outside_fix}</span>"
         f"<span class='stat'>未锚 {unanchored}</span>"
         f"<div class='actions'>"
         f"<button onclick=\"document.querySelectorAll('section.seg.collapsed').forEach(s=>s.classList.remove('collapsed'))\">展开全部</button>"
@@ -563,7 +563,7 @@ def build_summary(
     rate = (changed / total * 100) if total else 0
     accepted = [i for i in items if i.status == "accepted"]
     rejected = [i for i in items if i.status == "rejected_or_missed"]
-    own = [i for i in items if i.status == "own_edit"]
+    outside_fix = [i for i in items if i.status == "outside_fix"]
     unanchored = [i for i in items if i.status == "unanchored"]
 
     lines: list[str] = [
@@ -578,7 +578,7 @@ def build_summary(
         lines.extend([
             f"- **接受 agent 建议**：{len(accepted)} / 共 {len([i for i in items if i.line_number is not None])} 条有锚标注",
             f"- **拒绝或漏改**：{len(rejected)} 条 —— 重点核！",
-            f"- **自创改动**：{len(own)} 处",
+            f"- **清单外修正**：{len(outside_fix)} 处",
             f"- **未锚定标注**：{len(unanchored)} 条",
         ])
     lines.append("")
@@ -602,10 +602,10 @@ def build_summary(
             )
         lines.append("")
 
-    if own:
-        lines.append("## 自创改动（agent 标过该段但改法不同）")
+    if outside_fix:
+        lines.append("## 清单外修正（agent 未标注该段或采用了不同改法）")
         lines.append("")
-        for a in own:
+        for a in outside_fix:
             ln = f"Line {a.line_number}" if a.line_number else "全文"
             lines.append(f"- `{a.item_id}` · {ln} · {a.title}")
         lines.append("")
@@ -723,11 +723,11 @@ def main() -> int:
     changed = sum(1 for op in opcodes if op[0] != "equal")
     accepted = sum(1 for i in items if i.status == "accepted")
     rejected = sum(1 for i in items if i.status == "rejected_or_missed")
-    own = sum(1 for i in items if i.status == "own_edit")
+    outside_fix = sum(1 for i in items if i.status == "outside_fix")
 
     print(f"改动 {changed} / 总 {len(opcodes)} 段 · 字符 -{dels} +{ins}")
     if items:
-        print(f"接受 {accepted} · 漏改/拒绝 {rejected} · 自创 {own}")
+        print(f"接受 {accepted} · 漏改/拒绝 {rejected} · 清单外 {outside_fix}")
     print(f"HTML: {args.out}")
     if args.summary:
         print(f"Summary: {args.summary}")

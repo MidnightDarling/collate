@@ -72,7 +72,7 @@ STYLE_SUP = "font-size:11px;color:#c97d5d;vertical-align:super;"
 
 def maybe_simplify(text: str) -> str:
     try:
-        from opencc import OpenCC
+        from opencc import OpenCC  # type: ignore[import-not-found]
     except ImportError:
         print("[md_to_wechat] opencc not installed, keeping original text", file=sys.stderr)
         return text
