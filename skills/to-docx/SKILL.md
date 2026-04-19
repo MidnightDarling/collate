@@ -9,11 +9,11 @@ allowed-tools: Read, Write, Edit, Bash
 
 ## Task
 
-她的 OCR + 校对工作是为了生成一份可以投稿 / 给编辑 / 学界交流的 Word 文档。这个 skill 负责这一步。
+用户的 OCR + 校对工作是为了生成一份可以投稿 / 给编辑 / 学界交流的 Word 文档。这个 skill 负责这一步。
 
 **为什么重要**：
 - 中国社科类期刊 99% 要求 Word 格式投稿
-- Word 是她和编辑、审稿人、合作者的通用语言
+- Word 是用户和编辑、审稿人、合作者的通用语言
 - 公众号推送是副产品，Word 才是学术本体
 
 输出：一份符合社科学术规范的 `.docx`。默认格式：
@@ -41,7 +41,7 @@ INPUT="<markdown-path>"
 test -f "$INPUT" || { echo "文件不存在"; exit 1; }
 ```
 
-建议用校对完的 `final.md`（她改过 `raw.md` 后的版本），不要直接用 `raw.md`（有 OCR 错）。如果她传的是 raw.md，友好提醒她："确认这是校对后的定稿吗？raw.md 还没校对过。"
+建议用校对完的 `final.md`（用户改过 `raw.md` 后的版本），不要直接用 `raw.md`（有 OCR 错）。如果用户传的是 raw.md，友好提醒用户："确认这是校对后的定稿吗？raw.md 还没校对过。"
 
 ### Step 2：优先尝试 Anthropic 的 docx skill
 
@@ -103,11 +103,11 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/to-docx/scripts/md_to_docx.py" \
 *表 1：近代史大事年表*
 ```
 
-**判断**：如果图表没有题注，不要自己编一个——提醒她补上（C 类校对员的责任）。
+**判断**：如果图表没有题注，不要自己编一个——提醒用户补上（C 类校对员的责任）。
 
 ### Step 5：脚注
 
-校对好的 Markdown 里她可能用：
+校对好的 Markdown 里用户可能用：
 
 ```markdown
 这是正文内容[^1]。
@@ -131,7 +131,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/to-docx/scripts/md_to_docx.py" \
 OUT="${INPUT%.md}.docx"
 ```
 
-告诉她：
+告诉用户：
 
 > Word 稿已生成：`$OUT`
 >
@@ -152,13 +152,13 @@ open "$OUT"
 
 ## 判断规则
 
-- **没有校对过的 raw.md 直接转 docx**：会把 OCR 错字保留到正稿里，友好警告她
-- **论文含复杂表格（跨页、合并格）**：python-docx 处理不太好，优先 Anthropic docx skill；fallback 时提醒她核对
-- **论文含复杂公式**：LaTeX 公式在 Word 里是图片，不是原生公式。告诉她公众号友好但期刊投稿可能被编辑要求重做。
+- **没有校对过的 raw.md 直接转 docx**：会把 OCR 错字保留到正稿里，友好警告用户
+- **论文含复杂表格（跨页、合并格）**：python-docx 处理不太好，优先 Anthropic docx skill；fallback 时提醒用户核对
+- **论文含复杂公式**：LaTeX 公式在 Word 里是图片，不是原生公式。告诉用户公众号友好但期刊投稿可能被编辑要求重做。
 
 ## 期刊模板支持
 
-不同期刊格式要求不同。**默认输出是通用社科类**。若用户指定模板（如"历史研究格式""近代史研究格式"），告诉她：
+不同期刊格式要求不同。**默认输出是通用社科类**。若用户指定模板（如"历史研究格式""近代史研究格式"），告诉用户：
 
 > 我目前没有内置你指定的期刊模板。两种办法：
 > 1. 用默认 `humanities` 生成后，按期刊的「投稿须知」PDF 手动调格式（通常只需改字号、行距）
@@ -167,5 +167,5 @@ open "$OUT"
 ## 失败兜底
 
 - python-docx 报错 → 大概率 Markdown 格式有问题（未闭合代码块、表格错位），回去修 Markdown
-- 字体找不到 → Mac 应自带宋体/黑体；如果是她装了英文版 macOS，可能需要她在系统偏好设置装字体
+- 字体找不到 → Mac 应自带宋体/黑体；如果是用户装了英文版 macOS，可能需要用户在系统偏好设置装字体
 - Anthropic docx skill 不可用且 python-docx 未装 → `pip3 install python-docx`

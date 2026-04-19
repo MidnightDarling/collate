@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Extract an existing text layer from a PDF — the offline OCR shortcut.
 
-A lot of sources JN downloads from (CNKI "CAJ 转 PDF", 读秀 full-text
+A lot of sources the user downloads from (CNKI "CAJ 转 PDF", 读秀 full-text
 export, modern journal archives) already ship PDFs with an embedded
 text layer. prep-scan's Step 1 already detects this case and notes that
 OCR can be skipped; this script is what actually produces a `raw.md`

@@ -1,6 +1,6 @@
 ---
 name: mp-format
-description: 使用场景：用户运行 `/historical-ocr-review:mp-format`、对校对定稿的 Markdown（或 Word）说"转公众号""排版公众号""微信推送""秀米""壹伴""发 WeChat""做成推文""公众号 HTML"等。这个 skill 把定稿转成**可直接粘贴到公众号后台**的 HTML：带内联 CSS（公众号不支持外链样式表）、引用框样式、注释块样式、脚注以小字紧跟原文、图片居中 + 题注、繁简选项、作者/来源卡片。同时生成一份秀米兼容的 Markdown（供她用秀米做更精细的模板化排版）。**主动触发**：用户提到"公众号""推送""微信""秀米""壹伴""做成推文""发出去""给读者看"都应走这个 skill，不必等她说 mp-format 三个字。
+description: 使用场景：用户运行 `/historical-ocr-review:mp-format`、对校对定稿的 Markdown（或 Word）说"转公众号""排版公众号""微信推送""秀米""壹伴""发 WeChat""做成推文""公众号 HTML"等。这个 skill 把定稿转成**可直接粘贴到公众号后台**的 HTML：带内联 CSS（公众号不支持外链样式表）、引用框样式、注释块样式、脚注以小字紧跟原文、图片居中 + 题注、繁简选项、作者/来源卡片。同时生成一份秀米兼容的 Markdown（供用户用秀米做更精细的模板化排版）。**主动触发**：用户提到"公众号""推送""微信""秀米""壹伴""做成推文""发出去""给读者看"都应走这个 skill，不必等用户说 mp-format 三个字。
 argument-hint: "<markdown-path> [--simplify] [--byline=<作者信息>] [--source=<原文出处>]"
 allowed-tools: Read, Write, Edit, Bash
 ---
@@ -9,7 +9,7 @@ allowed-tools: Read, Write, Edit, Bash
 
 ## Task
 
-她的 Word 稿是给学界看的，**公众号版是给公众看的**——要求不一样：
+用户的 Word 稿是给学界看的，**公众号版是给公众看的**——要求不一样：
 
 | 维度 | Word 版 | 公众号版 |
 |------|--------|---------|
@@ -24,7 +24,7 @@ allowed-tools: Read, Write, Edit, Bash
 
 ```
 <input>.mp.html    ← 带内联 CSS，粘贴到公众号后台 / 直接上传
-<input>.mp.md      ← 秀米兼容 Markdown（她想进一步精修时用）
+<input>.mp.md      ← 秀米兼容 Markdown（用户想进一步精修时用）
 ```
 
 ## Process
@@ -38,11 +38,11 @@ WC=$(wc -m < "$INPUT")
 echo "字数（字符）: $WC"
 ```
 
-如果 `WC > 5000` → 建议她拆分：
+如果 `WC > 5000` → 建议用户拆分：
 
 > 这篇 5000+ 字，公众号读完要 15 分钟以上。建议拆成 2-3 篇推送。可以按章节切，还是我帮你按话题聚类？
 
-她说不拆就继续。
+用户说不拆就继续。
 
 ### Step 2：繁简处理
 
@@ -138,7 +138,7 @@ open "${INPUT%.md}.mp.html"
 
 ## 跟 to-docx 的关系
 
-她的标准流程：
+用户的标准流程：
 
 1. 先跑 `to-docx` 出 Word 稿（学界用）
 2. 再跑 `mp-format` 出公众号（给读者）

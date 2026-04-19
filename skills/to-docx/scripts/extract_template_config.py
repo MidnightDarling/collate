@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reverse-engineer a humanities-preset YAML from a Word template.
 
-Workflow JN follows: an editor sends her a `.docx` with the journal's
+Workflow the user follows: an editor sends them a `.docx` with the journal's
 house style baked in (margins, body font, heading sizes, line spacing).
 Instead of eyeballing Word's Format Painter and hand-editing the plugin's
 YAML, point this script at the template and it emits a preset file that

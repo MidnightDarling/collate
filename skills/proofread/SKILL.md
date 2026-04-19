@@ -1,6 +1,6 @@
 ---
 name: proofread
-description: 使用场景：用户对 OCR 出来的 Markdown 运行 `/historical-ocr-review:proofread`、说出"校对这份稿子""看看 OCR 对不对""检查字形""有没有识别错""这段繁体有没有问题""专名校对""标点校对""帮我过一遍"等。这个 skill 会判定文献类型（繁体古籍 / 民国排印 / 现代简体），加载对应的专业知识 reference，然后调用 historical-proofreader agent 输出一份**标注清单**（A 类 OCR 错 / B 类规范问题 / C 类存疑待考），不直接改原文。社科院历史学者的日常核心工作就是这一步——凡是涉及"校对"的请求都要主动触发这个 skill，不必等她说 proofread 三个字。
+description: 使用场景：用户对 OCR 出来的 Markdown 运行 `/historical-ocr-review:proofread`、说出"校对这份稿子""看看 OCR 对不对""检查字形""有没有识别错""这段繁体有没有问题""专名校对""标点校对""帮我过一遍"等。这个 skill 会判定文献类型（繁体古籍 / 民国排印 / 现代简体），加载对应的专业知识 reference，然后调用 historical-proofreader agent 输出一份**标注清单**（A 类 OCR 错 / B 类规范问题 / C 类存疑待考），不直接改原文。社科院历史学者的日常核心工作就是这一步——凡是涉及"校对"的请求都要主动触发这个 skill，不必等用户说 proofread 三个字。
 argument-hint: "<markdown-path> [--type=classics|republican|modern]"
 allowed-tools: Read, Write, Edit, Bash, Grep
 ---
@@ -13,11 +13,11 @@ allowed-tools: Read, Write, Edit, Bash, Grep
 
 你的责任是：
 1. 读用户给的 Markdown
-2. 判断文献类型（也可以她指定）
+2. 判断文献类型（也可以用户指定）
 3. 加载对应 reference 文件到上下文
 4. 调用 `historical-proofreader` agent，传入文本 + reference
 5. 把 agent 返回的标注清单保存为 `<input>.review.md`
-6. 用 `open` 打开 review.md 让她看
+6. 用 `open` 打开 review.md 让用户看
 
 ## Process
 
@@ -122,12 +122,12 @@ open "<input-dir>/<input-basename>.review.md"
 ## 判断规则
 
 - **校对清单是否为空**：意味着 OCR 质量极好，或 agent 没干活。看 `meta.json` 里 `pages` 和 `low_confidence_pages` 判断是不是后者（若 `low_confidence_pages` 有值却没出现在清单里，大概率 agent 漏扫）。
-- **A 类超过 50 条**：OCR 质量有问题，建议她回去重跑 prep-scan + ocr-run（可能换引擎 / 加 aggressive）
-- **她说"agent 搞得太保守 / 太激进"**：调 agent prompt，不是调 reference。reference 是知识不是策略。
+- **A 类超过 50 条**：OCR 质量有问题，建议用户回去重跑 prep-scan + ocr-run（可能换引擎 / 加 aggressive）
+- **用户说"agent 搞得太保守 / 太激进"**：调 agent prompt，不是调 reference。reference 是知识不是策略。
 
 ## 迭代用法
 
-她可能想**多轮校对**：第一轮主改 A 类，第二轮专门看 B 类规范，第三轮攻 C 类存疑。支持她分轮跑：
+用户可能想**多轮校对**：第一轮主改 A 类，第二轮专门看 B 类规范，第三轮攻 C 类存疑。支持用户分轮跑：
 
 ```
 /historical-ocr-review:proofread raw.md --focus=A

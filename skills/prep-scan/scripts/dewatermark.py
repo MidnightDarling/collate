@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """De-watermark per-page PNG images for historical documents.
 
-Handles three pollutant categories common in JN's workflow:
+Handles three pollutant categories common in historical-document OCR workflows:
   1. Colored stamps (library seals, archive chop marks) — red / blue saturation
   2. Diagonal wordmarks (CNKI, Wanfang, Duxiu database overlays) — Hough lines
   3. Faint grey repeated watermarks ("读秀学术搜索") — top-hat morphology

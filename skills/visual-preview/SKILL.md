@@ -1,6 +1,6 @@
 ---
 name: visual-preview
-description: 使用场景：prep-scan 跑完后，JN 说"看看清理效果""对比一下""去水印成功没""擦掉了什么""这页裁了多少""效果怎么样""让我看看结果""预览处理""visual preview"等。这个 skill 读 `<name>.prep/pages/`（原始）和 `<name>.prep/cleaned_pages/`（清理后），生成一份可直接在浏览器打开的 HTML：每页三态切换（原图 / 清理后 / 差异热图 —— 擦掉的水印馆藏章用半透明红色高亮），顶部汇总（总页数、平均清理比例、裁边总量），让 JN 一眼看出 prep-scan 到底做了什么、有没有误伤正文。主动触发：prep-scan 结束后她一说"看看""对比""瞧瞧"就走，不必等她说完整命令名。
+description: 使用场景：prep-scan 跑完后，用户 说"看看清理效果""对比一下""去水印成功没""擦掉了什么""这页裁了多少""效果怎么样""让我看看结果""预览处理""visual preview"等。这个 skill 读 `<name>.prep/pages/`（原始）和 `<name>.prep/cleaned_pages/`（清理后），生成一份可直接在浏览器打开的 HTML：每页三态切换（原图 / 清理后 / 差异热图 —— 擦掉的水印馆藏章用半透明红色高亮），顶部汇总（总页数、平均清理比例、裁边总量），让 用户 一眼看出 prep-scan 到底做了什么、有没有误伤正文。主动触发：prep-scan 结束后用户一说"看看""对比""瞧瞧"就走，不必等用户说完整命令名。
 argument-hint: "<pdf-path | prep-dir-path> [--sample=N] [--no-diff]"
 allowed-tools: Bash, Read, Write, Edit
 ---
@@ -9,13 +9,13 @@ allowed-tools: Bash, Read, Write, Edit
 
 ## Task
 
-prep-scan 做了一堆看不见的事：擦红蓝馆藏章、去对角线水印、刮掉淡灰重复水印、裁掉页眉页脚。**但 JN 看不到**——她只得到一份 cleaned.pdf 和一句"清理完成"。这个 skill 把每页**处理前后**的对比直接弹到浏览器里，让她回答三个问题：
+prep-scan 做了一堆看不见的事：擦红蓝馆藏章、去对角线水印、刮掉淡灰重复水印、裁掉页眉页脚。**但 用户 看不到**——用户只得到一份 cleaned.pdf 和一句"清理完成"。这个 skill 把每页**处理前后**的对比直接弹到浏览器里，让用户回答三个问题：
 
 1. **擦对了吗**：水印 / 馆藏章是不是真的没了
 2. **擦过头了吗**：有没有误伤正文（淡墨古籍最危险）
 3. **裁合适吗**：页眉页脚裁得是不是正好，没切到正文首行
 
-不给她看等于把清理结果当黑盒交付——下游校对发现误伤已经晚了。
+不给用户看等于把清理结果当黑盒交付——下游校对发现误伤已经晚了。
 
 ---
 
@@ -115,7 +115,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/visual-preview/scripts/visualize_prep.py" 
 open "$PREP/visual-preview.html"
 ```
 
-告诉 JN：
+告诉 用户：
 
 ```
 可视化已生成：<PREP>/visual-preview.html
@@ -136,7 +136,7 @@ open "$PREP/visual-preview.html"
 
 ## 判断规则
 
-- **某页 cleaned_pct > 20%** → 强警告 JN："第 N 页差异超过 20%，很可能把正文当水印擦了。在差异热图里看红色覆盖是不是落在文字上。如果是，重跑 prep-scan 加 `--keep-color` 或不要 `--aggressive`"
+- **某页 cleaned_pct > 20%** → 强警告 用户："第 N 页差异超过 20%，很可能把正文当水印擦了。在差异热图里看红色覆盖是不是落在文字上。如果是，重跑 prep-scan 加 `--keep-color` 或不要 `--aggressive`"
 - **整稿平均 cleaned_pct < 1%** → 温和提醒："整稿处理比例很低，可能扫描件本来就干净，也可能 prep-scan 没检测到水印。对比几页确认下"
 - **裁边 > 15%** → 提示："裁得比较多，确认首行正文有没有被切"
 - **prep 目录只有 pages 没 cleaned_pages** → prep-scan 还没跑完，提示用户先跑 prep-scan
@@ -146,12 +146,12 @@ open "$PREP/visual-preview.html"
 - OpenCV 缺失 → `pip3 install opencv-python`
 - `pages/` 里 PNG 数量和 `cleaned_pages/` 对不上 → 报错 + 列出缺失页号，不静默跳过
 - 图尺寸差异过大（> 50% 在任一维度）→ 不做 diff 热图（视为 cropped/resized 差异过大），只做 before/after 切换 + 记录 "diff 跳过：尺寸差异过大"
-- 输出目录不可写 → 报错 + 建议 JN 确认 prep 目录权限
+- 输出目录不可写 → 报错 + 建议 用户 确认 prep 目录权限
 
 ## 与其他 skill 的关系
 
 **上游**：prep-scan 产 pages/ + cleaned_pages/，本 skill 消费
-**下游**：若 JN 看完 visual-preview 发现清理过头，她回头改参数重跑 prep-scan，不影响 OCR
+**下游**：若 用户 看完 visual-preview 发现清理过头，用户回头改参数重跑 prep-scan，不影响 OCR
 
 推荐流程：
 
@@ -159,11 +159,11 @@ open "$PREP/visual-preview.html"
 prep-scan ──→ pages/ + cleaned_pages/
                ↓
          visual-preview   ← 这一步，确认清理效果
-               ↓（JN 批准）
+               ↓（用户 批准）
            ocr-run
 ```
 
-JN 的习惯应该是："prep 完就看 visual-preview"——这是清理环节的质检闸门，不是可选。清理错了后面 OCR 全白跑。
+用户 的习惯应该是："prep 完就看 visual-preview"——这是清理环节的质检闸门，不是可选。清理错了后面 OCR 全白跑。
 
 ---
 

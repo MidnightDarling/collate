@@ -148,9 +148,9 @@ def safe_filename_fragment(s: str, max_len: int = 60) -> str:
 
 
 def build_artifact_basename(title: str, author: str, year: str) -> str:
-    """Compose `<title>_<author>_<year>_` as JN's preferred draft name.
+    """Compose `<title>_<author>_<year>_` as the user's preferred draft name.
 
-    The trailing underscore is deliberate — it matches JN's naming
+    The trailing underscore is deliberate — it matches the user's naming
     convention for WIP drafts (`..._YYYY_` leaves a slot for revision
     suffixes like `..._2023_v2.docx`). We substitute "未知" for missing
     fields so the shape is stable.
@@ -287,7 +287,7 @@ def main() -> int:
 
     # MinerU Desktop writes `content_list_v2.json` at the job root.
     # The `mineru` CLI writes `<stem>/auto/<stem>_content_list_v2.json` —
-    # accept either layout so the same agent flow works whether JN opened
+    # accept either layout so the same agent flow works whether the user opened
     # the Desktop app or we ran the library locally.
     content_list = job / "content_list_v2.json"
     if not content_list.is_file():

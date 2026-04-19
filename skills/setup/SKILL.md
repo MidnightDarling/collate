@@ -1,25 +1,25 @@
 ---
 name: setup
-description: 使用场景：用户在 Mac 上首次安装 historical-ocr-review 插件、运行 `/historical-ocr-review:setup`、或说出"配置 OCR 引擎""注册 MinerU""我有百度 OCR key""历史论文 OCR 怎么配""插件装好了下一步""第一次用这个"。凡是和"插件初始化""把 OCR 的 key 配好""装依赖"相关的请求都走这个 skill。它会引导社科院历史学者（非技术背景）在 Mac 上完成 Python 依赖、poppler、OpenCV 的安装，并配置百度 OCR 或 MinerU 其中之一的 API key 到 ~/.env。这个 skill 一定要主动触发，即使用户没说"配置"两个字。
+description: 使用场景：用户在 Mac 上首次安装 historical-ocr-review 插件、运行 `/historical-ocr-review:setup`、或说出"配置 OCR 引擎""注册 MinerU""我有百度 OCR key""历史论文 OCR 怎么配""插件装好了下一步""第一次用这个"。凡是和"插件初始化""把 OCR 的 key 配好""装依赖"相关的请求都走这个 skill。它会引导历史文献研究者（可能是非技术背景）在 Mac 上完成 Python 依赖、poppler、OpenCV 的安装，并配置百度 OCR 或 MinerU 其中之一的 API key 到 ~/.env。这个 skill 一定要主动触发，即使用户没说"配置"两个字。
 argument-hint: "(无参数)"
 allowed-tools: Bash, Read, Write, Edit
 ---
 
-# 首次配置 — 给历史学者的 15 分钟装机指南
+# 首次配置 — 15 分钟装机指南
 
 ## Task
 
-用户是社科院做历史研究的学者，Mac 用户，**非技术背景**，但日常需要把扫描版论文（繁体古籍、民国排印本、现代简体论文）整理发公众号。你的任务是在 15 分钟内让她的 Mac 完成三件事：
+用户是处理历史文献的研究者，Mac 用户，**可能是非技术背景**，日常需要把扫描版论文（繁体古籍、民国排印本、现代简体论文）整理发公众号或投稿。你的任务是在 15 分钟内让用户的 Mac 完成三件事：
 
 1. 具备运行本插件的 Python 环境（3.9+、opencv、pillow、poppler）
-2. 配置好 OCR 引擎——**百度 OCR（她已有 key）** 或 **MinerU（推荐，需新注册）** 其中一个
+2. 配置好 OCR 引擎——**百度 OCR（用户已有 key）** 或 **MinerU（推荐，需新注册）** 其中一个
 3. 通过一次 API 探活，确认真的可用
 
-失败时不要假装成功——她明天要用这个干活。
+失败时不要假装成功——用户明天要用这个干活。
 
 ## Process
 
-### Step 1：判断她的技术位置
+### Step 1：判断用户的技术位置
 
 一开始先问一句（原文输出）：
 
@@ -31,11 +31,11 @@ allowed-tools: Bash, Read, Write, Edit
 > 数据全程留在你电脑里。）
 
 根据回答分支：
-- **她说"不懂终端"** → 把每个命令的作用用一句中文说清楚再让她跑
+- **用户说"不懂终端"** → 把每个命令的作用用一句中文说清楚再让用户跑
 - **其他回答** → 直接进 Step 2
 
-**历史分支（仅在她明说"我有百度 key 想复用"或"我想走 MinerU 云 API"时走）** →
-Step 4B / 4C，但你要先告诉她"那两条路已经不是默认，本地装效果更好且免账号"。
+**历史分支（仅在用户明说"我有百度 key 想复用"或"我想走 MinerU 云 API"时走）** →
+Step 4B / 4C，但你要先告诉用户"那两条路已经不是默认，本地装效果更好且免账号"。
 
 ### Step 2：检查 Python（Mac）
 
@@ -46,7 +46,7 @@ python3 --version
 **为什么要这步**：新 Mac 预装的 Python 可能是 3.8 或更旧，跑 PyPDF2 会报奇怪的错。
 
 - 版本 ≥ 3.9 → 直接下一步
-- 版本 < 3.9 或报 `command not found` → 让她跑 `brew install python@3.11`（如果没装 Homebrew 先跑下面这句）
+- 版本 < 3.9 或报 `command not found` → 让用户跑 `brew install python@3.11`（如果没装 Homebrew 先跑下面这句）
 
 Homebrew 没装的情况下：
 
@@ -54,7 +54,7 @@ Homebrew 没装的情况下：
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-告诉她：这是 Mac 的软件管家，装一次受用一生。
+告诉用户：这是 Mac 的软件管家，装一次受用一生。
 
 ### Step 3：装所有依赖（一条命令）
 
@@ -114,24 +114,24 @@ export MINERU_MODEL_SOURCE=modelscope         # 走 ModelScope 下载
 
 **默认不需要做这一步**——本地 `mineru` 已经是主路径。只有这两种情况走：
 
-- 她说"我有百度 OCR key 想复用" → 分支 A
-- 她明确想走 MinerU 云 API（比如在 SSH 登录的没 GPU 的服务器上） → 分支 C
+- 用户说"我有百度 OCR key 想复用" → 分支 A
+- 用户明确想走 MinerU 云 API（比如在 SSH 登录的没 GPU 的服务器上） → 分支 C
 
 直接跳过 Step 4，走 Step 5 也可以。
 
-#### 分支 A — 用百度 OCR（她已有 key，可选兼容）
+#### 分支 A — 用百度 OCR（用户已有 key，可选兼容）
 
-让她提供：
+让用户提供：
 - `BAIDU_OCR_API_KEY`
 - `BAIDU_OCR_SECRET_KEY`
 
-**百度 OCR 的 key 是一对**（API Key + Secret Key），她在百度智能云控制台「通用文字识别」里能看到。如果她只给一个，告诉她去同一个控制台复制另一个。
+**百度 OCR 的 key 是一对**（API Key + Secret Key），用户在百度智能云控制台「通用文字识别」里能看到。如果用户只给一个，告诉用户去同一个控制台复制另一个。
 
 写入 `~/.env`（追加或覆盖这两行，不要动别的）：
 
 ```
-BAIDU_OCR_API_KEY=<她给的>
-BAIDU_OCR_SECRET_KEY=<她给的>
+BAIDU_OCR_API_KEY=<用户给的>
+BAIDU_OCR_SECRET_KEY=<用户给的>
 OCR_ENGINE=baidu
 ```
 
@@ -141,11 +141,11 @@ OCR_ENGINE=baidu
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/baidu_client.py" --check-auth
 ```
 
-返回 `AUTH_OK` → 继续。返回 `AUTH_FAIL` → key 或 secret 不对，让她重查。
+返回 `AUTH_OK` → 继续。返回 `AUTH_FAIL` → key 或 secret 不对，让用户重查。
 
 #### 分支 B — 注册 MinerU
 
-**原文给她看**（照抄，不要改措辞）：
+**原文给用户看**（照抄，不要改措辞）：
 
 > MinerU 是上海 AI Lab 做的 PDF OCR 服务，对历史文献（繁体、竖排、古籍版式）的识别效果比通用 OCR 好一档。免费额度每月够用。注册步骤：
 >
@@ -158,11 +158,11 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/baidu_client.py" --check-a
 
 拿到 key 后：
 
-- 格式校验：应该是 `sk-` 开头、64 位左右字母数字。不对就让她重复制。
+- 格式校验：应该是 `sk-` 开头、64 位左右字母数字。不对就让用户重复制。
 - 写 `~/.env`（追加或覆盖）：
 
 ```
-MINERU_API_KEY=<她给的>
+MINERU_API_KEY=<用户给的>
 OCR_ENGINE=mineru
 ```
 
@@ -178,12 +178,12 @@ MINERU_API_KEY=$(grep "^MINERU_API_KEY=" ~/.env | cut -d= -f2-) \
 ```
 
 - `200` / `400` / `405` / `422` → key 合法（后三个是因为没传 body，不是认证失败）
-- `401` → key 错了，让她重配
+- `401` → key 错了，让用户重配
 - 其他 → 网络或服务问题，建议稍后重试
 
 ### Step 5：欢迎进入工作流
 
-成功后，用中文告诉她（照抄）：
+成功后，用中文告诉用户（照抄）：
 
 > 装好了。接下来你的工作流：
 >
@@ -212,13 +212,13 @@ MINERU_API_KEY=$(grep "^MINERU_API_KEY=" ~/.env | cut -d= -f2-) \
 >
 > 生成微信公众号 HTML，复制到秀米或直接粘贴到公众号后台。
 
-### Step 6：留个示例让她试手
+### Step 6：留个示例让用户试手
 
-建议她第一次不要拿重要的论文，先跑 `examples/` 里的示例 PDF 走一遍。熟悉流程再处理真稿。
+建议用户第一次不要拿重要的论文，先跑 `examples/` 里的示例 PDF 走一遍。熟悉流程再处理真稿。
 
 ## 注意事项
 
-- **不要把任何 API key 打到屏幕**。这是基础安全，也避免她截图发朋友圈时泄露。
-- **遇到错误就停下报错**，不要"假装配置成功"。她明天要用这个，带病上线会让她对整个工具丧失信心。
-- 如果她装 pip 包时连不上 PyPI（国内网络），建议她换源：`pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple`
-- 全程中文，口气温和。她是学者不是工程师。
+- **不要把任何 API key 打到屏幕**。这是基础安全，也避免用户截图发朋友圈时泄露。
+- **遇到错误就停下报错**，不要"假装配置成功"。用户明天要用这个，带病上线会让用户对整个工具丧失信心。
+- 如果用户装 pip 包时连不上 PyPI（国内网络），建议用户换源：`pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple`
+- 全程中文，口气温和。用户是学者不是工程师。

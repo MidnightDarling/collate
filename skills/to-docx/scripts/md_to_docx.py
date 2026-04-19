@@ -42,7 +42,7 @@ except ImportError:
 
 # Built-in presets. Mirror the corresponding `assets/presets/<name>.yaml`
 # files so anyone running a stale install without the YAMLs still gets
-# the same three templates JN is used to. The YAML form (preferred) is
+# the same three templates the user is used to. The YAML form (preferred) is
 # read by load_template() first; the dict is only a fallback.
 TEMPLATES = {
     "humanities": {
@@ -213,7 +213,7 @@ def set_paragraph_indent(paragraph, first_line_chars: int, size_pt: int,
     # `line_spacing` float + rule=MULTIPLE makes python-docx write the
     # MS Word equivalent of "multiple, 1.2". WD_LINE_SPACING.ONE_POINT_FIVE
     # is a pre-baked alias for the 1.5 case; using the float form covers
-    # arbitrary values (e.g. 1.2) that JN prefers for dense review reads.
+    # arbitrary values (e.g. 1.2) that the user prefers for dense review reads.
     pf.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
     pf.line_spacing = line_spacing
 

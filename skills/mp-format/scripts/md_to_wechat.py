@@ -19,7 +19,7 @@ Optional features:
 
 Usage:
     python3 md_to_wechat.py --input final.md --output final.mp.html \
-        --also-markdown final.mp.md --byline "JN · 社科院" --source "《历史研究》2024.3"
+        --also-markdown final.mp.md --byline "作者 · 机构" --source "《历史研究》2024.3"
 """
 from __future__ import annotations
 

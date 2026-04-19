@@ -1,6 +1,6 @@
 # historical-ocr-review — Python dependencies
 #
-# Pinned loosely (major version floor) so JN's Python 3.11+ environment
+# Pinned loosely (major version floor) so the user's Python 3.11+ environment
 # doesn't break on every upstream patch. When a hard upper bound matters
 # (e.g. a known breaking change), add it inline with a comment.
 #

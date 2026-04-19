@@ -1,6 +1,6 @@
 ---
 name: ocr-run
-description: 使用场景：用户在 Mac 上运行 `/historical-ocr-review:ocr-run`、对清理过的历史论文 PDF 做文字识别、说出"跑 OCR""识别文字""PDF 转文字""MinerU""百度 OCR""把扫描件识别出来""出 Markdown""准备校对"等。这个 skill 支持**百度 OCR 和 MinerU 双引擎**，根据 `~/.env` 里的 OCR_ENGINE 自动选（mineru 优先精度、baidu 成本低她已有 key）。它专门优化了历史文献的识别参数：繁体竖排、古籍异体字、民国新式标点、现代简体；并产出「原图 + OCR 文本逐页并排」的 preview.html 供她在浏览器里直接改错字。凡是提到"OCR""识别""转文字""跑识别"都应主动触发，不要等她说"ocr-run"三个字。
+description: 使用场景：用户在 Mac 上运行 `/historical-ocr-review:ocr-run`、对清理过的历史论文 PDF 做文字识别、说出"跑 OCR""识别文字""PDF 转文字""MinerU""百度 OCR""把扫描件识别出来""出 Markdown""准备校对"等。这个 skill 支持**百度 OCR 和 MinerU 双引擎**，根据 `~/.env` 里的 OCR_ENGINE 自动选（mineru 优先精度、baidu 成本低用户已有 key）。它专门优化了历史文献的识别参数：繁体竖排、古籍异体字、民国新式标点、现代简体；并产出「原图 + OCR 文本逐页并排」的 preview.html 供用户在浏览器里直接改错字。凡是提到"OCR""识别""转文字""跑识别"都应主动触发，不要等用户说"ocr-run"三个字。
 argument-hint: "<cleaned-pdf-path> [--engine=baidu|mineru] [--layout=horizontal|vertical] [--lang=zh-hans|zh-hant|mixed]"
 allowed-tools: Bash, Read, Write, Edit
 ---
@@ -13,9 +13,9 @@ allowed-tools: Bash, Read, Write, Edit
 
 **为什么支持两个引擎**：
 - **MinerU**（上海 AI Lab）：对繁体、竖排、古籍版式、公式、表格识别更强，默认推荐。
-- **百度 OCR**（用户已有 key）：稳定、额度大、响应快，适合大批量现代简体论文。她既有 key 不白用。
+- **百度 OCR**（用户已有 key）：稳定、额度大、响应快，适合大批量现代简体论文。用户既有 key 不白用。
 
-她的 `~/.env` 里 `OCR_ENGINE=mineru` 或 `OCR_ENGINE=baidu` 决定默认走哪个。命令行 `--engine=xxx` 可临时覆盖（比如她想对比两个引擎的效果）。
+用户的 `~/.env` 里 `OCR_ENGINE=mineru` 或 `OCR_ENGINE=baidu` 决定默认走哪个。命令行 `--engine=xxx` 可临时覆盖（比如用户想对比两个引擎的效果）。
 
 输出结构：
 
@@ -241,11 +241,11 @@ open "$OUT/preview.html"
 
 | 错误 | 处理 |
 |------|------|
-| MinerU `401` | key 失效，让她重跑 `/historical-ocr-review:setup` |
-| MinerU `429` | 免费额度用完，建议她 `--engine=baidu` 换百度 |
+| MinerU `401` | key 失效，让用户重跑 `/historical-ocr-review:setup` |
+| MinerU `429` | 免费额度用完，建议用户 `--engine=baidu` 换百度 |
 | 百度 `error_code: 14` | access_token 过期，删 `~/.cache/baidu_ocr_token.json` 重跑 |
-| 百度 `error_code: 17` | 额度用完（百度按次数计费，她查控制台余额） |
-| 超时 > 15 分钟 | PDF 过大，建议她拆成单章节分别跑 |
+| 百度 `error_code: 17` | 额度用完（百度按次数计费，用户查控制台余额） |
+| 超时 > 15 分钟 | PDF 过大，建议用户拆成单章节分别跑 |
 | raw.md < 500 字节 | 识别失败，查 PDF 是不是空白或加密 |
 
 ## 判断规则

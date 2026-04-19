@@ -2,7 +2,7 @@
 """Generate a side-by-side HTML viewer for OCR review.
 
 Left column shows each page's rendered PNG. Right column shows the
-corresponding OCR text as editable HTML. JN can fix obvious OCR errors
+corresponding OCR text as editable HTML. The user can fix obvious OCR errors
 directly in the browser; clicking "下载修改后的 Markdown" saves a file named
 `corrected.md` to the browser's Downloads folder. The file is NOT written
 back to `raw.md` in place — browsers cannot silently write to disk, so the

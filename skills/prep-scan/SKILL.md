@@ -1,6 +1,6 @@
 ---
 name: prep-scan
-description: 使用场景：用户在 Mac 上运行 `/historical-ocr-review:prep-scan`、提供一个扫描版 PDF、说出"去水印""去馆藏章""去知网水印""去页眉页脚""预处理论文 PDF""清理扫描件""图书馆章""历史文献 OCR 前处理""国家图书馆藏""中华再造善本"等。典型输入是她从知网、读秀、国图扫描服务、档案馆数字资源、古籍数据库下载的 PDF，上面常见问题是：红蓝馆藏章、数据库 logo 水印（知网/维普/读秀/CNKI）、扫描日期戳、页眉刊名、页脚馆藏号、古籍版心鱼尾。这个 skill 把这些都处理干净并合回一份 cleaned.pdf，给下一步 OCR 用。这个 skill 应当主动触发，只要用户提到历史论文 PDF 或图像预处理就走它，不必等她说"预处理"三个字。
+description: 使用场景：用户在 Mac 上运行 `/historical-ocr-review:prep-scan`、提供一个扫描版 PDF、说出"去水印""去馆藏章""去知网水印""去页眉页脚""预处理论文 PDF""清理扫描件""图书馆章""历史文献 OCR 前处理""国家图书馆藏""中华再造善本"等。典型输入是用户从知网、读秀、国图扫描服务、档案馆数字资源、古籍数据库下载的 PDF，上面常见问题是：红蓝馆藏章、数据库 logo 水印（知网/维普/读秀/CNKI）、扫描日期戳、页眉刊名、页脚馆藏号、古籍版心鱼尾。这个 skill 把这些都处理干净并合回一份 cleaned.pdf，给下一步 OCR 用。这个 skill 应当主动触发，只要用户提到历史论文 PDF 或图像预处理就走它，不必等用户说"预处理"三个字。
 argument-hint: "<pdf-path> [--aggressive] [--keep-color] [--no-margin-trim]"
 allowed-tools: Bash, Read, Write, Edit
 ---
@@ -51,7 +51,7 @@ with open('<pdf-path>', 'rb') as f:
 
 ### Step 2：建工作目录
 
-历史学者的 PDF 常在 `~/Downloads/` 或 `~/Desktop/`。在**同级**建 `.prep` 目录，不动她原文件：
+历史学者的 PDF 常在 `~/Downloads/` 或 `~/Desktop/`。在**同级**建 `.prep` 目录，不动用户原文件：
 
 ```bash
 PDF="<pdf-path>"
@@ -62,7 +62,7 @@ mkdir -p "$WORK/pages" "$WORK/cleaned_pages" "$WORK/trimmed_pages"
 cp "$PDF" "$WORK/original.pdf"
 ```
 
-**为什么要备份**：她可能一个月后才发现某页被误删，有 original 能回滚。
+**为什么要备份**：用户可能一个月后才发现某页被误删，有 original 能回滚。
 
 ### Step 3：拆页成 PNG
 
@@ -95,7 +95,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/dewatermark.py" \
 
 `--aggressive` 把阈值放宽，适合水印特别顽固的情况，代价是可能擦掉淡墨字。只在用户明确说"水印还在"时才加。
 
-`--keep-color` 关掉颜色通道处理——处理**彩色历史地图、影印彩图**时用，她说"这张是彩图别动颜色"就加。
+`--keep-color` 关掉颜色通道处理——处理**彩色历史地图、影印彩图**时用，用户说"这张是彩图别动颜色"就加。
 
 ### Step 5：裁页眉页脚
 
@@ -157,7 +157,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/pages_to_pdf.py" \
 > 没问题就进下一步：
 > `/historical-ocr-review:ocr-run $WORK/cleaned.pdf`
 
-用 `open` 命令直接拉起前 3 页对照图让她看：
+用 `open` 命令直接拉起前 3 页对照图让用户看：
 
 ```bash
 open "$WORK/pages/page_001.png" "$WORK/cleaned_pages/page_001.png"
@@ -172,5 +172,5 @@ open "$WORK/pages/page_001.png" "$WORK/cleaned_pages/page_001.png"
 ## 失败兜底
 
 - OpenCV 报 `libGL error` → `brew install opencv`
-- pdf2image 报 `Unable to get page count` → poppler 没装好，让她跑 `brew install poppler`
-- PDF 加密（少见，但知网付费文献偶见）→ 告诉她手动去密（预览.app 另存为 PDF 通常就能解）
+- pdf2image 报 `Unable to get page count` → poppler 没装好，让用户跑 `brew install poppler`
+- PDF 加密（少见，但知网付费文献偶见）→ 告诉用户手动去密（预览.app 另存为 PDF 通常就能解）

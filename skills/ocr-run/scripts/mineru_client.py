@@ -48,8 +48,8 @@ def _read_mineru_cli_token() -> str:
     """Fallback: reuse the token saved by the official `mineru` CLI.
 
     `mineru auth` writes `~/.mineru/config.yaml` with an `api_key:` (or
-    `token:`) field. If JN ran that at some point we should pick it up
-    automatically rather than asking her to duplicate it in `~/.env`.
+    `token:`) field. If the user ran that at some point we should pick it up
+    automatically rather than asking them to duplicate it in `~/.env`.
     """
     cfg = Path.home() / ".mineru" / "config.yaml"
     if not cfg.is_file():

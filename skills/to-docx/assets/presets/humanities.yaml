@@ -1,9 +1,9 @@
-# humanities preset — JN's default for 社科 journal submission drafts.
+# humanities preset — default for 社科 journal submission drafts.
 #
 # Why this shape:
 #   - 2 cm page margins — denser on-screen read without looking crammed
 #   - Source Han Serif SC (思源宋体) for body — softer than SimSun
-#   - 12 pt body + 1.2 line spacing — matches her reviewer comfort
+#   - 12 pt body + 1.2 line spacing — comfortable for dense review reads
 #   - 0.2 pt inter-glyph spacing — a hint of breathing room, not stretched
 #
 # Edit any field here; `md_to_docx.py --preset humanities` reads this

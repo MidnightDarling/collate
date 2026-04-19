@@ -11,7 +11,7 @@ a per-job tree rooted at `<OUT>/<pdf-stem>/auto/`; this script:
     2. Validates the output (content_list_v2.json must appear).
     3. Calls import_mineru_output.py --job-dir <tmp> --out <ocr-dir>
        --pdf <pdf>, which in turn triggers reflow + copies assets / meta.
-    4. Leaves the tmp dir alone so JN can inspect `_layout.pdf` / `_span.pdf`
+    4. Leaves the tmp dir alone so the user can inspect `_layout.pdf` / `_span.pdf`
        for debugging if needed — we log the path.
 
 First run on a fresh machine takes 5–10 minutes because MinerU has to
@@ -66,7 +66,7 @@ def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
         lang,
     ]
     print(f"[run_mineru] $ {' '.join(cmd)}")
-    # We stream stdout+stderr so JN sees progress bars — otherwise the
+    # We stream stdout+stderr so the user sees progress bars — otherwise the
     # model-download + layout/OCR loop looks hung for minutes.
     proc = subprocess.run(cmd)
     if proc.returncode != 0:

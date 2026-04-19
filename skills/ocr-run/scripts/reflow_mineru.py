@@ -20,10 +20,10 @@ all of that in one pass so the downstream Word draft is submission-ready:
        (`[1]` `[2]` … `[N]`) and the in-body circled numerals are
        rewritten in lockstep so the text still cross-references the
        notes correctly. Merged references like `①③` become `[N][M]`,
-       matching the format JN expects for 社科 journal drafts.
+       matching the format the user expects for 社科 journal drafts.
     5. Everything from the trailing `# ABSTRACTS` heading onward is
        dropped. These English abstracts are issue-level journal matter,
-       not part of the article JN is preparing.
+       not part of the article the user is preparing.
 
 Usage:
     python3 reflow_mineru.py \\
@@ -414,7 +414,7 @@ def emit(
             if kind == "table":
                 # Prefer HTML passthrough when MinerU extracted table structure
                 # (python-docx can't parse arbitrary HTML, but the raw HTML
-                # stays legible in the Word draft for JN to manually replace).
+                # stays legible in the Word draft for the user to manually replace).
                 # Fall back to the rendered table-image if that's all we have.
                 html = meta.get("html", "") or ""
                 src = meta.get("src", "")
