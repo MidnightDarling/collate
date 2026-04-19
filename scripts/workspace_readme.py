@@ -101,7 +101,7 @@ def pipeline_stage(workspace: Path) -> tuple[str, list[str]]:
         nxt = []
         if not has_visual:
             nxt.append("/historical-ocr-review:visual-preview <workspace>   # 核查清理效果")
-        nxt.append("/historical-ocr-review:ocr-run <workspace>/prep/cleaned.pdf")
+        nxt.append("/historical-ocr-review:ocr-run <workspace>/source.pdf")
         return ("prep-scan 已完成 — 待 OCR", nxt)
     if has_raw and not has_review:
         return ("OCR 已完成 — 待校对", [

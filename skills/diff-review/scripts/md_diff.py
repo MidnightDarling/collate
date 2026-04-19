@@ -274,60 +274,68 @@ def judge_acceptance(
 
 
 CSS = """
-body{margin:0;background:#1a1511;color:#ece3d5;
+/* Palette: hero-aligned neutral darks (ATTRIBUTION° Ink Stone family).
+   Structure: #0E0E11 bg / #08080A sticky / #161618 card / #1E1E21 head.
+   Raw col slightly dimmer (#121214) than final (#161618) to cue "older".
+   Semantic desaturated: ok #1A2420/#A8C4B4, err #2A1A1A/#C49494,
+   warn #262618/#B8AC88, info #2A241A/#D4BE94. */
+body{margin:0;background:#0E0E11;color:#E0DCD6;
 font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;}
-header{position:sticky;top:0;z-index:20;background:#120e0a;color:#ece3d5;
+header{position:sticky;top:0;z-index:20;background:#08080A;color:#E0DCD6;
 padding:14px 24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;
-border-bottom:1px solid #2a2218;}
+border-bottom:1px solid rgba(255,255,255,.07);}
 header h1{font-size:15px;margin:0;font-weight:500;letter-spacing:.05em;}
 header .stat{font-size:12px;padding:4px 10px;border-radius:2px;
-background:#26201a;color:#c8bba9;}
-header .stat.accepted{background:#2d3a2f;color:#9ec4a8;}
-header .stat.rejected{background:#4a2018;color:#e8a898;}
-header .stat.outside{background:#4a3d1f;color:#e0c272;}
-header .hint-inline{font-size:12px;color:#a89584;margin-left:4px;}
+background:#1E1E21;color:#C9C5BF;}
+header .stat.accepted{background:#1A2420;color:#A8C4B4;}
+header .stat.rejected{background:#2A1A1A;color:#C49494;}
+header .stat.outside{background:#262618;color:#B8AC88;}
+header .hint-inline{font-size:12px;color:#9A9690;margin-left:4px;}
 header .actions{margin-left:auto;display:flex;gap:10px;align-items:center;}
-header button{background:#c97d5d;color:#120e0a;border:0;padding:6px 14px;
-border-radius:2px;cursor:pointer;font-size:13px;font-weight:500;}
-header button:hover{background:#d88a6a;}
+header button{background:transparent;color:#F0EDE6;
+border:1px solid #F0EDE6;padding:6px 14px;
+border-radius:2px;cursor:pointer;font-size:13px;font-weight:500;
+box-shadow:0 0 24px rgba(240,237,230,.15),0 0 80px rgba(240,237,230,.04);
+transition:all .15s ease;}
+header button:hover{background:#F0EDE6;color:#000;}
 main{padding:20px;max-width:1280px;margin:0 auto;}
-section.seg{background:#2a2218;border:1px solid #3a2d23;border-radius:2px;
+section.seg{background:#161618;border:1px solid rgba(255,255,255,.07);border-radius:2px;
 margin-bottom:14px;overflow:hidden;}
-section.seg .head{padding:8px 14px;background:#332a20;font-size:12px;
-color:#a89584;display:flex;gap:12px;align-items:center;letter-spacing:.05em;
+section.seg .head{padding:8px 14px;background:#1E1E21;font-size:12px;
+color:#9A9690;display:flex;gap:12px;align-items:center;letter-spacing:.05em;
 flex-wrap:wrap;}
 section.seg .head .tag{padding:2px 8px;border-radius:2px;font-weight:600;font-size:11px;}
-.tag.equal{background:#2d2822;color:#8a7d6c;}
-.tag.replace{background:#4a2d1f;color:#e8b98f;}
-.tag.delete{background:#4a2018;color:#e8a898;}
-.tag.insert{background:#2d3a2f;color:#9ec4a8;}
-.tag.accepted{background:#2d3a2f;color:#9ec4a8;}
-.tag.rejected{background:#4a2018;color:#e8a898;}
-.tag.outside{background:#4a3d1f;color:#e0c272;}
-.tag.unanchored{background:#2d2822;color:#8a7d6c;}
+.tag.equal{background:#1E1E21;color:#605C56;}
+.tag.replace{background:#2A241A;color:#D4BE94;}
+.tag.delete{background:#2A1A1A;color:#C49494;}
+.tag.insert{background:#1A2420;color:#A8C4B4;}
+.tag.accepted{background:#1A2420;color:#A8C4B4;}
+.tag.rejected{background:#2A1A1A;color:#C49494;}
+.tag.outside{background:#262618;color:#B8AC88;}
+.tag.unanchored{background:#1E1E21;color:#605C56;}
 section.seg .body{display:grid;grid-template-columns:1fr 1fr;gap:0;
-border-top:1px solid #3a2d23;}
+border-top:1px solid rgba(255,255,255,.07);}
 section.seg .col{padding:14px 18px;
 font-family:"Songti SC","Source Han Serif SC",Georgia,serif;
 font-size:14px;line-height:1.9;white-space:pre-wrap;word-break:break-word;
-color:#ece3d5;}
-section.seg .col.raw{border-right:1px solid #3a2d23;background:#1e1712;}
-section.seg .col.final{background:#2a2218;}
+color:#E0DCD6;}
+section.seg .col.raw{border-right:1px solid rgba(255,255,255,.07);background:#121214;}
+section.seg .col.final{background:#161618;}
 section.seg .col .linehint{font-family:ui-monospace,monospace;font-size:11px;
-color:#8a7d6c;margin-bottom:6px;letter-spacing:.05em;}
-del{background:#4a2018;color:#e8a898;text-decoration:line-through;
+color:#605C56;margin-bottom:6px;letter-spacing:.05em;}
+del{background:#2A1A1A;color:#C49494;text-decoration:line-through;
 padding:0 2px;border-radius:2px;}
-ins{background:#2d3a2f;color:#9ec4a8;text-decoration:none;
+ins{background:#1A2420;color:#A8C4B4;text-decoration:none;
 padding:0 2px;border-radius:2px;}
-section.seg .annotations{padding:10px 14px;background:#221b14;
-border-top:1px solid #3a2d23;font-size:13px;color:#c8bba9;line-height:1.7;}
+section.seg .annotations{padding:10px 14px;background:#131315;
+border-top:1px solid rgba(255,255,255,.07);font-size:13px;color:#C9C5BF;line-height:1.7;}
 section.seg .annotations .item{margin:4px 0;}
-section.seg .annotations .item .id{font-weight:600;color:#e8b98f;margin-right:6px;}
-section.seg .annotations .item .reason{color:#8a7d6c;font-size:12px;margin-left:8px;}
+section.seg .annotations .item .id{font-weight:600;color:#D4BE94;margin-right:6px;}
+section.seg .annotations .item .reason{color:#605C56;font-size:12px;margin-left:8px;}
 section.seg.collapsed .body,section.seg.collapsed .annotations{display:none;}
 section.seg.collapsed .head{cursor:pointer;}
-.footer{padding:24px;text-align:center;color:#a89584;background:#120e0a;
-font-size:13px;margin-top:24px;border-top:1px solid #2a2218;}
+.footer{padding:24px;text-align:center;color:#9A9690;background:#08080A;
+font-size:13px;margin-top:24px;border-top:1px solid rgba(255,255,255,.07);}
 """
 
 

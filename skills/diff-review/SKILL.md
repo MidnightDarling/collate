@@ -193,7 +193,7 @@ raw.review.md 里每条 A/B/C 标注遵循固定格式：
 样式要求：
 - 全内联 CSS，单文件离线可读
 - 不加载外部字体 / 图片 / 脚本
-- 配色与 preview.html 一致（低对比淡底）：背景 `#f3ede3`，正文 `#1d1c1b`，删除高亮 `#fbe5d6`，新增高亮 `#d4edda`，强调色 `#c97d5d`
+- 配色与 preview.html / visual-preview.html 一致（ATTRIBUTION° Ink Stone 暗底）：背景 `#0E0E11`，正文 `#E0DCD6`，副文字 `#9A9690`，删除块 `#2A1A1A` 底 + `#C49494` 字，新增块 `#1A2420` 底 + `#A8C4B4` 字，强调色 `#D4BE94`
 
 #### 3.7 打开输出
 

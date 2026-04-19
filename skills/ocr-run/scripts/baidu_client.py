@@ -139,13 +139,19 @@ def merge_lines(lines: list[str]) -> str:
 def collect_pages(pdf_path: Path) -> list[Path]:
     """Find the per-page PNGs produced by prep-scan.
 
-    Expected layout (canonical, see references/workspace-layout.md):
-        <ws>.ocr/prep/cleaned.pdf  → pages at <ws>.ocr/prep/pages/
+    Expected layouts (canonical, see references/workspace-layout.md):
+        Form A: <ws>.ocr/source.pdf       → pages at <ws>.ocr/prep/pages/
+        Form B: <ws>.ocr/prep/cleaned.pdf → pages at <ws>.ocr/prep/pages/
 
     Legacy fallbacks preserved for back-compat with the old
     `<name>.prep/` sibling-directory layout.
     """
-    # Canonical: pages/ sits next to cleaned.pdf inside <ws>.ocr/prep/
+    # Canonical Form A: <ws>.ocr/source.pdf → <ws>.ocr/prep/pages/
+    prep = pdf_path.parent / "prep" / "pages"
+    if prep.is_dir():
+        return sorted(prep.glob("page_*.png"))
+
+    # Canonical Form B: pages/ sits next to cleaned.pdf inside <ws>.ocr/prep/
     prep = pdf_path.parent / "pages"
     if prep.is_dir():
         return sorted(prep.glob("page_*.png"))
