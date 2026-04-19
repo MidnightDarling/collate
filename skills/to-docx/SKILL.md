@@ -1,6 +1,6 @@
 ---
 name: to-docx
-description: 使用场景：用户运行 `/historical-ocr-review:to-docx`、对校对好的 Markdown 说"转成 Word""生成 docx""出一份 Word 稿""学界交流用""期刊投稿版本""给编辑看"等。这个 skill 把校对定稿的 Markdown 转成 `.docx`：思源宋体正文、段首缩进两字、行距 1.2、字间距 0.2 pt、页边距上下左右全部 2 cm、脚注连续编号、中文引号规范、图表题注位置正确、参考文献独立一段。优先使用 Anthropic 的 `docx` skill（若可用）提供完整 OOXML 能力；fallback 到 bundled 的 md_to_docx.py（python-docx 实现）。**主动触发**：用户提到"Word"、"doc"、"文档"、"交给编辑"、"投稿格式"等都应走这个 skill。
+description: 使用场景：用户运行 `/collate:to-docx`、对校对好的 Markdown 说"转成 Word""生成 docx""出一份 Word 稿""学界交流用""期刊投稿版本""给编辑看"等。这个 skill 把校对定稿的 Markdown 转成 `.docx`：思源宋体正文、段首缩进两字、行距 1.2、字间距 0.2 pt、页边距上下左右全部 2 cm、脚注连续编号、中文引号规范、图表题注位置正确、参考文献独立一段。优先使用 Anthropic 的 `docx` skill（若可用）提供完整 OOXML 能力；fallback 到 bundled 的 md_to_docx.py（python-docx 实现）。**主动触发**：用户提到"Word"、"doc"、"文档"、"交给编辑"、"投稿格式"等都应走这个 skill。
 argument-hint: "<markdown-path> [--font-size=12]"
 allowed-tools: Read, Write, Edit, Bash
 ---

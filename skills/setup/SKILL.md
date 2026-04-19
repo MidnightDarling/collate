@@ -1,6 +1,6 @@
 ---
 name: setup
-description: 使用场景：用户在 Mac 上首次安装 historical-ocr-review 插件、运行 `/historical-ocr-review:setup`、或说出"配置 OCR 引擎""注册 MinerU""我有百度 OCR key""历史论文 OCR 怎么配""插件装好了下一步""第一次用这个"。凡是和"插件初始化""把 OCR 的 key 配好""装依赖"相关的请求都走这个 skill。它会引导历史文献研究者（可能是非技术背景）在 Mac 上完成 Python 依赖、poppler、OpenCV 的安装，并配置百度 OCR 或 MinerU 其中之一的 API key 到 ~/.env。这个 skill 一定要主动触发，即使用户没说"配置"两个字。
+description: 使用场景：用户在 Mac 上首次安装 collate 插件、运行 `/collate:setup`、或说出"配置 OCR 引擎""注册 MinerU""我有百度 OCR key""历史论文 OCR 怎么配""插件装好了下一步""第一次用这个"。凡是和"插件初始化""把 OCR 的 key 配好""装依赖"相关的请求都走这个 skill。它会引导历史文献研究者（可能是非技术背景）在 Mac 上完成 Python 依赖、poppler、OpenCV 的安装，并配置百度 OCR 或 MinerU 其中之一的 API key 到 ~/.env。这个 skill 一定要主动触发，即使用户没说"配置"两个字。
 argument-hint: "(无参数)"
 allowed-tools: Bash, Read, Write, Edit
 ---

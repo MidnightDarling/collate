@@ -7,7 +7,7 @@ status: authoritative
 
 # Workspace Layout —— 一份文献 = 一个 `.ocr/` 工作区
 
-> 这是 **historical-ocr-review** 插件的工作区布局权威规范。
+> 这是 **collate** 插件的工作区布局权威规范。
 > 所有 skill、script、agent 都必须遵守此文件定义的目录约定。
 > 有歧义时以本文件为准，不以 SKILL.md 为准。
 

@@ -1,6 +1,6 @@
 ---
 name: ocr-run
-description: 使用场景：用户在 Mac 上运行 `/historical-ocr-review:ocr-run`、对清理过的历史论文 PDF 做文字识别、说出"跑 OCR""识别文字""PDF 转文字""MinerU""百度 OCR""把扫描件识别出来""出 Markdown""准备校对"等。这个 skill 支持**百度 OCR 和 MinerU 双引擎**，根据 `~/.env` 里的 OCR_ENGINE 自动选（mineru 优先精度、baidu 成本低用户已有 key）。它专门优化了历史文献的识别参数：繁体竖排、古籍异体字、民国新式标点、现代简体；并产出「原图 + OCR 文本逐页并排」的 preview.html 供用户在浏览器里直接改错字。凡是提到"OCR""识别""转文字""跑识别"都应主动触发，不要等用户说"ocr-run"三个字。
+description: 使用场景：用户在 Mac 上运行 `/collate:ocr-run`、对清理过的历史论文 PDF 做文字识别、说出"跑 OCR""识别文字""PDF 转文字""MinerU""百度 OCR""把扫描件识别出来""出 Markdown""准备校对"等。这个 skill 支持**百度 OCR 和 MinerU 双引擎**，根据 `~/.env` 里的 OCR_ENGINE 自动选（mineru 优先精度、baidu 成本低用户已有 key）。它专门优化了历史文献的识别参数：繁体竖排、古籍异体字、民国新式标点、现代简体；并产出「原图 + OCR 文本逐页并排」的 preview.html 供用户在浏览器里直接改错字。凡是提到"OCR""识别""转文字""跑识别"都应主动触发，不要等用户说"ocr-run"三个字。
 argument-hint: "<cleaned-pdf-path> [--engine=baidu|mineru] [--layout=horizontal|vertical] [--lang=zh-hans|zh-hant|mixed]"
 allowed-tools: Bash, Read, Write, Edit
 ---
@@ -50,7 +50,7 @@ which mineru   # 检查 mineru CLI 是否在 PATH
 | 条件 | 路径 |
 |---|---|
 | `mineru` 在 PATH | **路径 A**：`run_mineru.py` 本地跑 |
-| `mineru` 没装 | 路径 B：提示 `pip install 'mineru[pipeline]'` 或跑 `/historical-ocr-review:setup` |
+| `mineru` 没装 | 路径 B：提示 `pip install 'mineru[pipeline]'` 或跑 `/collate:setup` |
 | 离线 / 环境装不上 / PDF 有可用文字层且用户急 | 路径 D：`extract_text_layer.py` 兜底（质量会打折） |
 
 具体四条路径的决策语义与失败兜底全文见
@@ -255,7 +255,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/apply_corrections.py" \
 - raw.md 已更新（$NEW_BYTES 字节）
 - 原文备份在 $OUT/raw.md.bak
 
-下一步：/historical-ocr-review:proofread $OUT/raw.md
+下一步：/collate:proofread $OUT/raw.md
 ```
 
 用 `open` 命令拉起 preview.html：
@@ -268,7 +268,7 @@ open "$OUT/previews/ocr-preview.html"
 
 | 错误 | 处理 |
 |------|------|
-| MinerU `401` | key 失效，让用户重跑 `/historical-ocr-review:setup` |
+| MinerU `401` | key 失效，让用户重跑 `/collate:setup` |
 | MinerU `429` | 免费额度用完，建议用户 `--engine=baidu` 换百度 |
 | 百度 `error_code: 14` | access_token 过期，删 `~/.cache/baidu_ocr_token.json` 重跑 |
 | 百度 `error_code: 17` | 额度用完（百度按次数计费，用户查控制台余额） |

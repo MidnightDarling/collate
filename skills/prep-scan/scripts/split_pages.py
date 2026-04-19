@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Split PDF into per-page PNG images.
 
-Used by historical-ocr-review's prep-scan skill as the first step before
+Used by collate's prep-scan skill as the first step before
 de-watermarking. High DPI is critical for OCR of small historical fonts
 (e.g. Republican-era 5-point type, classical double-column commentary).
 
@@ -23,7 +23,7 @@ except ImportError:
         "  fix (one-shot):   pip3 install -U -r "
         "${CLAUDE_PLUGIN_ROOT}/requirements.txt\n"
         "  fix (this one):   pip3 install pdf2image\n"
-        "  fix (full setup): run /historical-ocr-review:setup — installs all deps, "
+        "  fix (full setup): run /collate:setup — installs all deps, "
         "poppler, and pre-warms MinerU",
         file=sys.stderr,
     )

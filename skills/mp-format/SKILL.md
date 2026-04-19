@@ -1,6 +1,6 @@
 ---
 name: mp-format
-description: 使用场景：用户运行 `/historical-ocr-review:mp-format`、对校对定稿的 Markdown（或 Word）说"转公众号""排版公众号""微信推送""秀米""壹伴""发 WeChat""做成推文""公众号 HTML"等。这个 skill 把定稿转成**可直接粘贴到公众号后台**的 HTML：带内联 CSS（公众号不支持外链样式表）、引用框样式、注释块样式、脚注以小字紧跟原文、图片居中 + 题注、繁简选项、作者/来源卡片。同时生成一份秀米兼容的 Markdown（供用户用秀米做更精细的模板化排版）。**主动触发**：用户提到"公众号""推送""微信""秀米""壹伴""做成推文""发出去""给读者看"都应走这个 skill，不必等用户说 mp-format 三个字。
+description: 使用场景：用户运行 `/collate:mp-format`、对校对定稿的 Markdown（或 Word）说"转公众号""排版公众号""微信推送""秀米""壹伴""发 WeChat""做成推文""公众号 HTML"等。这个 skill 把定稿转成**可直接粘贴到公众号后台**的 HTML：带内联 CSS（公众号不支持外链样式表）、引用框样式、注释块样式、脚注以小字紧跟原文、图片居中 + 题注、繁简选项、作者/来源卡片。同时生成一份秀米兼容的 Markdown（供用户用秀米做更精细的模板化排版）。**主动触发**：用户提到"公众号""推送""微信""秀米""壹伴""做成推文""发出去""给读者看"都应走这个 skill，不必等用户说 mp-format 三个字。
 argument-hint: "<markdown-path> [--simplify] [--byline=<作者信息>] [--source=<原文出处>]"
 allowed-tools: Read, Write, Edit, Bash
 ---

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rewrite `<basename>.ocr/README.md` as the current workspace directory map.
 
-Every skill in the historical-ocr-review pipeline calls this script after
+Every skill in the collate pipeline calls this script after
 finishing so the user always finds an up-to-date "what's in this folder"
 summary at the root of the workspace.  The README is the user's entry
 point — they shouldn't have to memorise the layout rules in
@@ -16,7 +16,7 @@ What this script does (and only this):
 3. Recurse into `previews/`, `review/`, `prep/`, `_internal/`, `output/`,
    `assets/` and show what's inside (names + size in KB).
 4. Compute the current pipeline stage based on which files exist and
-   suggest the next `/historical-ocr-review:<skill>` command.
+   suggest the next `/collate:<skill>` command.
 5. Write the whole thing to `<workspace>/README.md`, overwriting any
    previous version.  Idempotent.
 
@@ -100,12 +100,12 @@ def pipeline_stage(workspace: Path) -> tuple[str, list[str]]:
     if has_prep and not has_raw:
         nxt = []
         if not has_visual:
-            nxt.append("/historical-ocr-review:visual-preview <workspace>   # 核查清理效果")
+            nxt.append("/collate:visual-preview <workspace>   # 核查清理效果")
         nxt.append("python3 scripts/run_full_pipeline.py --workspace <workspace>")
         return ("prep-scan 已完成 — 待 OCR", nxt)
     if has_raw and not has_review:
         return ("OCR 已完成 — 待校对", [
-            "/historical-ocr-review:proofread <workspace>/raw.md",
+            "/collate:proofread <workspace>/raw.md",
             "生成 review/raw.review.md 后：python3 scripts/run_full_pipeline.py --workspace <workspace>",
         ])
     if has_review and not has_final:

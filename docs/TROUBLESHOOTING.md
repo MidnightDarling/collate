@@ -1,6 +1,6 @@
 ---
 title: Troubleshooting
-description: historical-ocr-review 插件常见报错、成因、兜底方案
+description: collate 插件常见报错、成因、兜底方案
 author: [Alice, Claude Opus 4.7, GPT-5.4]
 date: 2026-04-19
 status: v0.1.0
@@ -89,7 +89,7 @@ pip3 install -U --force-reinstall opencv-python
 重跑 prep-scan 时追加 `--keep-color`（保留彩色通道，不擦除红蓝印记）：
 
 ```
-/historical-ocr-review:prep-scan ~/Downloads/论文.pdf --keep-color
+/collate:prep-scan ~/Downloads/论文.pdf --keep-color
 ```
 
 若仍误擦，表明扫描件正文本身较淡：
@@ -102,7 +102,7 @@ pip3 install -U --force-reinstall opencv-python
 追加 `--aggressive` 放宽阈值：
 
 ```
-/historical-ocr-review:prep-scan ~/Downloads/论文.pdf --aggressive
+/collate:prep-scan ~/Downloads/论文.pdf --aggressive
 ```
 
 ### PDF 加密 / 带密码
@@ -157,7 +157,7 @@ with open('论文_ch1.pdf', 'wb') as f:
 API key 失效或错误。重跑 setup：
 
 ```
-/historical-ocr-review:setup
+/collate:setup
 ```
 
 ### MinerU 返回 `429`
@@ -165,7 +165,7 @@ API key 失效或错误。重跑 setup：
 免费额度耗尽。切换至百度：
 
 ```
-/historical-ocr-review:ocr-run cleaned.pdf --engine=baidu
+/collate:ocr-run cleaned.pdf --engine=baidu
 ```
 
 或等待次月配额重置。
@@ -198,7 +198,7 @@ PDF 体量过大。按章节拆分（见 prep-scan 章节"PDF 超过 200 页"）
 追加 `--lang=zh-hant`：
 
 ```
-/historical-ocr-review:ocr-run cleaned.pdf --lang=zh-hant
+/collate:ocr-run cleaned.pdf --lang=zh-hant
 ```
 
 ### 竖排古籍输出为横排乱序
@@ -206,7 +206,7 @@ PDF 体量过大。按章节拆分（见 prep-scan 章节"PDF 超过 200 页"）
 追加 `--layout=vertical`：
 
 ```
-/historical-ocr-review:ocr-run cleaned.pdf --layout=vertical
+/collate:ocr-run cleaned.pdf --layout=vertical
 ```
 
 ### raw.md 一行一段（百度 OCR 常见）
@@ -214,7 +214,7 @@ PDF 体量过大。按章节拆分（见 prep-scan 章节"PDF 超过 200 页"）
 百度的段落切分启发式精度不足。切换至 MinerU：
 
 ```
-/historical-ocr-review:ocr-run cleaned.pdf --engine=mineru
+/collate:ocr-run cleaned.pdf --engine=mineru
 ```
 
 ---

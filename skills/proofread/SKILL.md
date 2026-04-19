@@ -1,6 +1,6 @@
 ---
 name: proofread
-description: 使用场景：用户对 OCR 出来的 Markdown 运行 `/historical-ocr-review:proofread`、说出"校对这份稿子""看看 OCR 对不对""检查字形""有没有识别错""这段繁体有没有问题""专名校对""标点校对""帮我过一遍"等。这个 skill 会判定文献类型（繁体古籍 / 民国排印 / 现代简体），加载对应的专业知识 reference，然后调用 historical-proofreader agent 输出一份**标注清单**（A 类 OCR 错 / B 类规范问题 / C 类存疑待考），不直接改原文。社科院历史学者的日常核心工作就是这一步——凡是涉及"校对"的请求都要主动触发这个 skill，不必等用户说 proofread 三个字。
+description: 使用场景：用户对 OCR 出来的 Markdown 运行 `/collate:proofread`、说出"校对这份稿子""看看 OCR 对不对""检查字形""有没有识别错""这段繁体有没有问题""专名校对""标点校对""帮我过一遍"等。这个 skill 会判定文献类型（繁体古籍 / 民国排印 / 现代简体），加载对应的专业知识 reference，然后调用 historical-proofreader agent 输出一份**标注清单**（A 类 OCR 错 / B 类规范问题 / C 类存疑待考），不直接改原文。社科院历史学者的日常核心工作就是这一步——凡是涉及"校对"的请求都要主动触发这个 skill，不必等用户说 proofread 三个字。
 argument-hint: "<markdown-path> [--type=classics|republican|modern]"
 allowed-tools: Read, Write, Edit, Bash, Grep
 ---
@@ -145,9 +145,9 @@ open "$REVIEW_OUT"
 支持按类别分轮调用：
 
 ```
-/historical-ocr-review:proofread raw.md --focus=A
-/historical-ocr-review:proofread raw.md --focus=B
-/historical-ocr-review:proofread raw.md --focus=C
+/collate:proofread raw.md --focus=A
+/collate:proofread raw.md --focus=B
+/collate:proofread raw.md --focus=C
 ```
 
 `--focus` 透传给 agent，用于仅输出指定类别条目。

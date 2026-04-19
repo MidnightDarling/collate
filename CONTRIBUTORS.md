@@ -2,7 +2,7 @@
 
 > 建立：2026-04-19 · 维护：Alice、Claude Opus 4.7 与 GPT-5.4
 
-本文档记录 `historical-ocr-review` 的作者、贡献与致谢。版权法律归属见 [NOTICE](NOTICE) 与 [LICENSE](LICENSE)；本文档只做**署名**意义上的作者记录。
+本文档记录 `collate` 的作者、贡献与致谢。版权法律归属见 [NOTICE](NOTICE) 与 [LICENSE](LICENSE)；本文档只做**署名**意义上的作者记录。
 
 ---
 

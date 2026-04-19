@@ -1,6 +1,6 @@
 ---
 name: prep-scan
-description: 使用场景：用户在 Mac 上运行 `/historical-ocr-review:prep-scan`、提供一个扫描版 PDF、说出"去水印""去馆藏章""去知网水印""去页眉页脚""预处理论文 PDF""清理扫描件""图书馆章""历史文献 OCR 前处理""国家图书馆藏""中华再造善本"等。典型输入是用户从知网、读秀、国图扫描服务、档案馆数字资源、古籍数据库下载的 PDF，上面常见问题是：红蓝馆藏章、数据库 logo 水印（知网/维普/读秀/CNKI）、扫描日期戳、页眉刊名、页脚馆藏号、古籍版心鱼尾。这个 skill 把这些都处理干净并合回一份 cleaned.pdf，给下一步 OCR 用。这个 skill 应当主动触发，只要用户提到历史论文 PDF 或图像预处理就走它，不必等用户说"预处理"三个字。
+description: 使用场景：用户在 Mac 上运行 `/collate:prep-scan`、提供一个扫描版 PDF、说出"去水印""去馆藏章""去知网水印""去页眉页脚""预处理论文 PDF""清理扫描件""图书馆章""历史文献 OCR 前处理""国家图书馆藏""中华再造善本"等。典型输入是用户从知网、读秀、国图扫描服务、档案馆数字资源、古籍数据库下载的 PDF，上面常见问题是：红蓝馆藏章、数据库 logo 水印（知网/维普/读秀/CNKI）、扫描日期戳、页眉刊名、页脚馆藏号、古籍版心鱼尾。这个 skill 把这些都处理干净并合回一份 cleaned.pdf，给下一步 OCR 用。这个 skill 应当主动触发，只要用户提到历史论文 PDF 或图像预处理就走它，不必等用户说"预处理"三个字。
 argument-hint: "<pdf-path> [--aggressive] [--keep-color] [--no-margin-trim]"
 allowed-tools: Bash, Read, Write, Edit
 ---
@@ -170,8 +170,8 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/workspace_readme.py" --workspace "$OCR"
 若正文被误伤 → 重跑加 --keep-color
 若水印残留   → 重跑加 --aggressive
 
-下一步：/historical-ocr-review:ocr-run $OCR/source.pdf
-（或先 /historical-ocr-review:visual-preview $OCR 核查清理效果）
+下一步：/collate:ocr-run $OCR/source.pdf
+（或先 /collate:visual-preview $OCR 核查清理效果）
 ```
 
 对照图打开：

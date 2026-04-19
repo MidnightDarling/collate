@@ -69,8 +69,8 @@ When you reuse Reference Materials from this repository, please include an
 attribution substantially equivalent to the following, adapted to the
 context (web page, footnote, slide credit, database field, etc.):
 
-    "{title of the reused material}" from historical-ocr-review
-    (https://github.com/<owner>/historical-ocr-review),
+    "{title of the reused material}" from collate
+    (https://github.com/<owner>/collate),
     copyright 2026 Alice and contributors (co-authored with
     Claude Opus 4.7), licensed under CC-BY-4.0
     (https://creativecommons.org/licenses/by/4.0/).
@@ -79,8 +79,8 @@ context (web page, footnote, slide credit, database field, etc.):
 For scholarly citations (footnote or bibliography style), adapt to the
 citation style of the venue. A minimum acceptable form is:
 
-    Alice et al., historical-ocr-review (v{version}),
-    https://github.com/<owner>/historical-ocr-review, CC-BY-4.0.
+    Alice et al., collate (v{version}),
+    https://github.com/<owner>/collate, CC-BY-4.0.
 
 
 4. Materials NOT covered by this license

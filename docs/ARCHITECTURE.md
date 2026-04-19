@@ -1,6 +1,6 @@
 ---
 title: Architecture
-description: historical-ocr-review 插件的内部架构、数据流、skill 职责边界、设计决策
+description: collate 插件的内部架构、数据流、skill 职责边界、设计决策
 author: [Alice, Claude Opus 4.7, GPT-5.4]
 date: 2026-04-19
 status: v0.1.0
@@ -15,7 +15,7 @@ status: v0.1.0
 ## 顶层结构
 
 ```
-historical-ocr-review/
+collate/
 ├── .claude-plugin/plugin.json      插件 manifest（name / version / author）
 ├── README.md                       用户入口
 ├── AGENTS.md                       给未来接管的 agent 看

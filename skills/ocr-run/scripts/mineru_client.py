@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MinerU API client for historical-ocr-review plugin.
+"""MinerU API client for collate plugin.
 
 MinerU v4 API is URL-based: the `/extract/task` endpoint accepts a PDF URL,
 not a multipart upload. For local files, we first upload to catbox.moe

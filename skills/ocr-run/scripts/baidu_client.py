@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Baidu OCR client (per-page) for historical-ocr-review plugin.
+"""Baidu OCR client (per-page) for collate plugin.
 
 Baidu's General OCR (High Accuracy) handles modern simplified Chinese well.
 This module is a fallback for users who already have a Baidu key; MinerU is

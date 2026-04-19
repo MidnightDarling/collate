@@ -28,7 +28,7 @@ except ImportError:
         "  fix (one-shot):   pip3 install -U -r "
         "${CLAUDE_PLUGIN_ROOT}/requirements.txt\n"
         "  fix (this one):   pip3 install opencv-python numpy\n"
-        "  fix (full setup): run /historical-ocr-review:setup — installs all deps, "
+        "  fix (full setup): run /collate:setup — installs all deps, "
         "poppler, and pre-warms MinerU",
         file=sys.stderr,
     )

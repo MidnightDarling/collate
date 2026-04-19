@@ -356,7 +356,7 @@ awk 'length > 80 {print NR "|" $0}' raw.md \
 2. 再逐条精修 A 类单字错
 3. 最后 B 类按刊物要求、C 类逐条核对
 
-改完 raw.md → 保存为 final.md → 跑 `/historical-ocr-review:diff-review raw.md final.md` 核对改动闭环。
+改完 raw.md → 保存为 final.md → 跑 `/collate:diff-review raw.md final.md` 核对改动闭环。
 ```
 
 ---
