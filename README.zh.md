@@ -148,7 +148,7 @@ Human: final.docx + final.mp.html + 审计日志
 - **Claude Code** — `/plugin install /path/to/collate`。原生 `.claude-plugin/plugin.json` 随仓库发布，skills 注册为 `/collate:<skill>`。
 - **OpenCode** — `cd /path/to/collate && opencode`。原生读取 `AGENTS.md`（缺失时回落到 `CLAUDE.md`）。Skill 可放 `.opencode/skills/`，或走 Claude Code 兼容层直接复用 `~/.claude/skills/`。
 - **Hermes agents** — `cd /path/to/collate && hermes`。原生读取 `AGENTS.md` 与 `.hermes.md`；skill 落到 `~/.hermes/skills/`。已有 OpenClaw 配置的用户可用 `hermes claw migrate --workspace-target /path/to/collate` 迁移过来。
-- **Codex CLI** — `cd /path/to/collate && codex`。Codex 会从 CWD 一路向上找到 git root 并自动加载 `AGENTS.md`；子 agent 定义在 `.codex/agents/*.toml`。
+- **Codex** — 仓库现已随仓库发布原生 `.codex-plugin/plugin.json` 与 repo 级 `.agents/plugins/marketplace.json`。支持 plugin directory 的 Codex 端重启后可直接从该 marketplace 安装 `collate`；而在仓库里直接工作时，`cd /path/to/collate && codex` 仍会从 git root 自动加载 `AGENTS.md`。
 - **Cursor** — 在 `.cursor/rules/collate.mdc` 写入一条带 `alwaysApply: true` frontmatter 的规则，正文引用 `AGENTS.md`；用 Cursor 的 shell 工具调 `skills/*/scripts/*.py`。旧版 `.cursorrules` 也仍可用。
 - **Gemini CLI** — 克隆仓库，把 `AGENTS.md` 作为会话上下文载入，用 shell 工具调 `skills/*/scripts/*.py`。配套 `gemini-extension.json`（`contextFileName: "AGENTS.md"`）以打开 `gemini extensions install /path/to/collate` 一键安装路径，仍在路线图上。
 - **OpenClaw** — 原生包装（`openclaw.plugin.json` + TypeScript entry、发布到 ClawHub 或 npm，用户跑 `openclaw plugins install @collate/openclaw` 即可安装）在路线图上。当前 OpenClaw 用户可用 `hermes claw migrate` 把设置、skills 与 `AGENTS.md` 迁到 Hermes，再走上面的 Hermes 路径。

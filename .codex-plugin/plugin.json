@@ -1,0 +1,43 @@
+{
+  "name": "collate",
+  "version": "0.1.0",
+  "description": "Collate packages a historical Chinese OCR workflow for Codex: scan cleanup, MinerU OCR, structured proofreading, diff review, and DOCX / WeChat export.",
+  "author": {
+    "name": "Alice",
+    "email": "Mcyunying@gmail.com"
+  },
+  "homepage": "https://github.com/MidnightDarling/collate",
+  "repository": "https://github.com/MidnightDarling/collate",
+  "license": "Apache-2.0 AND CC-BY-4.0",
+  "keywords": [
+    "codex",
+    "ocr",
+    "history",
+    "proofreading",
+    "mineru",
+    "wechat",
+    "traditional-chinese",
+    "academic-workflow"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Collate",
+    "shortDescription": "OCR, proofread, and export historical Chinese papers.",
+    "longDescription": "Collate turns scanned historical Chinese papers into auditable working drafts and export-ready outputs. It bundles scan cleanup, OCR, proofreading, diff review, Word export, and WeChat formatting in one Codex-ready package.",
+    "developerName": "Alice",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/MidnightDarling/collate",
+    "brandColor": "#d54d3f",
+    "composerIcon": "./assets/collate-codex-mark.svg",
+    "logo": "./assets/collate-codex-mark.svg",
+    "defaultPrompt": [
+      "Run the full collate workflow on this PDF and produce DOCX plus WeChat HTML outputs.",
+      "OCR this historical Chinese paper, generate a review checklist, and summarise the risky pages.",
+      "Compare raw OCR with final edits and generate an audit report before export."
+    ]
+  }
+}

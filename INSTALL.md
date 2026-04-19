@@ -45,7 +45,10 @@ curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/script
 3. 自动识别本机已装的 agent runtime，并为每个 runtime 做对应接入：
     - **Claude Code**：把仓库软链到 `~/.claude/plugins/collate`
     - **Hermes agents**：把 10 个 skill 软链到 `~/.hermes/skills/collate-*`
-    - **OpenCode / Codex CLI**：零配置（这两个 runtime 原生读取 `AGENTS.md`），只打印 `cd + 启动` 命令
+    - **OpenCode**：零配置，只打印 `cd + 启动` 命令
+    - **Codex**：打印两条路径
+      - 直接在 repo 里运行 `codex`（原生读取 `AGENTS.md`）
+      - 或使用仓库自带的 `.codex-plugin/plugin.json` 与 `.agents/plugins/marketplace.json`
     - **Cursor / Gemini CLI**：打印需要用户手动创建的 rule 文件 / 首轮粘贴内容
 4. 最后打印分 runtime 的 next-step 指南、OCR 引擎环境变量模板、卸载命令
 
@@ -93,16 +96,34 @@ pip install --user -U -r requirements.txt
 
 或直接把仓库软链到 `~/.claude/plugins/collate`，Claude Code 启动时会自动发现。
 
-### OpenCode / Codex CLI
+### OpenCode
 
 零配置：在仓库目录里启动即可。
 
 ```bash
 cd ~/.local/share/collate
-opencode    # 或 codex
+opencode
 ```
 
-两者都原生识别 `AGENTS.md`。
+OpenCode 原生识别 `AGENTS.md`。
+
+### Codex
+
+两条路径都成立：
+
+```bash
+cd ~/.local/share/collate
+codex
+```
+
+这条是 repo 内工作路径，Codex 会自动读取 `AGENTS.md`。
+
+另外，仓库现在也原生发布：
+
+- `.codex-plugin/plugin.json`
+- `.agents/plugins/marketplace.json`
+
+支持 plugin directory 的 Codex 端重启后，可以从该 repo marketplace 直接安装 `collate`。
 
 ### Hermes agents
 

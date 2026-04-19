@@ -32,13 +32,13 @@ status: stable
 | OpenCode | ✓（原生 `AGENTS.md` + `skills/`） | 内置 spawn | 项目 `.env` + shell | git clone | 零配置，推荐 |
 | Hermes agents | ✓（原生 `AGENTS.md` + `skills/`） | `/spawn <agent.md>` | `~/.env` + 仓库 `.env` | git clone | 零配置，推荐 |
 | Cursor | 手动 `Read` | 独立 chat tab | 项目 `.env` | git clone | 需要 agent 会主动读 SKILL.md |
-| Codex CLI | 手动 `Read` | 新会话 + `-f <agent.md>` | shell `export` | git clone | 脚本可编排、适合 CI |
+| Codex CLI | `AGENTS.md` 自动发现；插件目录可读 repo marketplace | 新会话 + `-f <agent.md>` | shell `export` | git clone / repo marketplace | 脚本可编排，也可走原生插件分发 |
 | Gemini CLI | 手动 `Read` | 新 chat session | shell `export` | git clone | 同 Cursor |
 | OpenClaw | 需 `openclaw.plugin.json`（路线图） | 插件 hook | `openclaw config` | `openclaw plugins install <path>` | 仅消息自动化场景 |
 | Kimi | 上传为 knowledge base | file-api + 子会话 | API 请求头 | 知识库文件集 | 主对话 + 知识库模式 |
 | MiniMax | 上传为 knowledge base | sub-session API | API 请求头 | 知识库文件集 | 同 Kimi |
 
-**核心差异**：**本地 agent**（Claude Code / OpenCode / Hermes agents / Cursor / Codex CLI / Gemini CLI / OpenClaw）可直接跑 Python 脚本；其中 Claude Code、OpenCode、Hermes agents 原生识别 `AGENTS.md` 与 `skills/`，其余需要手动把 `AGENTS.md` 放入 agent 上下文。**云端 agent**（Kimi / MiniMax）需要本地有一台「执行机」代跑 shell，云端 agent 只做决策和校对。
+**核心差异**：**本地 agent**（Claude Code / OpenCode / Hermes agents / Cursor / Codex CLI / Gemini CLI / OpenClaw）可直接跑 Python 脚本；其中 Claude Code、OpenCode、Hermes agents 与 repo 内工作的 Codex 原生识别 `AGENTS.md`。Codex 的插件目录还可直接消费 `.codex-plugin/plugin.json` 与 repo marketplace。其余 runtime 仍需要手动把 `AGENTS.md` 放入 agent 上下文。**云端 agent**（Kimi / MiniMax）需要本地有一台「执行机」代跑 shell，云端 agent 只做决策和校对。
 
 ---
 
@@ -221,18 +221,31 @@ python3 "$PLUGIN_ROOT/skills/ocr-run/scripts/run_mineru.py" \
 
 ---
 
-## 5. Codex CLI
+## 5. Codex
 
-**定位**：命令行 agent，适合脚本化编排与 CI/CD 流水线。
+**定位**：既可以把仓库当普通 Git 工作区直接跑，也可以把仓库当原生 Codex plugin 通过 repo marketplace 暴露出来。前者适合本地深度协作，后者适合公开仓库的优雅分发。
 
-### 5.1 安装
+### 5.1 安装与发现
 
 ```bash
 git clone <repo-url> ~/dev/collate
 export COLLATE_ROOT=~/dev/collate
 ```
 
-Codex CLI 没有插件系统，通过 session 启动时的 `--system` 或 `--context` 传入 AGENTS.md：
+仓库现在自带：
+
+- `.codex-plugin/plugin.json`
+- `.agents/plugins/marketplace.json`
+
+对支持 plugin directory 的 Codex 端，重启后即可从该 repo marketplace 看到并安装 `collate`。  
+对直接在仓库里工作的 Codex CLI，最短路径仍然是：
+
+```bash
+cd "$COLLATE_ROOT"
+codex
+```
+
+Codex 会从 Git root 自动加载 `AGENTS.md`。如果你要显式起一个一次性 session，也可以继续手动传 `AGENTS.md`：
 
 ```bash
 codex --system "$COLLATE_ROOT/AGENTS.md" \

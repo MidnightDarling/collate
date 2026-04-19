@@ -492,3 +492,32 @@ files_preserved: [<paths that remain for inspection>]
 3. 不引入 GUI、不假设交互；所有参数走命令行
 4. 产物命名沿用 `<ws>.ocr/` 工作区约定；过程文档归入 `prep/ / previews/ / review/ / _internal/`，用户可见的最终稿归入 `output/`（详见 `references/workspace-layout.md`）
 5. Skill 收尾调用 `scripts/workspace_readme.py --workspace <ws>.ocr`，刷新工作区 README.md
+
+---
+
+## Git Attribution for Codex
+
+当 Codex 为本仓库提交代码时，commit 署名要与 `codex-attribution` 规则一致：
+
+- Git author 必须是 `GPT-5.4 <codex@openai.com>`
+- commit message 末尾必须带：
+  `Co-Authored-By: Alice <mcyunying@gmail.com>`
+- 不要使用 `noreply@openai.com`
+- `~/.codex/config.toml` 里的 `command_attribution` 必须保持 `false`
+
+推荐命令：
+
+```bash
+GIT_COMMITTER_NAME="Alice" GIT_COMMITTER_EMAIL="mcyunying@gmail.com" \
+git commit --author="GPT-5.4 <codex@openai.com>" -m "<subject>
+
+<body>
+
+Co-Authored-By: Alice <mcyunying@gmail.com>"
+```
+
+目的：
+
+- `codex@openai.com` 让 GitHub 正确解析 `@codex` 头像并进入 Contributors
+- Alice 保留 committer 与 co-author 身份
+- `git log` 和 GitHub Contributors 面板都能真实反映谁写了代码

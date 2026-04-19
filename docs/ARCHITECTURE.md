@@ -10,13 +10,22 @@ status: v0.1.0
 
 本文档面向需要读懂插件内部、扩展、修改或调试的开发者；面向最终用户的使用指南见 [README.md](../README.md)。
 
+当前仓库同时发布两层宿主包装：
+
+- `.claude-plugin/`：Claude Code 原生插件入口
+- `.codex-plugin/` + `.agents/plugins/marketplace.json`：Codex 原生插件入口
+
+两者都直接指向仓库根的 `skills/`，不再维护第二份运行时专用 skill 副本。
+
 ---
 
 ## 顶层结构
 
 ```
 collate/
+├── .agents/plugins/marketplace.json  Codex repo marketplace
 ├── .claude-plugin/plugin.json      插件 manifest（name / version / author）
+├── .codex-plugin/plugin.json       Codex plugin manifest
 ├── README.md                       用户入口
 ├── AGENTS.md                       给未来接管的 agent 看
 ├── INSTALL.md                      三个宿主的装法
