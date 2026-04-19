@@ -1,0 +1,79 @@
+historical-ocr-review
+Copyright 2026 Alice <Mcyunying@gmail.com> and contributors
+
+Co-authored by Alice and Claude Opus 4.7 (Anthropic).
+Copyright is held by Alice; under applicable law governing AI-assisted
+works, an AI system cannot hold copyright independently, so ownership
+rests solely with the named human co-author above. Authorship credit,
+however, is joint.
+
+This product includes software developed by the historical-ocr-review
+contributors.
+
+================================================================================
+ License matrix
+================================================================================
+
+Unless otherwise stated in an individual file header, each file in this
+repository is licensed under one of the following two licenses. See the
+LICENSE (Apache 2.0) and LICENSE-REFERENCES (CC BY 4.0) files for the
+full legal text.
+
+  Apache License 2.0 — applies to:
+    - All source code: skills/*/scripts/**, agents/**/*.py
+    - All configuration: *.json, *.yaml, *.yml, plugin.json
+    - All shell snippets embedded in SKILL.md files
+    - Templates under skills/*/assets/** that are consumed by code
+
+  Creative Commons Attribution 4.0 International (CC BY 4.0) — applies to:
+    - All Markdown prose except SKILL.md (which is code-adjacent)
+    - skills/*/references/**  (editorial reference material)
+    - docs/**
+    - README.md, AGENTS.md, CONTRIBUTORS.md (when present)
+    - assets/**/*.png and assets/**/*.jpg (authored artwork)
+
+When in doubt, treat a file as Apache 2.0 if it is imported or executed by
+code, and CC BY 4.0 if it is read by humans as reference material. The
+individual file or its containing directory may carry an SPDX header that
+overrides the default.
+
+================================================================================
+ Third-party dependencies (not bundled — linked at runtime)
+================================================================================
+
+This project invokes the following third-party tools and libraries. They
+retain their original licenses and are not redistributed here:
+
+  MinerU                    — AGPL-3.0 (OpenDataLab)
+  Baidu AI OCR Platform     — Commercial API (per Baidu ToS)
+  python-docx               — MIT License
+  OpenCC                    — Apache License 2.0
+  OpenCV (opencv-python)    — Apache License 2.0
+  pdf2image                 — MIT License
+  Pillow                    — HPND License (Pillow fork)
+  PyPDF2 / pypdf            — BSD-3-Clause
+  OpenAI (via plugin)       — Commercial API
+  Anthropic Claude (via SDK) — Commercial API
+
+Users who invoke MinerU via this plugin should be aware that MinerU itself
+is licensed under AGPL-3.0. Outputs of MinerU executed on user data do not
+propagate the AGPL obligations to unrelated code in this plugin, but
+distribution of a modified MinerU binary would.
+
+================================================================================
+ Attribution requirements (for CC BY 4.0 content)
+================================================================================
+
+When you reproduce, translate, or remix reference material from this
+repository (e.g., the citation style-guide, the dynasty name-cards, the
+audit-report), you must:
+
+  1. Credit "historical-ocr-review contributors" as the author.
+  2. Provide a link to the source file or to the repository.
+  3. Indicate whether changes were made.
+  4. Indicate that the material is licensed under CC BY 4.0 and link to
+     https://creativecommons.org/licenses/by/4.0/.
+
+No attribution is required for Apache-2.0 code when distributed as part of
+a binary build, but the NOTICE file must accompany any redistribution of
+the source or of the unmodified Work.

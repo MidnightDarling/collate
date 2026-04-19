@@ -3,10 +3,17 @@
   "version": "0.1.0",
   "description": "历史论文 OCR 校对工作流：PDF 预处理去水印去角标、MinerU OCR、三类文献（繁体古籍 / 民国排印 / 现代简体）校对、公众号排版导出",
   "author": {
-    "name": "Claude Opus 4.7",
-    "email": "noreply@anthropic.com"
+    "name": "Alice",
+    "email": "Mcyunying@gmail.com"
   },
-  "license": "MIT",
+  "contributors": [
+    {
+      "name": "Claude Opus 4.7",
+      "email": "noreply@anthropic.com",
+      "role": "co-author"
+    }
+  ],
+  "license": "Apache-2.0 AND CC-BY-4.0",
   "keywords": [
     "ocr",
     "chinese-history",
