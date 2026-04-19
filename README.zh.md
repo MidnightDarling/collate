@@ -144,7 +144,8 @@ collate/
 │   ├── plugin.json              /plugin install 读取的清单
 │   └── marketplace.json         marketplace 目录
 ├── .codex-plugin/
-│   └── plugin.json              Codex 原生插件清单
+│   ├── plugin.json              Codex 原生插件清单
+│   └── README.md                Codex 插件入口说明
 ├── .agents/
 │   └── plugins/marketplace.json Codex 用的 repo 级 marketplace
 │
@@ -183,14 +184,19 @@ collate/
 ├── scripts/
 │   ├── run_full_pipeline.py     机械总编排(不依赖 agent)
 │   ├── apply_review.py          按 raw.review.md 把改动落到 raw.md,出 final.md
+│   ├── pipeline_status.py       pipeline workspace 状态辅助
+│   ├── review_contract.py       proofread / apply / diff 共享的 review 契约解析
+│   ├── workspace_readme.py      把 workspace README 重写为当前目录地图
 │   └── install.sh               跨 runtime 安装器
 │
 ├── docs/
 │   ├── ARCHITECTURE.md          skill 职责边界、数据流、文件布局
-│   ├── INTEGRATIONS.md          六种 runtime 的接入步骤
-│   └── TROUBLESHOOTING.md       常见报错与兜底
+│   ├── INTEGRATIONS.md          分 runtime 的接入步骤
+│   ├── TROUBLESHOOTING.md       常见报错与兜底
+│   └── audit/                   按日期归档的发版审计报告
 │
 ├── AGENTS.md                    agent 契约 —— 调用约定、决策矩阵、失败处理
+├── CONTRIBUTORS.md              作者与贡献者(署名,非法律归属)
 ├── INSTALL.md                   详细安装指南
 ├── NOTICE                       版权 + 共笔 + 第三方许可
 ├── LICENSE                      Apache-2.0(代码)
@@ -444,7 +450,7 @@ mineru[pipeline]
 
 - [AGENTS.md](AGENTS.md) — agent 契约:每个 skill 的调用约定、决策矩阵、失败处理
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — skill 职责边界、数据流、文件布局
-- [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) — 六种 runtime 的接入步骤
+- [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) — 分 runtime 的接入步骤
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) — 常见报错与兜底
 - [CONTRIBUTORS.md](CONTRIBUTORS.md) — 作者与贡献者
 

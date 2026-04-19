@@ -144,7 +144,8 @@ collate/
 │   ├── plugin.json              Plugin manifest read by /plugin install
 │   └── marketplace.json         Marketplace catalog
 ├── .codex-plugin/
-│   └── plugin.json              Codex-native plugin manifest
+│   ├── plugin.json              Codex-native plugin manifest
+│   └── README.md                Codex plugin surface overview
 ├── .agents/
 │   └── plugins/marketplace.json Repo-local marketplace for Codex
 │
@@ -183,14 +184,19 @@ collate/
 ├── scripts/
 │   ├── run_full_pipeline.py     Mechanical orchestrator (no agent required)
 │   ├── apply_review.py          Apply raw.review.md edits to raw.md, emit final.md
+│   ├── pipeline_status.py       Pipeline workspace status helpers
+│   ├── review_contract.py       Shared review-contract parser for proofread / apply / diff
+│   ├── workspace_readme.py      Rewrite workspace README as the current directory map
 │   └── install.sh               Cross-runtime installer
 │
 ├── docs/
 │   ├── ARCHITECTURE.md          Skill boundaries, data flow, file layout
 │   ├── INTEGRATIONS.md          Per-runtime wiring (Codex, Cursor, Hermes, Gemini, …)
-│   └── TROUBLESHOOTING.md       Common errors and workarounds
+│   ├── TROUBLESHOOTING.md       Common errors and workarounds
+│   └── audit/                   Release audit reports, by date
 │
 ├── AGENTS.md                    Agent runtime contract — calling conventions, decision matrix, failure modes
+├── CONTRIBUTORS.md              Authors and contributors (credit, not legal attribution)
 ├── INSTALL.md                   Long-form install guide
 ├── NOTICE                       Copyright + co-authorship + third-party licenses
 ├── LICENSE                      Apache-2.0 (code)
