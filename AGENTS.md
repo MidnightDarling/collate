@@ -160,7 +160,7 @@ python skills/ocr-run/scripts/extract_text_layer.py \
     --lang zh-hans --layout horizontal
 ```
 
-**语言码差异（踩坑点）**：
+**语言码差异（易错点）**：
 - **本地 MinerU CLI**：`ch` / `chinese_cht` / `en` / `japan` / `korean`
 - **云端 MinerU + 百度**：`zh-hans` / `zh-hant` / `en` / `jp` / `kor`
 - 不要跨引擎复用语言码；错码会导致识别退化或直接失败。

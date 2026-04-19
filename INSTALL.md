@@ -1,120 +1,81 @@
-# 安装指南
+# 安装
 
-三个宿主，优先级从高到低。
+面向 Claude Code 的快速启动指南。其他 agent 运行时（Cursor、Codex CLI、Kimi K2、MiniMax Agent、Gemini CLI）的接入步骤见 [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)。
 
 ---
 
-## 推荐：Claude Code
+## 前置依赖
 
-### 1. 装 Claude Code
+- macOS 或 Linux
+- Python 3.9+
+- poppler（`brew install poppler` / `apt install poppler-utils`）
 
-<https://www.anthropic.com/claude-code>
-
-### 2. 装本插件
-
-**方式 A：本地目录挂载**（推荐调试/首次尝试）
-
-把整个 `historical-ocr-review/` 文件夹放到任意位置，比如 `~/plugins/`，然后在项目里：
+安装 Python 依赖：
 
 ```bash
-# 方式 A1：用 /plugin 命令在 Claude Code 里加
+pip install -U -r requirements.txt
+```
+
+---
+
+## Claude Code 安装
+
+**方式 A：本地目录挂载**（推荐用于调试与首次试用）
+
+将仓库克隆至任意位置（如 `~/plugins/`），然后在 Claude Code 中：
+
+```
 /plugin install /path/to/historical-ocr-review
 ```
 
-**方式 B：marketplace 安装**（已发布后）
+**方式 B：marketplace 安装**（待发布）
 
-```bash
+```
 /plugin install historical-ocr-review
 ```
 
-### 3. 第一次用
+---
+
+## 首次运行
 
 ```
 /historical-ocr-review:setup
 ```
 
-会引导你注册 MinerU key 并装 Python 依赖。
-
----
-
-## 备选：Kimi CLI / MiniMax Agent
-
-Kimi 和 MiniMax 的 agent 工具可以 **加载 SKILL.md 作为 knowledge**，但不能原生执行 Claude Code 的 plugin 命令。使用方式：
-
-### 1. 把 skills 内容导入宿主的 knowledge
-
-- **Kimi**：新建对话 → 上传 `skills/` 下所有 `SKILL.md` 和 `references/*.md` 作为上下文
-- **MiniMax**：在 agent 设置里把 SKILL.md 内容贴进 system prompt，references 作为 knowledge base
-
-### 2. 脚本在本地跑
-
-```bash
-# 装依赖
-pip install opencv-python pillow requests python-dotenv markdown
-
-# 设置 MinerU key
-export MINERU_API_KEY=你的key
-# 或者写进 ~/.env
-
-# 预处理
-python3 skills/prep-scan/scripts/dewatermark.py input.pdf
-
-# OCR
-python3 skills/ocr-run/scripts/mineru_client.py cleaned.pdf
-
-# 转公众号 HTML
-python3 skills/mp-format/scripts/md_to_wechat.py final.md
-```
-
-### 3. 校对 prompt
-
-把 `agents/historical-proofreader.md` 的系统提示词 + 校对目标 Markdown 喂给 Kimi/MiniMax，它会按繁体古籍 / 民国排印 / 现代简体的知识回给你一份标红报告。
-
----
-
-## 依赖清单
-
-```
-python >= 3.9
-opencv-python
-pillow
-requests
-python-dotenv
-markdown
-```
-
-一行装齐：
-
-```bash
-pip install -U opencv-python pillow requests python-dotenv markdown
-```
+setup skill 会引导注册 OCR 引擎凭据并检查 Python 依赖完整性。
 
 ---
 
 ## 环境变量
 
-在 `~/.env` 写：
+推荐在 `~/.env` 中配置：
 
 ```
-MINERU_API_KEY=sk-xxxxxxxxxxxxxxxx
+OCR_ENGINE=mineru                # mineru（本地 CLI，默认）/ mineru-cloud / baidu
+MINERU_API_KEY=sk-xxxx           # 仅 OCR_ENGINE=mineru-cloud 需要
+BAIDU_OCR_API_KEY=xxxx           # 仅 OCR_ENGINE=baidu 需要
+BAIDU_OCR_SECRET_KEY=xxxx        # 同上
 ```
 
-或导出到当前 shell：
+MinerU API key 在 <https://mineru.net> 控制台获取；百度 OCR 凭据在百度智能云控制台"通用文字识别"页面获取。
 
-```bash
-export MINERU_API_KEY=sk-xxxxxxxxxxxxxxxx
-```
-
-key 从 <https://mineru.net> 注册后在控制台查。
+完整的环境变量清单与跨 runtime 注入方式见 [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) 第 9 节。
 
 ---
 
 ## 卸载
 
-Claude Code：
-
 ```
 /plugin uninstall historical-ocr-review
 ```
 
-纯本地用：删除 `historical-ocr-review/` 文件夹即可。不会留任何系统痕迹（不改 PATH、不写注册表、不开后台进程）。
+非 Claude Code 场景：删除仓库目录即可。插件不修改系统 PATH、不写入注册表、不启动后台进程。
+
+---
+
+## 下一步
+
+- 运行完整流程：参见 [README.md](README.md) 的 Workflow 章节
+- 故障排查：[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- 插件内部架构：[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- 接入其他 agent 运行时：[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)

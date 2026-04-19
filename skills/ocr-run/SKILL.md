@@ -13,9 +13,7 @@ allowed-tools: Bash, Read, Write, Edit
 
 **为什么支持两个引擎**：
 - **MinerU**（上海 AI Lab）：对繁体、竖排、古籍版式、公式、表格识别更强，默认推荐。
-- **百度 OCR**（用户已有 key）：稳定、额度大、响应快，适合大批量现代简体论文。用户既有 key 不白用。
-
-用户的 `~/.env` 里 `OCR_ENGINE=mineru` 或 `OCR_ENGINE=baidu` 决定默认走哪个。命令行 `--engine=xxx` 可临时覆盖（比如用户想对比两个引擎的效果）。
+- **百度 OCR**（用户已有 key）：稳定、额度大、响应快，适合大批量现代简体论文。用户既有 key 不白用。用户的 `~/.env` 里 `OCR_ENGINE=mineru` 或 `OCR_ENGINE=baidu` 决定默认走哪个。命令行 `--engine=xxx` 可临时覆盖（比如用户想对比两个引擎的效果）。
 
 输出结构：
 
@@ -89,9 +87,7 @@ mkdir -p "$OUT/assets"
 | 横排 + 简体 | `horizontal` | `zh-hans` |
 | 繁简混杂（民国排印本、早期译著） | `horizontal` | `zh-hans`（简体为主） |
 
-> 语言码**不要跨引擎复用**：把 `zh-hans` 传给本地 MinerU CLI 会失败；把 `ch` 传给百度也会失败。
-
-用户未指定时，Agent 自行判断；视觉上无法定性（繁简各半、页眉水印大）时，问一句："这份文献是繁体竖排、繁体横排还是简体？"
+> 语言码**不要跨引擎复用**：把 `zh-hans` 传给本地 MinerU CLI 会失败；把 `ch` 传给百度也会失败。用户未指定时，Agent 自行判断；视觉上无法定性（繁简各半、页眉水印大）时，问一句："这份文献是繁体竖排、繁体横排还是简体？"
 
 ### Step 4：调 OCR（默认本地 `mineru`）
 

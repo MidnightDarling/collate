@@ -8,7 +8,7 @@ status: v0.1.0
 
 # Architecture
 
-这份文档写给想读懂插件内部、想扩展 / 修改 / 调试插件的人。面向用户的使用指南见 [README.md](../README.md)。
+本文档面向需要读懂插件内部、扩展、修改或调试的开发者；面向最终用户的使用指南见 [README.md](../README.md)。
 
 ---
 
@@ -127,13 +127,13 @@ skills/<name>/
      final.docx  final.mp.html
 ```
 
-**三个质检闸门** 是设计要点：
+**三个质检闸门**是设计要点：
 
-1. **visual-preview**（prep 之后）——看清理有没有误伤正文
-2. **proofread 的 Checklist 执行证明表**——证明 agent 真跑了字形扫描
-3. **diff-review**（改完之后）——看接受了哪些、漏改了哪些
+1. **visual-preview**（prep 之后）——验证清理过程未误伤正文
+2. **proofread 的 Checklist 执行证明表**——确认 agent 已执行字形扫描
+3. **diff-review**（改完之后）——核对采纳与漏改条目
 
-闸门失效 = 黑盒交付。插件的定位是让 用户 在每一步都能复查，不是"全自动"。
+任一闸门失效即退化为黑盒交付。插件的定位是让用户在每一步都可复查，而非追求端到端自动化。
 
 ---
 
@@ -141,36 +141,36 @@ skills/<name>/
 
 ### 1. SKILL.md 写契约，脚本遵守契约
 
-每个 SKILL.md 里明确写 "脚本必须实现 X / Y / Z"。脚本是契约的实现，不是 SKILL 的另一种表述。这防止文档和代码长期漂移（插件的通病是 SKILL 说能做，脚本其实不做）。
+每个 SKILL.md 明确声明"脚本必须实现 X / Y / Z"。脚本是契约的实现，而非 SKILL 的另一种表述，以此防止文档与代码长期漂移——这是插件类项目常见的失修模式（SKILL 声称支持，脚本实际未实现）。
 
-### 2. Agent 走强制 checklist 而不是 "系统过一遍"
+### 2. Agent 走强制 checklist 而非自由通读
 
-早期版本的 `historical-proofreader` agent 工作流是 "按顺序过完全文，每读到以下模式就标一条"。实测会漏掉 reference 里明确列过的经典错（比如"曰/日"），因为 agent 靠印象抽样。
+早期版本的 `historical-proofreader` agent 工作流是"按顺序通读全文，遇到以下模式即标注一条"。实际测试中会漏掉 reference 已明确列出的经典错误（如"曰/日"），原因是 agent 依赖印象式抽样。
 
-现在改成 **Step 1-4 每步列具体 `grep` 命令，报告里必须附 Checklist 执行证明表**（每项命中数）。这是给 agent 的"执行审计"，漏跑一项能从报告里看出来。
+现改为 **Step 1-4 每步列出具体 `grep` 命令，报告必须附 Checklist 执行证明表**（逐项命中数）。该表为 agent 的执行审计——漏跑任一步骤均可从报告中追溯。
 
 ### 3. 路径编码兜底
 
-macOS 上 `cv2.imread` 对含中文路径的某些 PNG 会返回 None（同目录下有的读得到有的读不到）。所有脚本的图像 I/O 走 `cv2.imdecode(np.fromfile(...))` / `cv2.imencode + tofile` 绕过路径编码。见 [skills/visual-preview/scripts/visualize_prep.py](../skills/visual-preview/scripts/visualize_prep.py) 的 `imread_unicode` / `imwrite_unicode`。
+macOS 上 `cv2.imread` 对含中文路径的部分 PNG 会返回 None，且同一目录下行为不一致。所有脚本的图像 I/O 改走 `cv2.imdecode(np.fromfile(...))` / `cv2.imencode + tofile` 以绕过路径编码问题。参见 [skills/visual-preview/scripts/visualize_prep.py](../skills/visual-preview/scripts/visualize_prep.py) 的 `imread_unicode` / `imwrite_unicode`。
 
 ### 4. OCR 双引擎 fallback
 
-MinerU 对繁体竖排古籍更准，百度对现代简体更稳、配额大。`~/.env` 的 `OCR_ENGINE` 决定默认引擎，`--engine=xxx` 可临时覆盖——方便用户对比两引擎效果或降级切换。
+MinerU 对繁体竖排古籍识别率更高，百度对现代简体更稳定且配额更大。`~/.env` 的 `OCR_ENGINE` 决定默认引擎，`--engine=xxx` 可单次覆盖——用于引擎对比或降级切换。
 
-### 5. diff-review 的 "接近" 判定
+### 5. diff-review 的"接近"判定
 
-判定 用户 是否接受 agent 建议时，**不做精确字符串匹配**。策略：从建议里抽关键字符（如 "研完 → 研究" 里的 "究"），如果 final 段落包含这些字符且 raw 不包含 → 判为接受。理由：用户 常采纳方向但用自己的措辞改，精确匹配会把"同向但换词"误判为拒绝。
+判定用户是否接受 agent 建议时，**不做精确字符串匹配**。策略：从建议中抽取关键字符（如"研完 → 研究"中的"究"），若 final 段落包含这些字符且 raw 不包含，则判为接受。理由：用户常采纳建议方向但以自己的措辞改写，精确匹配会将"同向换词"误判为拒绝。
 
 ### 6. 所有 HTML 单文件离线
 
-preview.html / diff.html / visual-preview.html 都是单文件：
+preview.html / diff.html / visual-preview.html 均为单文件：
 
-- 内联 CSS，无外链 style sheet
-- 图片用相对路径（不 base64），HTML 跟目录一起挪可打开
+- 内联 CSS，无外链样式表
+- 图片使用相对路径（非 base64），HTML 可与目录一同迁移
 - JS 纯内联，零依赖
-- 不加载外网字体 / CDN
+- 不加载外网字体或 CDN
 
-理由：用户 会把这些 HTML 发给编辑、合作者、在没网的地方看。
+理由：用户会将这些 HTML 分发给编辑、合作者，或在无网环境下查阅。
 
 ---
 
@@ -202,13 +202,13 @@ Response envelope：`{"code": 0, "data": {...}, "msg": "..."}`——`code != 0` 
 3. 每页 PNG → base64 → `POST /rest/2.0/ocr/v1/accurate_basic`（高精度版）
 4. JSON 响应里 `words_result[].words` 为每行，自己拼段落（`merge_lines` 启发式）
 
-**百度的段落切分**靠 `merge_lines` 里的终止符规则。识别出一行一段时建议切 MinerU 重跑。
+**百度的段落切分**依赖 `merge_lines` 中的终止符规则。若出现"一行一段"现象，建议切换 MinerU 重跑。
 
 ---
 
 ## proofread Agent 的 Reference 加载
 
-三份 reference 按文献类型**单独加载**，避免 agent 被不相关知识干扰：
+三份 reference 按文献类型**单独加载**，避免不相关知识干扰 agent 判断：
 
 | 类型 | Reference |
 |------|-----------|
@@ -222,15 +222,15 @@ Response envelope：`{"code": 0, "data": {...}, "msg": "..."}`——`code != 0` 
 
 ## 扩展点
 
-想加新功能时的挂载点：
+新增功能的挂载点：
 
-| 想做什么 | 改哪里 |
+| 扩展目标 | 修改位置 |
 |---------|-------|
-| 加新的期刊 Word 模板 | `skills/to-docx/scripts/md_to_docx.py` 的 `TEMPLATES` dict |
-| 加新的 OCR 引擎 | 新建 `skills/ocr-run/scripts/<name>_client.py` + 在 ocr-run SKILL 里加分支 |
-| 加新文献类型的 reference | `skills/proofread/references/<type>.md` + 在 agent / skill 里加类型 |
-| 加公众号样式主题 | `skills/mp-format/scripts/md_to_wechat.py` 的 `STYLE_*` 常量 |
-| 加新的批量扫描（如段末分号断裂） | `agents/historical-proofreader.md` 的 Step 1.6 或 Step 4 |
+| 新增期刊 Word 模板 | `skills/to-docx/scripts/md_to_docx.py` 的 `TEMPLATES` dict |
+| 新增 OCR 引擎 | 新建 `skills/ocr-run/scripts/<name>_client.py`，并在 ocr-run SKILL 中增加分支 |
+| 新增文献类型的 reference | `skills/proofread/references/<type>.md`，并在 agent 与 skill 中注册该类型 |
+| 新增公众号样式主题 | `skills/mp-format/scripts/md_to_wechat.py` 的 `STYLE_*` 常量 |
+| 新增批量扫描规则（如段末分号断裂） | `agents/historical-proofreader.md` 的 Step 1.6 或 Step 4 |
 | 扩展 diff-review 的锚点解析（多 Line 号） | `skills/diff-review/scripts/md_diff.py` 的 `parse_review` |
 
 ---
@@ -239,14 +239,14 @@ Response envelope：`{"code": 0, "data": {...}, "msg": "..."}`——`code != 0` 
 
 当前无自动化测试。手动验证流程：
 
-1. 放一份真实论文 PDF 到 `~/Downloads/`
-2. 依次跑 prep-scan → visual-preview → ocr-run → proofread → diff-review → to-docx → mp-format
-3. 每一步检查：产物是否生成、HTML 能打开、汇总数字合理
+1. 将一份真实论文 PDF 置于 `~/Downloads/`
+2. 依次执行 prep-scan → visual-preview → ocr-run → proofread → diff-review → to-docx → mp-format
+3. 每一步核验：产物是否生成、HTML 是否可打开、汇总数字是否合理
 
-未来应加：
+后续规划：
 
-- [ ] `tests/fixtures/` 放几份标准 PDF 样本
-- [ ] 单元测试核心函数（`split_paragraphs`、`extract_key_chars`、`compute_diff_heatmap`）
+- [ ] `tests/fixtures/` 收录若干标准 PDF 样本
+- [ ] 单元测试覆盖核心函数（`split_paragraphs`、`extract_key_chars`、`compute_diff_heatmap`）
 - [ ] 端到端集成测试
 
 ---

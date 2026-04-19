@@ -9,7 +9,7 @@ allowed-tools: Read, Write, Edit, Bash
 
 ## Task
 
-校对闭环的最后一关。用户 按 raw.review.md 改完 raw.md → final.md 后，用户需要回答三个问题：
+校对闭环的最后一关。用户按 raw.review.md 改完 raw.md → final.md 后，用户需要回答三个问题：
 
 1. **用户接受了 agent 的哪些建议？**（自己脑子里记不住改了哪些）
 2. **用户拒绝或漏改了哪些？**（最常见：手滑漏掉一两条 A 类）
@@ -35,7 +35,7 @@ test -f "$FINAL" || { echo "final.md 不存在：$FINAL"; exit 1; }
 # review 可选；无则降级为纯 diff
 ```
 
-如果 用户 没显式传 `--review`，默认去 raw.md 同目录找 `raw.review.md`。找到就带上，找不到降级为纯 diff，不做标注关联，并告知用户。
+如果用户没显式传 `--review`，默认去 raw.md 同目录找 `raw.review.md`。找到就带上，找不到降级为纯 diff，不做标注关联，并告知用户。
 
 ### Step 2 — 调 diff 脚本
 
@@ -119,9 +119,9 @@ raw.review.md 里每条 A/B/C 标注遵循固定格式：
 **"接近"判定**：不要求精确字符匹配。策略：
 - agent 建议里抽取关键改动字符（如"研完 → 研究"里的"究"、"中夹党校 → 中央党校"里的"央"、"（观念史》 → 《观念史》"里的"《"）
 - 若 final.md 对应段落里出现这些关键字符，且 raw.md 对应位置没有 → 判为接受
-- 复杂判定不了 → 保守判为 `rejected_or_missed`，让 用户 自己看
+- 复杂判定不了 → 保守判为 `rejected_or_missed`，让用户自己看
 
-不精确匹配的原因：用户 经常采纳方向但换措辞（agent 说"改为「这是重要的」"，用户写成了"「此乃要害」"）。
+不精确匹配的原因：用户经常采纳方向但换措辞（agent 说"改为「这是重要的」"，用户写成了"「此乃要害」"）。
 
 #### 3.5 统计总结（输出 `<final>.diff.summary.md`）
 
@@ -194,7 +194,7 @@ raw.review.md 里每条 A/B/C 标注遵循固定格式：
 open "${FINAL%.md}.diff.html"
 ```
 
-### Step 4 — 向 用户 报告
+### Step 4 — 向用户报告
 
 ```
 核对完成：
@@ -239,10 +239,10 @@ open "${FINAL%.md}.diff.html"
 
 ## 判断规则
 
-- **raw == final**：不生成空 HTML，直接告诉 用户 "文件完全一致，无修改"，退出 0
-- **段落数差 > 50%**：提醒 用户 "final.md 比 raw.md 段落数差太多，你改的是同一版 raw 吗？"。若用户确认是同一版，继续；若不是，让用户换版本
+- **raw == final**：不生成空 HTML，直接告诉用户 "文件完全一致，无修改"，退出 0
+- **段落数差 > 50%**：提醒用户 "final.md 比 raw.md 段落数差太多，你改的是同一版 raw 吗？"。若用户确认是同一版，继续；若不是，让用户换版本
 - **agent 标了 N 条 A 类但一条都没接受**：标红警告 "A 类是极可能的 OCR 错（建议接受），现在 0 条接受——确认下是不是你没看这份 review？"
-- **review.md 格式解析失败**：告诉 用户 "我看不懂这份 review.md 的格式，可能是旧版 agent 产物。这次先只做纯 diff，不关联标注"
+- **review.md 格式解析失败**：告诉用户 "我看不懂这份 review.md 的格式，可能是旧版 agent 产物。这次先只做纯 diff，不关联标注"
 
 ## 失败兜底
 
@@ -259,7 +259,7 @@ open "${FINAL%.md}.diff.html"
 
 ```
 raw.md  ──→  proofread  ──→  raw.review.md
-              ↓（用户 按清单改）
+              ↓（用户按清单改）
             final.md
               ↓
          diff-review  ← 这一步核对闭环
@@ -267,4 +267,4 @@ raw.md  ──→  proofread  ──→  raw.review.md
        to-docx + mp-format
 ```
 
-diff-review 是**校对质量闸门**，不是可选步骤。用户 的习惯应该是"改完必跑 diff"。
+diff-review 是**校对质量闸门**，不是可选步骤。用户的习惯应该是"改完必跑 diff"。

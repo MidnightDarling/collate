@@ -125,9 +125,7 @@ open "<input-dir>/<input-basename>.review.md"
 - **A 类超过 50 条**：OCR 质量有问题，建议用户回去重跑 prep-scan + ocr-run（可能换引擎 / 加 aggressive）
 - **用户说"agent 搞得太保守 / 太激进"**：调 agent prompt，不是调 reference。reference 是知识不是策略。
 
-## 迭代用法
-
-用户可能想**多轮校对**：第一轮主改 A 类，第二轮专门看 B 类规范，第三轮攻 C 类存疑。支持用户分轮跑：
+## 迭代用法用户可能想**多轮校对**：第一轮主改 A 类，第二轮专门看 B 类规范，第三轮攻 C 类存疑。支持用户分轮跑：
 
 ```
 /historical-ocr-review:proofread raw.md --focus=A
