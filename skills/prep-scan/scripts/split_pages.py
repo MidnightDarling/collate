@@ -18,7 +18,15 @@ try:
     from pdf2image import convert_from_path
     from pdf2image.exceptions import PDFInfoNotInstalledError
 except ImportError:
-    print("missing dependency: pip3 install pdf2image", file=sys.stderr)
+    print(
+        "missing dependency: pdf2image\n"
+        "  fix (one-shot):   pip3 install -U -r "
+        "${CLAUDE_PLUGIN_ROOT}/requirements.txt\n"
+        "  fix (this one):   pip3 install pdf2image\n"
+        "  fix (full setup): run /historical-ocr-review:setup — installs all deps, "
+        "poppler, and pre-warms MinerU",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 

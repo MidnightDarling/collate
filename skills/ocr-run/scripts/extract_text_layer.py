@@ -31,7 +31,15 @@ from pathlib import Path
 try:
     import PyPDF2
 except ImportError:
-    print("missing dependency: pip3 install PyPDF2", file=sys.stderr)
+    print(
+        "missing dependency: PyPDF2\n"
+        "  fix (one-shot):   pip3 install -U -r "
+        "${CLAUDE_PLUGIN_ROOT}/requirements.txt\n"
+        "  fix (this one):   pip3 install PyPDF2\n"
+        "  fix (full setup): run /historical-ocr-review:setup — installs all deps, "
+        "poppler, and pre-warms MinerU",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 

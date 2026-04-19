@@ -17,7 +17,15 @@ from pathlib import Path
 try:
     from PIL import Image
 except ImportError:
-    print("missing dependency: pip3 install pillow", file=sys.stderr)
+    print(
+        "missing dependency: pillow\n"
+        "  fix (one-shot):   pip3 install -U -r "
+        "${CLAUDE_PLUGIN_ROOT}/requirements.txt\n"
+        "  fix (this one):   pip3 install pillow\n"
+        "  fix (full setup): run /historical-ocr-review:setup — installs all deps, "
+        "poppler, and pre-warms MinerU",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 

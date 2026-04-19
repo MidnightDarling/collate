@@ -26,11 +26,48 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+
+# MinerU's first run downloads ~2–3 GB of weights from HuggingFace Hub.
+# From mainland China the default huggingface.co endpoint routinely hangs or
+# triggers ProxyError even on a working VPN, so we surface the two supported
+# mirrors up-front. `HF_ENDPOINT` swaps in the hf-mirror.com proxy (fastest
+# in China) and `MINERU_MODEL_SOURCE=modelscope` routes through ModelScope
+# entirely. Setting one is enough; we prefer HF_ENDPOINT because it leaves
+# the rest of the HuggingFace toolchain working for non-mineru tools too.
+HF_MIRROR_HINT = [
+    "",
+    "[run_mineru] TIP: if model download fails with ProxyError / network timeout,",
+    "  try one of these mirrors (prepend to your `/ocr-run` command):",
+    "    export HF_ENDPOINT=https://hf-mirror.com",
+    "  — or —",
+    "    export MINERU_MODEL_SOURCE=modelscope",
+    "  The first run downloads ~2–3 GB; subsequent runs are cached.",
+    "",
+]
+
+
+# Substrings we recognise in MinerU's stderr that point to HuggingFace network
+# failure specifically (vs. e.g. a genuine PDF parsing bug). Keep this list
+# narrow — a false positive just appends a harmless tip, but a false negative
+# leaves the user staring at an opaque traceback.
+HF_FAILURE_MARKERS = (
+    "ProxyError",
+    "ConnectionError",
+    "huggingface.co",
+    "hf-mirror",
+    "PDF-Extract-Kit",
+    "opendatalab",
+    "Failed to download",
+    "Connection aborted",
+    "Max retries exceeded",
+)
 
 
 def ensure_mineru() -> str:
@@ -51,7 +88,48 @@ def ensure_mineru() -> str:
     raise SystemExit(20)
 
 
+def _mirror_preflight() -> None:
+    """Warn the user about first-run model download before we start.
+
+    If neither `HF_ENDPOINT` nor `MINERU_MODEL_SOURCE` is set, and the MinerU
+    model cache does not yet exist locally, the first run will attempt a
+    ~2–3 GB pull from huggingface.co — which fails by default from mainland
+    China. We surface the mirror options proactively so the user doesn't have
+    to watch it fail first. If a mirror IS already configured, we echo which
+    one is active so surprises are rare.
+    """
+    hf_endpoint = os.environ.get("HF_ENDPOINT", "").strip()
+    mineru_source = os.environ.get("MINERU_MODEL_SOURCE", "").strip()
+    if hf_endpoint:
+        print(f"[run_mineru] HF_ENDPOINT={hf_endpoint} (model downloads via mirror)")
+        return
+    if mineru_source:
+        print(f"[run_mineru] MINERU_MODEL_SOURCE={mineru_source}")
+        return
+
+    # Best-effort: detect whether the model cache likely exists. We do NOT
+    # hard-fail on this — some users are on uncensored networks and the
+    # default endpoint works fine. We just hint.
+    hf_cache = Path(os.environ.get("HF_HOME") or (Path.home() / ".cache/huggingface"))
+    models_root = hf_cache / "hub"
+    already_cached = any(
+        p.name.startswith("models--opendatalab--PDF-Extract-Kit")
+        for p in models_root.iterdir()
+    ) if models_root.is_dir() else False
+    if already_cached:
+        return
+
+    print("\n".join(HF_MIRROR_HINT), file=sys.stderr)
+
+
+def _captures_hf_failure(stderr_tail: str) -> bool:
+    """True when the captured stderr tail looks like a HuggingFace pull failure."""
+    return any(marker in stderr_tail for marker in HF_FAILURE_MARKERS)
+
+
 def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
+    _mirror_preflight()
+
     cmd = [
         ensure_mineru(),
         "-p",
@@ -66,12 +144,62 @@ def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
         lang,
     ]
     print(f"[run_mineru] $ {' '.join(cmd)}")
-    # We stream stdout+stderr so the user sees progress bars — otherwise the
-    # model-download + layout/OCR loop looks hung for minutes.
-    proc = subprocess.run(cmd)
-    if proc.returncode != 0:
+    # We tee the child process output so the user still sees progress bars
+    # in real time AND we retain the stderr tail to pattern-match for
+    # HuggingFace-specific failure modes after exit. subprocess.run with
+    # capture_output would hide the streaming UI, so we use Popen + manual
+    # relay. The tail is a small ring buffer — we only need the last 4 KB
+    # to spot ProxyError markers.
+    tail: list[str] = []
+    tail_cap = 80  # keep the last ~80 stderr lines
+
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        bufsize=1,
+        text=True,
+    )
+    # Read both streams concurrently via select so neither buffer blocks the
+    # other. Using threads here is simpler than asyncio for a one-shot call.
+    import threading
+
+    def _relay(stream, dest, keep_tail: bool) -> None:
+        for line in stream:
+            dest.write(line)
+            dest.flush()
+            if keep_tail:
+                tail.append(line)
+                if len(tail) > tail_cap:
+                    tail.pop(0)
+
+    t_out = threading.Thread(target=_relay, args=(proc.stdout, sys.stdout, False))
+    t_err = threading.Thread(target=_relay, args=(proc.stderr, sys.stderr, True))
+    t_out.start()
+    t_err.start()
+    rc = proc.wait()
+    t_out.join()
+    t_err.join()
+
+    if rc != 0:
+        stderr_tail = "".join(tail)
+        if _captures_hf_failure(stderr_tail):
+            print(
+                "\n".join(
+                    [
+                        "",
+                        "[run_mineru] This looks like a HuggingFace model-download failure.",
+                        "  Retry with a mirror:",
+                        "    HF_ENDPOINT=https://hf-mirror.com python3 run_mineru.py --pdf ... --out ...",
+                        "  — or —",
+                        "    MINERU_MODEL_SOURCE=modelscope python3 run_mineru.py --pdf ... --out ...",
+                        "",
+                    ]
+                ),
+                file=sys.stderr,
+            )
         raise SystemExit(
-            f"[run_mineru] mineru CLI exited with status {proc.returncode}; "
+            f"[run_mineru] mineru CLI exited with status {rc}; "
             "inspect the logs above to diagnose"
         )
 

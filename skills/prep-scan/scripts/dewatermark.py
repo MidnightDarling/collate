@@ -23,7 +23,15 @@ try:
     import cv2
     import numpy as np
 except ImportError:
-    print("missing dependency: pip3 install opencv-python numpy", file=sys.stderr)
+    print(
+        "missing dependency: opencv-python / numpy\n"
+        "  fix (one-shot):   pip3 install -U -r "
+        "${CLAUDE_PLUGIN_ROOT}/requirements.txt\n"
+        "  fix (this one):   pip3 install opencv-python numpy\n"
+        "  fix (full setup): run /historical-ocr-review:setup — installs all deps, "
+        "poppler, and pre-warms MinerU",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 
