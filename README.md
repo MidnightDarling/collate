@@ -160,10 +160,9 @@ collate/
 │   ├── xray-paper/              X-ray a single historical paper (Obsidian-native)
 │   └── paper-summary/           Map a corpus of 5–30 papers (Obsidian-native)
 │
-├── agents/                      3 specialized subagents
+├── agents/                      2 specialized subagents
 │   ├── ocr-pipeline-operator.md Pipeline conductor: mechanical → proofreader → self-audit → delivery
-│   ├── historical-proofreader.md Domain expert: applies the five-step checklist, emits A/B/C review
-│   └── plugin-janitor.md        Plugin self-care: SKILL ↔ script drift, layout compliance, orphan code
+│   └── historical-proofreader.md Domain expert: applies the five-step checklist, emits A/B/C review
 │
 ├── commands/                    14 slash commands · orchestration + stages + reading lenses
 │   ├── ocr.md                   /ocr — one-shot full pipeline
@@ -360,13 +359,12 @@ Choose the lens that matches what the paper asks: `chunqiu` reads silences, `kao
 
 ## The Agents
 
-Three subagents handle delegation. Skills are passive instructions; agents own end-to-end orchestration with tool access.
+Two subagents handle delegation. Skills are passive instructions; agents own end-to-end orchestration with tool access.
 
 | Agent | Role |
 |-------|------|
 | `ocr-pipeline-operator` | Pipeline conductor. Calls the mechanical runner, dispatches `historical-proofreader` when `_pipeline_status.json` says `awaiting_agent_review`, re-enters the runner to chain apply-review / diff-review / to-docx / mp-format, and surfaces the human-facing delivery message. |
 | `historical-proofreader` | Domain expert. Loads the matching reference table for the document type, executes the mandatory five-step checklist, emits `raw.review.md` in canonical format with the execution-proof table appended. |
-| `plugin-janitor` | Plugin self-care. Detects SKILL ↔ script drift, audits workspace-layout compliance, identifies orphan code and stale comments. Findings-with-evidence; never edits user workspaces; never applies fixes without explicit authorization. |
 
 ---
 

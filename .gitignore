@@ -8,6 +8,17 @@
 *.key
 credentials.json
 
+# ---- Maintainer-only workspace (not distributed) ----
+# Agents / skills / instructions / audit reports scoped to the collate
+# maintainer working inside this repo with Claude Code or Codex. These are
+# not part of the plugin surface users install.
+.claude/agents/
+.claude/skills/
+.claude/CLAUDE.md
+.codex/skills/
+.codex/AGENTS.md
+reports/
+
 # ---- Python ----
 __pycache__/
 *.pyc

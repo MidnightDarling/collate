@@ -160,10 +160,9 @@ collate/
 │   ├── xray-paper/              单篇历史论文 X 光透视(Obsidian 原生)
 │   └── paper-summary/           5–30 篇文献绘图(Obsidian 原生)
 │
-├── agents/                      3 个专职 subagent
+├── agents/                      2 个专职 subagent
 │   ├── ocr-pipeline-operator.md 流水线总操作员:机械 → 校对 → 自审 → 交付
-│   ├── historical-proofreader.md 领域专家:执行五步清单,产出 A/B/C 校对
-│   └── plugin-janitor.md        插件自洁:SKILL ↔ 脚本漂移、布局合规、孤儿代码
+│   └── historical-proofreader.md 领域专家:执行五步清单,产出 A/B/C 校对
 │
 ├── commands/                    14 个 slash 命令 · 总编排 + 阶段 + 阅读视角
 │   ├── ocr.md                   /ocr — 一次性全流水线
@@ -360,13 +359,12 @@ collate/
 
 ## Agents
 
-三个 subagent 处理调度。Skill 是被动的指令文档;agent 拥有端到端编排和工具调用权。
+两个 subagent 处理调度。Skill 是被动的指令文档;agent 拥有端到端编排和工具调用权。
 
 | Agent | 角色 |
 |-------|------|
 | `ocr-pipeline-operator` | 流水线总操作员。调机械总编排,在 `_pipeline_status.json` 写 `awaiting_agent_review` 时调度 `historical-proofreader`,再重入总编排串起 apply-review / diff-review / to-docx / mp-format,最后把面向人类的交付总结上抛。 |
 | `historical-proofreader` | 领域专家。按文献类型加载对应 reference 表,执行强制五步清单,产出走 canonical 格式的 `raw.review.md`,末尾附执行自证表。 |
-| `plugin-janitor` | 插件自洁。检测 SKILL ↔ 脚本漂移、审计 workspace-layout 合规性、识别孤儿代码与陈腐注释。findings-with-evidence;永不动用户 workspace;无显式授权不施加修改。 |
 
 ---
 
