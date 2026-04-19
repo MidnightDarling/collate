@@ -17,17 +17,92 @@ Optional features:
   --byline    : author/affiliation line at top
   --source    : "原载XXX" source line at top
 
+Output path resolution:
+  - `--output <path>` forces an explicit HTML location (CI / power users).
+  - When `--output` is omitted, the script looks at the input path. If it
+    sits inside a `<basename>.ocr/` workspace (see
+    `references/workspace-layout.md`), the HTML lands at
+    `<workspace>/output/<title>_<author>_<year>_wechat.html` using metadata
+    from `_internal/_import_provenance.json`; missing provenance degrades
+    to `<workspace>/output/<input-stem>_wechat.html`.
+  - Input not inside an `.ocr/` workspace falls back to
+    `<input-stem>.mp.html` next to the input (legacy behaviour).
+  - `--also-markdown` follows the same pattern, producing the `.md`
+    sibling automatically when omitted inside a workspace.
+
 Usage:
-    python3 md_to_wechat.py --input final.md --output final.mp.html \
+    # explicit paths
+    python3 md_to_wechat.py --input final.md --output final.mp.html \\
         --also-markdown final.mp.md --byline "作者 · 机构" --source "《历史研究》2024.3"
+
+    # workspace-aware default
+    python3 md_to_wechat.py --input path/to/foo.ocr/final.md --simplify
 """
 from __future__ import annotations
 
 import argparse
 import html
+import json
 import re
 import sys
 from pathlib import Path
+
+
+# Keep these in sync with import_mineru_output.safe_filename_fragment and
+# md_to_docx._safe_fragment. Mirrored locally to keep this script standalone.
+_FILENAME_BAD = re.compile(r'[\x00-\x1f<>:"/\\|?*]')
+
+
+def _safe_fragment(s: str, max_len: int = 60) -> str:
+    s = _FILENAME_BAD.sub("", s or "").strip()
+    s = re.sub(r"\s+", "_", s)
+    return s[:max_len]
+
+
+def _find_workspace(p: Path) -> Path | None:
+    """Walk up parents until we hit a directory named like `<anything>.ocr`.
+
+    Returns the workspace Path or None when the input lives outside one.
+    """
+    for ancestor in [p, *p.parents]:
+        if ancestor.is_dir() and ancestor.name.endswith(".ocr"):
+            return ancestor
+    return None
+
+
+def _provenance(ws: Path) -> dict:
+    """Load title/author/year metadata written by the OCR import step."""
+    for cand in (
+        ws / "_internal" / "_import_provenance.json",
+        ws / "_import_provenance.json",  # legacy workspaces
+    ):
+        if cand.is_file():
+            try:
+                return json.loads(cand.read_text(encoding="utf-8"))
+            except Exception:
+                return {}
+    return {}
+
+
+def _workspace_default_output(input_md: Path, suffix: str) -> Path:
+    """Infer a sensible HTML/Markdown path for the WeChat artifact.
+
+    `suffix` should be `.html` or `.md`.
+    """
+    ws = _find_workspace(input_md)
+    if ws is None:
+        # Legacy sibling naming — keep the `.mp.` infix so existing pipelines
+        # that grep for `*.mp.html` still work.
+        return input_md.with_suffix(f".mp{suffix}")
+
+    output_dir = ws / "output"
+    prov = _provenance(ws)
+    if prov:
+        title = _safe_fragment(prov.get("title") or "") or "未知标题"
+        author = _safe_fragment(prov.get("author") or "") or "未知作者"
+        year = _safe_fragment(str(prov.get("year") or "")) or "未知年份"
+        return output_dir / f"{title}_{author}_{year}_wechat{suffix}"
+    return output_dir / f"{input_md.stem}_wechat{suffix}"
 
 
 FOOTNOTE_DEF = re.compile(r"^\[\^(\d+)\]:\s+(.*)$")
@@ -200,8 +275,28 @@ def also_markdown(md_text: str, byline: str, source: str) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True, type=Path)
-    ap.add_argument("--output", required=True, type=Path)
-    ap.add_argument("--also-markdown", type=Path)
+    ap.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help=(
+            "Output .html path. If omitted, the script infers a path that "
+            "respects the `.ocr/` workspace convention — see the module "
+            "docstring and references/workspace-layout.md."
+        ),
+    )
+    ap.add_argument(
+        "--also-markdown",
+        type=Path,
+        nargs="?",
+        const="__auto__",
+        default=None,
+        help=(
+            "Also emit a Xiumi-compatible .md alongside the HTML. Pass a "
+            "path to override, or pass the flag with no value to let the "
+            "script choose the workspace-aware default."
+        ),
+    )
     ap.add_argument("--simplify", action="store_true")
     ap.add_argument("--byline", default="")
     ap.add_argument("--source", default="")
@@ -215,14 +310,24 @@ def main() -> int:
     if args.simplify:
         text = maybe_simplify(text)
 
-    html_str = render(text, args.byline, args.source)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(html_str, encoding="utf-8")
-    print(f"[md_to_wechat] wrote {args.output}")
+    output = args.output or _workspace_default_output(args.input, ".html")
+    output.parent.mkdir(parents=True, exist_ok=True)
 
-    if args.also_markdown:
-        args.also_markdown.write_text(also_markdown(text, args.byline, args.source), encoding="utf-8")
-        print(f"[md_to_wechat] wrote {args.also_markdown}")
+    html_str = render(text, args.byline, args.source)
+    output.write_text(html_str, encoding="utf-8")
+    print(f"[md_to_wechat] wrote {output}")
+
+    # `also_markdown` has three states:
+    #   None           — don't emit
+    #   Path("__auto__") sentinel — user passed --also-markdown bare, infer path
+    #   explicit Path  — use as-is
+    if args.also_markdown is not None:
+        also_md = args.also_markdown
+        if str(also_md) == "__auto__":
+            also_md = _workspace_default_output(args.input, ".md")
+        also_md.parent.mkdir(parents=True, exist_ok=True)
+        also_md.write_text(also_markdown(text, args.byline, args.source), encoding="utf-8")
+        print(f"[md_to_wechat] wrote {also_md}")
 
     return 0
 

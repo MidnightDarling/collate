@@ -28,25 +28,32 @@ allowed-tools: Read, Write, Edit, Bash
 ```bash
 RAW="<raw-md-path>"
 FINAL="<final-md-path>"
-REVIEW="${REVIEW:-${RAW%.md}.review.md}"
+OCR="$(dirname "$RAW")"                # 工作区根 = raw.md 的父目录
+REVIEW="${REVIEW:-$OCR/review/raw.review.md}"
 
 test -f "$RAW"   || { echo "raw.md 不存在：$RAW"; exit 1; }
 test -f "$FINAL" || { echo "final.md 不存在：$FINAL"; exit 1; }
 # review 可选；无则降级为纯 diff
 ```
 
-如果用户没显式传 `--review`，默认去 raw.md 同目录找 `raw.review.md`。找到就带上，找不到降级为纯 diff，不做标注关联，并告知用户。
+如果用户没显式传 `--review`，默认去 `$OCR/review/raw.review.md` 找清单（proofread 的默认输出位置）。找到就带上，找不到降级为纯 diff，不做标注关联，并告知用户。
 
 ### Step 2 — 调 diff 脚本
 
 ```bash
+mkdir -p "$OCR/previews" "$OCR/review"
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/diff-review/scripts/md_diff.py" \
     --raw "$RAW" \
     --final "$FINAL" \
     $( [ -f "$REVIEW" ] && echo "--review $REVIEW" ) \
-    --out "${FINAL%.md}.diff.html" \
-    --summary "${FINAL%.md}.diff.summary.md"
+    --out "$OCR/previews/diff-review.html" \
+    --summary "$OCR/review/diff-summary.md"
 ```
+
+> **固定路径约定**（权威规范见插件 `references/workspace-layout.md`）：
+> - HTML 预览 → `previews/diff-review.html`
+> - Markdown 摘要 → `review/diff-summary.md`
+> 不再用 `${FINAL%.md}.diff.html` 这种衍生路径 —— 那会把过程文件落在工作区根部，反规范。
 
 ### Step 3 — 脚本必须实现的行为规范
 
@@ -191,10 +198,14 @@ raw.review.md 里每条 A/B/C 标注遵循固定格式：
 #### 3.7 打开输出
 
 ```bash
-open "${FINAL%.md}.diff.html"
+open "$OCR/previews/diff-review.html"
 ```
 
-### Step 4 — 向用户报告
+### Step 4 — 刷新 README + 向用户报告
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/workspace_readme.py" --workspace "$OCR"
+```
 
 ```
 核对完成：
@@ -204,8 +215,8 @@ open "${FINAL%.md}.diff.html"
 - 拒绝或漏改：Y 条 ← 重点看
 - 清单外修正：Z 处
 
-打开了：<final>.diff.html
-摘要：<final>.diff.summary.md
+打开了：$OCR/previews/diff-review.html
+摘要：  $OCR/review/diff-summary.md
 
 建议先看「拒绝或漏改」一节——确认是有意拒绝还是手滑漏掉。
 ```
@@ -258,13 +269,16 @@ open "${FINAL%.md}.diff.html"
 推荐的完整闭环：
 
 ```
-raw.md  ──→  proofread  ──→  raw.review.md
-              ↓（用户按清单改）
-            final.md
-              ↓
-         diff-review  ← 这一步核对闭环
-              ↓（确认无漏改）
-       to-docx + mp-format
+<ws>.ocr/raw.md     ──→  proofread  ──→  <ws>.ocr/review/raw.review.md
+                         ↓（用户按清单改 raw.md，保存为）
+                       <ws>.ocr/final.md
+                         ↓
+                    diff-review  ← 这一步核对闭环
+                         ↓（确认无漏改）
+              <ws>.ocr/previews/diff-review.html
+              <ws>.ocr/review/diff-summary.md
+                         ↓
+              to-docx + mp-format → <ws>.ocr/output/
 ```
 
 diff-review 是**校对质量闸门**，属于流程必经步骤：改完 final.md 后先跑 diff，再进入 to-docx / mp-format。

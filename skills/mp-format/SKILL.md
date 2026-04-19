@@ -19,12 +19,14 @@ allowed-tools: Read, Write, Edit, Bash
 | 引文 | 无特殊样式 | **灰底 + 左竖条的引用框** |
 | 图片 | 正文流式 | 满宽 + `alt` 做题注 |
 
-输出：
+输出（落在工作区 `output/` 目录，与 to-docx 的 Word 稿并列）：
 
 ```
-<input>.mp.html    ← 带内联 CSS，粘贴到公众号后台 / 直接上传
-<input>.mp.md      ← 秀米兼容 Markdown（用户想进一步精修时用）
+<workspace>/output/<title>_<author>_<year>_wechat.html  ← 带内联 CSS，粘贴到公众号后台 / 直接上传
+<workspace>/output/<title>_<author>_<year>_wechat.md    ← 秀米兼容 Markdown（用户想进一步精修时用）
 ```
+
+> **路径约定**：输出由脚本根据 `_internal/_import_provenance.json` 自动推导，不用显式指定 `--output`。权威规范见插件的 `references/workspace-layout.md`。
 
 ## Process
 
@@ -54,14 +56,16 @@ test -f "$INPUT" || { echo "文件不存在"; exit 1; }
 ### Step 3：调排版脚本
 
 ```bash
+# --output / --also-markdown 都省略；脚本按工作区约定把两份文件放到 <ws>/output/
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/mp-format/scripts/md_to_wechat.py" \
     --input "$INPUT" \
-    --output "${INPUT%.md}.mp.html" \
-    --also-markdown "${INPUT%.md}.mp.md" \
+    --also-markdown \
     $( [ "$SIMPLIFY" = "1" ] && echo "--simplify" ) \
     --byline "$BYLINE" \
     --source "$SOURCE"
 ```
+
+脚本会打印两行 `[md_to_wechat] wrote <path>`，第一行是 HTML，第二行是 Markdown。需要自定义路径（CI / 回归测试）仍可传 `--output path` 和 `--also-markdown path`。
 
 脚本产出 HTML 特性（**这些是脚本真正实现的**，别过度承诺）：
 
@@ -87,28 +91,47 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/mp-format/scripts/md_to_wechat.py" \
 ### Step 4：预览
 
 ```bash
-open "${INPUT%.md}.mp.html"
+# 捕捉脚本输出，拿到两份实际路径
+LOG=$(python3 "${CLAUDE_PLUGIN_ROOT}/skills/mp-format/scripts/md_to_wechat.py" \
+        --input "$INPUT" --also-markdown \
+        $( [ "$SIMPLIFY" = "1" ] && echo "--simplify" ) \
+        --byline "$BYLINE" --source "$SOURCE")
+HTML_OUT=$(printf '%s\n' "$LOG" | awk '/^\[md_to_wechat\] wrote .*\.html$/{print $3}')
+MD_OUT=$(printf '%s\n' "$LOG" | awk '/^\[md_to_wechat\] wrote .*\.md$/{print $3}')
+
+open "$HTML_OUT"
 ```
 
 在浏览器里能看到真实的公众号样式预览——排版、字号、间距都是最终效果（公众号会加载相同的内联样式）。后续操作：
 1. 视觉校对最终排版
 2. 直接复制 HTML 源码 → 粘贴到公众号后台「html 模式」
 3. 或复制渲染后的内容 → 粘贴到公众号编辑器（富文本模式保留大部分样式）
-4. 或导入秀米做更精致的模板（用 `mp.md` 文件）
+4. 或导入秀米做更精致的模板（用 `_wechat.md` 文件）
 
-### Step 5：报告
+### Step 5：刷新 README + 报告
+
+```bash
+# 推导工作区根，刷新目录地图
+WS="$(dirname "$INPUT")"
+[ -d "$WS" ] && [ "${WS##*.}" = "ocr" ] || WS="$(dirname "$WS")"
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/workspace_readme.py" --workspace "$WS"
+```
+
+汇报格式：
 
 ```
 公众号版已生成：
-- HTML（粘贴到后台）：${INPUT%.md}.mp.html
-- 秀米 Markdown：${INPUT%.md}.mp.md
+- HTML（粘贴到后台）：$HTML_OUT
+- 秀米 Markdown：     $MD_OUT
 - 字数：NNN（简化后）
 - 图片：M 张
+
+已发布到工作区的 output/ 目录，同目录下可并列 Word 稿（见 to-docx）。
 
 后续操作：
 1. 在浏览器中核验预览效果
 2. 粘贴到公众号后台时选 "html 模式"（设置 → 群发 → 模板 下方）
-3. 或在秀米中导入 mp.md 后套用公众号素材类模板
+3. 或在秀米中导入 _wechat.md 后套用公众号素材类模板
 ```
 
 ## 判断规则

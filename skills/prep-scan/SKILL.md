@@ -22,7 +22,9 @@ allowed-tools: Bash, Read, Write, Edit
 
 这些污染会让 OCR 把"國立北平圖書館藏"之类的章文识别进正文，也会把"下载日期：2024-xx-xx"当成脚注。你要把它们清掉，但**不能伤到正文**——尤其是淡墨古籍、残损民国报刊，比水印还浅。
 
-输出：`<pdf-basename>.prep/cleaned.pdf` + 逐页 PNG（供 OCR 和后面的对照预览复用）。
+输出：`<pdf-basename>.ocr/prep/cleaned.pdf` + 逐页 PNG（供 OCR 和后面的对照预览复用）。
+
+> **目录布局**：本 skill 产物全部落在 `<pdf-basename>.ocr/prep/` 下，和后续 OCR 产物共享同一个 `.ocr/` 工作区。权威规范见插件的 `references/workspace-layout.md`——不要在 PDF 同级另建 `.prep/` 目录。
 
 ## Process
 
@@ -51,18 +53,19 @@ with open('<pdf-path>', 'rb') as f:
 
 ### Step 2：建工作目录
 
-在 PDF **同级**建 `.prep` 目录，不改动用户原文件：
+在 PDF **同级**建 `.ocr/` 工作区，并在里面开 `prep/` 子目录，不改动用户原文件：
 
 ```bash
 PDF="<pdf-path>"
 DIR=$(dirname "$PDF")
 BASE=$(basename "$PDF" .pdf)
-WORK="$DIR/$BASE.prep"
+OCR="$DIR/$BASE.ocr"
+WORK="$OCR/prep"
 mkdir -p "$WORK/pages" "$WORK/cleaned_pages" "$WORK/trimmed_pages"
 cp "$PDF" "$WORK/original.pdf"
 ```
 
-`original.pdf` 作为原始备份保留，供后续回滚。
+`original.pdf` 作为原始备份保留在 `prep/`，供后续回滚。注意：`.ocr/` 根目录的 `source.pdf` 会在 Step 6 由 `cleaned.pdf` 派生出来，它才是"进入 OCR 阶段的 PDF"。
 
 ### Step 3：拆页成 PNG
 
@@ -127,7 +130,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/remove_margins.py" \
 
 类型不明时询问用户。
 
-### Step 6：合回 PDF
+### Step 6：合回 PDF + 发布到工作区根
 
 ```bash
 # 跑过裁边（现代期刊） → 用 trimmed_pages
@@ -136,31 +139,45 @@ SRC="$WORK/trimmed_pages"   # 或 "$WORK/cleaned_pages"
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/pages_to_pdf.py" \
     --in "$SRC" \
     --out "$WORK/cleaned.pdf"
+
+# 发布到 .ocr/ 根目录作为 source.pdf，供 ocr-run 直接消费
+cp "$WORK/cleaned.pdf" "$OCR/source.pdf"
 ```
 
-### Step 7：报告 + 对照抽样
+`source.pdf` 是 `.ocr/` 根部唯一的 PDF 文件，永远指向"待 OCR 的当前版本"；`prep/cleaned.pdf` 是它的同级孪生，保留在 `prep/` 里供回滚和调试。
+
+### Step 7：刷新 README + 报告 + 对照抽样
+
+跑完后重写工作区 README.md（目录地图）：
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/workspace_readme.py" --workspace "$OCR"
+```
 
 汇报格式：
 
 ```
-清理完成。
-- 原件备份：$WORK/original.pdf
-- 清理版：$WORK/cleaned.pdf
+清理完成。工作区：$OCR/
+
+- 原件备份：$OCR/prep/original.pdf
+- 清理版：  $OCR/prep/cleaned.pdf
+- 入 OCR 用：$OCR/source.pdf（= cleaned.pdf 的副本）
 
 已打开前 3 页对照图核验：
-  $WORK/pages/page_001.png      （原图）
-  $WORK/cleaned_pages/page_001.png  （清理后）
+  $OCR/prep/pages/page_001.png         （原图）
+  $OCR/prep/cleaned_pages/page_001.png  （清理后）
 
 若正文被误伤 → 重跑加 --keep-color
 若水印残留   → 重跑加 --aggressive
 
-下一步：/historical-ocr-review:ocr-run $WORK/cleaned.pdf
+下一步：/historical-ocr-review:ocr-run $OCR/source.pdf
+（或先 /historical-ocr-review:visual-preview $OCR 核查清理效果）
 ```
 
 对照图打开：
 
 ```bash
-open "$WORK/pages/page_001.png" "$WORK/cleaned_pages/page_001.png"
+open "$OCR/prep/pages/page_001.png" "$OCR/prep/cleaned_pages/page_001.png"
 ```
 
 ## 判断规则

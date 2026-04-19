@@ -16,8 +16,10 @@ allowed-tools: Read, Write, Edit, Bash, Grep
 2. 判断文献类型（也可以用户指定）
 3. 加载对应 reference 文件到上下文
 4. 调用 `historical-proofreader` agent，传入文本 + reference
-5. 把 agent 返回的标注清单保存为 `<input>.review.md`
-6. 用 `open` 打开 review.md 供用户审阅
+5. 把 agent 返回的标注清单保存到工作区的 `review/raw.review.md`
+6. 刷新工作区 README.md，然后用 `open` 打开 review 供用户审阅
+
+> **目录约定**：清单固定落在 `<workspace>.ocr/review/raw.review.md`，不落在工作区根目录。权威规范见插件的 `references/workspace-layout.md`。
 
 ## Process
 
@@ -70,8 +72,11 @@ reference 已加载：<path>
 
 ```python
 import json
+from pathlib import Path
 meta = {}
-meta_path = <input-dir>/meta.json
+# meta.json 永远在工作区根（<...>.ocr/meta.json），不在任何子目录
+ocr = Path("<workspace-path>")  # 通常 = dirname(INPUT)
+meta_path = ocr / "meta.json"
 if meta_path.is_file():
     try:
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
@@ -90,18 +95,25 @@ pages    = meta.get("pages") or 0
 
 ### Step 5：保存报告
 
-agent 输出写到：
-
-```
-<input-dir>/<input-basename>.review.md
-```
-
-例：`~/Downloads/论文.ocr/raw.md` → `~/Downloads/论文.ocr/raw.review.md`
-
-### Step 6：打开 + 报告
+推导工作区根，把 agent 输出写到 `<workspace>/review/raw.review.md`：
 
 ```bash
-open "<input-dir>/<input-basename>.review.md"
+INPUT="<input-markdown-path>"
+# INPUT 一定在 .ocr/ 根下（raw.md 或 final.md），所以 OCR 是它的父目录
+OCR="$(dirname "$INPUT")"
+mkdir -p "$OCR/review"
+REVIEW_OUT="$OCR/review/raw.review.md"
+```
+
+例：`~/Downloads/论文.ocr/raw.md` → `~/Downloads/论文.ocr/review/raw.review.md`
+
+> 为什么固定叫 `raw.review.md` 而不是跟着输入文件命名：diff-review 默认从 `<workspace>/review/raw.review.md` 读清单，路径稳定才不会 every-skill-reinvents-path。
+
+### Step 6：刷新 README + 打开 + 报告
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/workspace_readme.py" --workspace "$OCR"
+open "$REVIEW_OUT"
 ```
 
 汇报格式：
@@ -112,10 +124,11 @@ open "<input-dir>/<input-basename>.review.md"
 - B 类规范：Y 条（按刊物要求判断）
 - C 类存疑：Z 条（需核对原书）
 
-已打开 raw.review.md。
+位置：$REVIEW_OUT
+已打开。
 
 后续：
-- 改完 raw.md 保存为 final.md
+- 改完 raw.md 保存为 final.md（放在 $OCR/final.md）
 - 再跑一次 proofread 复校（可选）
 - 进入 diff-review 核对改动闭环
 - 进入 to-docx / mp-format 产出最终稿

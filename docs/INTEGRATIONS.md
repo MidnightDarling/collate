@@ -47,15 +47,26 @@ status: stable
 
 ### 2.2 工作目录约定
 
-每份 PDF 独立一个 `<work_dir>/`，产物按 [AGENTS.md#文件布局](../AGENTS.md) 组织。推荐约定：
+每份 PDF 独立一个 `<basename>.ocr/` 工作区，所有产物按 [AGENTS.md#文件布局](../AGENTS.md) 与 [`references/workspace-layout.md`](../references/workspace-layout.md) 的统一约定组织。推荐初始化：
 
 ```bash
-WORK_DIR="$(dirname "$INPUT_PDF")/$(basename "$INPUT_PDF" .pdf).ocr"
-mkdir -p "$WORK_DIR"
-cp "$INPUT_PDF" "$WORK_DIR/original.pdf"
+WS="$(dirname "$INPUT_PDF")/$(basename "$INPUT_PDF" .pdf).ocr"
+mkdir -p "$WS"/{prep,previews,review,output,assets,_internal}
+cp "$INPUT_PDF" "$WS/original.pdf"
 ```
 
-无论哪个 runtime，中间产物不清理——便于人类事后复查。
+各子目录分工：
+
+| 子目录 | 内容 | 是否给人类看 |
+|--------|------|-----------|
+| `prep/` | `pages/` `cleaned_pages/` `trimmed_pages/` `cleaned.pdf` | 过程，偶尔核验 |
+| `previews/` | `visual-prep.html` `ocr-preview.html` `diff-review.html` | 核验入口 |
+| `review/` | `raw.review.md` 等校对清单 | 过程 |
+| `output/` | `<title>_<author>_<year>_final.docx` / `_wechat.{html,md}` | **最终交付** |
+| `assets/` | MinerU 抽出的图片 | 被 raw.md / final.md 引用 |
+| `_internal/` | `mineru_full.md` / `_import_provenance.json` 等调试产物 | 下划线前缀示意"别动" |
+
+无论哪个 runtime，中间产物不清理；每个 skill 结束后会自动刷新 `$WS/README.md`，给人类一个清晰的入口。
 
 ### 2.3 Subagent 的两种调度模式
 
@@ -122,7 +133,7 @@ ANTHROPIC_API_KEY=...          # 用于 proofread subagent
   subagent_type: "historical-proofreader"
   prompt: |
     type: modern
-    raw_md_path: /abs/path/to/work_dir/ocr/raw.md
+    raw_md_path: /abs/path/to/<basename>.ocr/raw.md
     reference_path: ${CLAUDE_PLUGIN_ROOT}/skills/proofread/references/modern-chinese.md
     low_confidence_pages: [3, 12]
 </use>

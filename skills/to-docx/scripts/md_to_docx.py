@@ -16,13 +16,28 @@ Markdown features supported:
   - Images — embedded centred, caption from alt text
   - A "参考文献" / "引用文献" trailing section — hanging indent numbered
 
+Output path resolution:
+  - `--output <path>` forces an explicit location (legacy and CI use this).
+  - When `--output` is omitted, the script looks at the input path. If it
+    sits inside a `<basename>.ocr/` workspace (the convention enforced by
+    `references/workspace-layout.md`), the docx lands at
+    `<workspace>/output/<title>_<author>_<year>_final.docx` using the
+    title/author/year from `_internal/_import_provenance.json`. Missing
+    provenance degrades to `<workspace>/output/<input-stem>_final.docx`.
+  - Input not inside an `.ocr/` workspace falls back to `<input-stem>.docx`
+    in the input's directory (plain filesystem behaviour, no surprises).
+
 Usage:
-    python3 md_to_docx.py --input final.md --output final.docx \
-        --title-from-first-h1
+    # explicit output path
+    python3 md_to_docx.py --input final.md --output final.docx --title-from-first-h1
+
+    # let the script choose a workspace-respecting path
+    python3 md_to_docx.py --input path/to/foo.ocr/final.md --title-from-first-h1
 """
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -450,10 +465,89 @@ def render(md_path: Path, out_path: Path, template: str, title_from_h1: bool) ->
     doc.save(str(out_path))
 
 
+_FILENAME_BAD = re.compile(r'[\x00-\x1f<>:"/\\|?*]')
+
+
+def _safe_fragment(s: str, max_len: int = 60) -> str:
+    """Collapse a title/author string into something safe for a filename.
+
+    Kept in sync with `import_mineru_output.safe_filename_fragment` so the
+    same name shape appears in `_import_provenance.json` and the actual
+    output file on disk. Duplicated rather than imported to avoid a
+    sibling-skill dependency; drift is low because the rule is tiny.
+    """
+    s = (s or "").strip()
+    s = _FILENAME_BAD.sub("", s)
+    s = re.sub(r"\s+", " ", s)
+    if len(s) > max_len:
+        s = s[:max_len].rstrip()
+    return s
+
+
+def _find_workspace(p: Path) -> Path | None:
+    """Walk up from `p` looking for a `<basename>.ocr/` workspace root."""
+    for parent in [p] + list(p.parents):
+        if parent.is_dir() and parent.name.endswith(".ocr"):
+            return parent
+    return None
+
+
+def _workspace_default_output(input_md: Path) -> Path:
+    """Compute the workspace-respecting default docx path.
+
+    Behaviour:
+      1. If the input is inside an `.ocr/` workspace, use the title/author/
+         year from `_internal/_import_provenance.json` (falls back to the
+         root `_import_provenance.json` for pre-migration workspaces) to
+         build `<workspace>/output/<title>_<author>_<year>_final.docx`.
+      2. Missing provenance inside an `.ocr/` workspace degrades to
+         `<workspace>/output/<input-stem>_final.docx` — still in the right
+         folder, just without a pretty name.
+      3. Input outside any workspace falls back to `<input-stem>.docx`
+         sitting next to the input. This preserves the pre-workspace
+         behaviour for ad-hoc use.
+    """
+    ws = _find_workspace(input_md)
+    if ws is None:
+        return input_md.with_suffix(".docx")
+
+    # Try both provenance locations (post-migration and legacy)
+    prov_candidates = [
+        ws / "_internal" / "_import_provenance.json",
+        ws / "_import_provenance.json",
+    ]
+    prov: dict = {}
+    for cand in prov_candidates:
+        if cand.is_file():
+            try:
+                prov = json.loads(cand.read_text(encoding="utf-8"))
+                break
+            except Exception:
+                prov = {}
+
+    output_dir = ws / "output"
+    if prov:
+        title = _safe_fragment(prov.get("title") or "") or "未知标题"
+        author = _safe_fragment(prov.get("author") or "") or "未知作者"
+        year = _safe_fragment(str(prov.get("year") or "")) or "未知年份"
+        return output_dir / f"{title}_{author}_{year}_final.docx"
+
+    return output_dir / f"{input_md.stem}_final.docx"
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True, type=Path)
-    ap.add_argument("--output", required=True, type=Path)
+    ap.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help=(
+            "Output .docx path. If omitted, the script infers a path that "
+            "respects the `.ocr/` workspace convention — see the module "
+            "docstring and references/workspace-layout.md."
+        ),
+    )
     ap.add_argument("--template", default="default",
                     help="preset name under assets/presets/<name>.yaml "
                          "or a path to a custom .yaml")
@@ -464,13 +558,16 @@ def main() -> int:
         print(f"input not found: {args.input}", file=sys.stderr)
         return 2
 
+    output = args.output or _workspace_default_output(args.input)
+    output.parent.mkdir(parents=True, exist_ok=True)
+
     try:
-        render(args.input, args.output, args.template, args.title_from_first_h1)
+        render(args.input, output, args.template, args.title_from_first_h1)
     except Exception as e:
         print(f"[md_to_docx] failed: {e}", file=sys.stderr)
         return 5
 
-    print(f"[md_to_docx] wrote {args.output}")
+    print(f"[md_to_docx] wrote {output}")
     return 0
 
 

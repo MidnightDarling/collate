@@ -300,6 +300,12 @@ def main() -> int:
 
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "assets").mkdir(exist_ok=True)
+    # _internal/ is the home for pipeline bookkeeping (provenance, vendor
+    # full-markdown copy, etc). It stays out of the workspace root so the
+    # tree readers downstream see only user-facing files. Layout spec lives
+    # in references/workspace-layout.md.
+    internal_dir = args.out / "_internal"
+    internal_dir.mkdir(exist_ok=True)
 
     # 1. reflow into raw.md
     run_reflow(content_list, args.out / "raw.md", Path(__file__).resolve().parent)
@@ -310,7 +316,7 @@ def main() -> int:
     full_candidates = [job / "full.md", *list(job.rglob("*.md"))]
     for full in full_candidates:
         if full.is_file():
-            shutil.copy2(full, args.out / "mineru_full.md")
+            shutil.copy2(full, internal_dir / "mineru_full.md")
             break
 
     # 3. meta.json
@@ -334,7 +340,9 @@ def main() -> int:
     year = extract_year(args.pdf, cl) if isinstance(cl, list) else ""
     artifact_basename = build_artifact_basename(title, author, year)
 
-    # 6. stash a small provenance note so it's obvious later where this came from
+    # 6. stash a small provenance note so it's obvious later where this came from.
+    # Lives in _internal/ — downstream scripts look there first, then fall back
+    # to the workspace root for legacy workspaces.
     note = {
         "imported_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "source_job_dir": str(job),
@@ -344,7 +352,7 @@ def main() -> int:
         "author": author,
         "year": year,
     }
-    (args.out / "_import_provenance.json").write_text(
+    (internal_dir / "_import_provenance.json").write_text(
         json.dumps(note, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 

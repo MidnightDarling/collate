@@ -4,8 +4,13 @@
 Contract: skills/visual-preview/SKILL.md Step 3. Produces:
   - `<prep-dir>/diff_pages/page_N.png` — heatmap overlay (red highlights on
     pixels that differ between pages/ and cleaned_pages/)
-  - `<prep-dir>/visual-preview.html` — single-file offline viewer with
-    three-state toggle (original / cleaned / diff) per page
+  - `<out>` (default `<prep-dir>/visual-preview.html`) — single-file offline
+    viewer with three-state toggle (original / cleaned / diff) per page
+
+The HTML references the PNGs via relative paths computed from `--out` to
+`--prep-dir`, so the viewer works whether it lives inside `prep/` (legacy) or
+in a sibling directory like `<workspace>/previews/` (current convention, see
+`references/workspace-layout.md`).
 
 Exit codes:
   0   success
@@ -17,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import os
 import re
 import sys
 from dataclasses import dataclass
@@ -290,7 +296,13 @@ def page_flag(result: PageResult) -> tuple[str, str]:
     return css, " ".join(notes)
 
 
-def build_page_section(result: PageResult) -> str:
+def build_page_section(result: PageResult, prep_rel: str) -> str:
+    """Build one `<section>` for a page.
+
+    `prep_rel` is the relative path from the HTML output file to the prep dir
+    (e.g. '.' when the HTML lives inside prep/, '../prep' when it lives in a
+    sibling previews/ directory). Trailing slash is normalised inside.
+    """
     css_flag, note = page_flag(result)
     flag_cls = f" {css_flag}" if css_flag else ""
     metric_cleaned = (
@@ -299,15 +311,17 @@ def build_page_section(result: PageResult) -> str:
     metric_trim = f"裁边 {result.trimmed_pct:.1f}%"
     size_info = f"{result.orig_size[0]}×{result.orig_size[1]} → {result.clean_size[0]}×{result.clean_size[1]}"
 
-    data_diff = f"pages/{result.orig_name}"  # fallback to original if no diff
+    prefix = prep_rel.rstrip("/") + "/" if prep_rel and prep_rel != "." else ""
+
+    data_diff = f"{prefix}pages/{result.orig_name}"  # fallback to original if no diff
     if result.diff_name:
-        data_diff = html.escape(result.diff_name)
+        data_diff = html.escape(f"{prefix}{result.diff_name}")
 
     img_tag = (
         f"<img "
-        f"src='cleaned_pages/{html.escape(result.clean_name)}' "
-        f"data-original='pages/{html.escape(result.orig_name)}' "
-        f"data-cleaned='cleaned_pages/{html.escape(result.clean_name)}' "
+        f"src='{prefix}cleaned_pages/{html.escape(result.clean_name)}' "
+        f"data-original='{prefix}pages/{html.escape(result.orig_name)}' "
+        f"data-cleaned='{prefix}cleaned_pages/{html.escape(result.clean_name)}' "
         f"data-diff='{data_diff}' "
         f"alt='page {result.page_num}' loading='lazy'>"
     )
@@ -335,7 +349,7 @@ def build_page_section(result: PageResult) -> str:
     )
 
 
-def build_html(prep: Path, results: list[PageResult]) -> str:
+def build_html(prep: Path, results: list[PageResult], prep_rel: str = ".") -> str:
     n = len(results)
     cleaned_vals = [r.cleaned_pct for r in results if r.cleaned_pct is not None]
     avg_cleaned = sum(cleaned_vals) / len(cleaned_vals) if cleaned_vals else 0.0
@@ -411,7 +425,7 @@ def build_html(prep: Path, results: list[PageResult]) -> str:
     legend_parts.append("</div>")
     legend = "".join(legend_parts)
 
-    sections = "\n".join(build_page_section(r) for r in results)
+    sections = "\n".join(build_page_section(r, prep_rel) for r in results)
 
     script = """
 <script>
@@ -492,7 +506,10 @@ def main() -> int:
 
     out = args.out or (prep / "visual-preview.html")
     out.parent.mkdir(parents=True, exist_ok=True)
-    html_str = build_html(prep, results)
+    # Compute relative path from the HTML file's directory to prep/, so the
+    # inlined <img src> values resolve regardless of where the HTML lives.
+    prep_rel = os.path.relpath(prep.resolve(), out.resolve().parent)
+    html_str = build_html(prep, results, prep_rel)
     out.write_text(html_str, encoding="utf-8")
 
     n = len(results)

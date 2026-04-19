@@ -19,7 +19,7 @@ color: blue
 2. **文字层提取是最后兜底**，不是默认。学术 PDF 的字体常把 `—`、`"`、`"` 映射到 PUA 区（`\ue5d2`、`\ue5cf`、`\ue5e5`……），PyPDF2 不解 cmap，拿到的是乱码；若把这种 raw.md 交给 proofread + to-docx，成品质量会让用户很不满意。
 3. **永远用结构化 JSON 而非 `full.md`**。MinerU 自己的 `full.md` 把脚注 inline 在正文里、跨页段落未合并；`content_list_v2.json` 有完整的 block type 标注（`paragraph` / `title` / `page_footnote` / `page_header` / `page_number` / `page_footer` / `list`），reflow_mineru.py 基于这个重建结构化 markdown。
 4. **不擅自改正文**。你可以合并跨页被截断的段落、剔除页眉页脚、统一标题层级、把脚注分离成 blockquote——这些都是"排版"。但不能改动用户的学术用词。
-5. **每一步产出都能审计**。raw.md、meta.json、preview.html、mineru_full.md（MinerU 原版保留对比）、source.pdf、_import_provenance.json 都要在 `.ocr/` 目录里。
+5. **每一步产出都能审计**。`raw.md`、`meta.json`、`source.pdf`、`previews/ocr-preview.html` 放在工作区根和 `previews/`；`_internal/mineru_full.md`（MinerU 原版保留对比）、`_internal/_import_provenance.json`（导入来源）放在 `_internal/` —— 权威规范见 `references/workspace-layout.md`。
 6. **不用 MUST / NEVER / ALWAYS 对用户说话**。用户是研究者，你是助手。出错就给兜底选项，不要命令用户。
 
 ---
@@ -45,7 +45,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/run_mineru.py" \
    OCR（首次下载 ~2–3 GB 模型到 `~/.cache/huggingface/hub/`，之后 90 秒/30 页）
 2. 找到 `<tmp>/<stem>/auto/*_content_list_v2.json`
 3. 链式调用 `import_mineru_output.py --job-dir <tmp>/<stem>`，生成 `raw.md` /
-   `meta.json` / `assets/` / `_import_provenance.json`
+   `meta.json` / `assets/` / `_internal/_import_provenance.json`
 
 成功后自动走"质检 checklist"。
 
@@ -222,7 +222,7 @@ print('全角数字个数:', full_nums)
 
 ## 产物命名契约
 
-投稿定稿统一命名为 `{论文名}_{作者}_{发布时间}_`（结尾下划线留给版本号，例如 `西方民族—国家成长的历史与逻辑_张凤阳_2022_v2.docx`）。`import_mineru_output.py` 会自动算好这个 basename 并写进 `_import_provenance.json` 的 `artifact_basename` 字段——每次交付 markdown / docx 都使用这个 basename，除 `raw.md` / `final.md` 外不再保留其它通用名。
+投稿定稿统一命名为 `{论文名}_{作者}_{发布时间}_`（结尾下划线留给版本号，例如 `西方民族—国家成长的历史与逻辑_张凤阳_2022_v2.docx`）。`import_mineru_output.py` 会自动算好这个 basename 并写进 `_internal/_import_provenance.json` 的 `artifact_basename` 字段——每次交付 markdown / docx 都使用这个 basename，除 `raw.md` / `final.md` 外不再保留其它通用名。
 
 识别规则：
 
@@ -237,19 +237,25 @@ print('全角数字个数:', full_nums)
 落地时的用法：
 
 ```bash
+# 读 provenance 优先 _internal/，兼容旧版本工作区的根目录
+PROV="$OUT/_internal/_import_provenance.json"
+[ -f "$PROV" ] || PROV="$OUT/_import_provenance.json"
 BASENAME=$(python3 -c "
-import json
-print(json.load(open('$OUT/_import_provenance.json'))['artifact_basename'])
-")
-cp "$OUT/raw.md" "$OUT/${BASENAME}.md"
+import json, sys
+print(json.load(open(sys.argv[1]))['artifact_basename'])
+" "$PROV")
+
+# md_to_docx.py 现在默认就把 docx 放到 <ws>/output/<title>_<author>_<year>_final.docx
+# 不再需要手写 --output；脚本会读 _internal/_import_provenance.json 推导名字
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/to-docx/scripts/md_to_docx.py" \
     --input "$OUT/raw.md" \
-    --output "$OUT/${BASENAME}.docx" \
     --title-from-first-h1
 ```
 
-仍然写一份 `raw.md` / `final.md`（给 proofread / diff-review 用，这两个脚本按
-固定名约定读文件），但**交给用户看的 docx 必须用 `${BASENAME}.docx` 命名**。
+`raw.md` / `final.md` 永远留在工作区根（给 proofread / diff-review 用，这两个
+脚本按固定名约定读文件）；**交给用户看的 docx / 公众号 HTML 全部落在 `output/`
+子目录**，命名由 to-docx / mp-format 脚本按 `${BASENAME}_{final|wechat}.{docx|html}`
+规则自动生成。
 
 ---
 
@@ -259,14 +265,20 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/to-docx/scripts/md_to_docx.py" \
 
 ```
 <stem>.ocr/
+├── README.md           工作区自述（由 workspace_readme.py 自动刷新）
 ├── raw.md              给 proofread / preview / to-docx 的主输入
 ├── meta.json           engine / layout / lang / pages / avg_confidence / low_confidence_pages / duration_seconds
-├── preview.html        左图右文对照页（见下一节）
-├── mineru_full.md      （仅路径 A）MinerU 原版 full.md，做对比用
 ├── source.pdf          （仅路径 A）MinerU 实际处理的 PDF 副本，审计用
-├── _import_provenance.json  （仅路径 A）来源 job dir 与时间戳
-└── assets/             图片附件（如有）
+├── assets/             图片附件（如有）
+├── previews/           OCR + visual-prep + diff-review 的 HTML 预览（离线单文件）
+├── _internal/          Pipeline 簿记
+│   ├── mineru_full.md           （仅路径 A）MinerU 原版 full.md，做对比用
+│   └── _import_provenance.json  （仅路径 A）来源 job dir、artifact_basename、title/author/year
+├── review/             校对阶段产物（raw.review.md、diff-summary.md）
+└── output/             用户交付物（docx / 公众号 HTML / Markdown）
 ```
+
+目录约束由 `references/workspace-layout.md` 固定；各阶段 SKILL.md 与脚本默认值都按这个 layout 走，不要自己在根目录外另建 `.prep/` `.review/` 等伪工作区。
 
 meta.json 字段约定（proofread 会读这个）：
 

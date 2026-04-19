@@ -20,20 +20,22 @@
 Human ──► PDF
            │
            ▼
-  ┌──────────────────────────────────────────────┐
-  │ 1. prep-scan         去水印、馆藏章、裁边      │
-  │ 2. visual-preview    自检清理结果（判断是否回跑）│
-  │ 3. ocr-run           cleaned.pdf → raw.md     │
-  │ 4. proofread         raw.md → raw.review.md   │
-  │ 5. (agent 按 checklist 修改 raw.md → final.md) │
-  │ 6. diff-review       final.md vs raw.md 自审   │
-  │ 7. to-docx           final.md → final.docx    │
-  │ 8. mp-format         final.md → final.mp.html │
-  └──────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────┐
+  │ 1. prep-scan       产 <ws>.ocr/prep/cleaned.pdf   │
+  │ 2. visual-preview  产 previews/visual-prep.html   │
+  │ 3. ocr-run         产 raw.md + meta.json + assets │
+  │ 4. proofread       产 review/raw.review.md        │
+  │ 5. (agent 按 checklist 写 final.md)              │
+  │ 6. diff-review     产 previews/diff-review.html   │
+  │ 7. to-docx         产 output/<title>_…_final.docx │
+  │ 8. mp-format       产 output/<title>_…_wechat.*   │
+  └──────────────────────────────────────────────────┘
            │
            ▼
-Human ◄── final.docx + final.mp.html + audit.html + meta.json
+Human ◄── <ws>.ocr/README.md  （指向 output/ 与 previews/）
 ```
+
+整个 `.ocr/` 工作区自描述：根目录 `README.md` 由 `scripts/workspace_readme.py` 在每个 skill 结束时刷新，给人类一个清晰的入口。
 
 每一步的详细契约见下。
 
@@ -55,26 +57,26 @@ Human ◄── final.docx + final.mp.html + audit.html + meta.json
 
 **何时调用**：每份新的扫描 PDF 进入 pipeline 前。
 
-**调用**（四步串行；每步都用具名参数）：
+**调用**（四步串行；每步都用具名参数。`<ws>.ocr` 由 PDF basename 自动派生，见 `references/workspace-layout.md`）：
 
 ```bash
 python skills/prep-scan/scripts/split_pages.py \
-    --pdf <input.pdf> --out <work_dir>/pages --dpi 300
+    --pdf <input.pdf> --out <ws>.ocr/prep/pages --dpi 300
 
 python skills/prep-scan/scripts/dewatermark.py \
-    --in <work_dir>/pages --out <work_dir>/cleaned_pages [--aggressive] [--keep-color]
+    --in <ws>.ocr/prep/pages --out <ws>.ocr/prep/cleaned_pages [--aggressive] [--keep-color]
 
 # 裁边为可选：古籍/档案扫描跳过此步，直接拿 cleaned_pages 去拼 PDF
 python skills/prep-scan/scripts/remove_margins.py \
-    --in <work_dir>/cleaned_pages --out <work_dir>/trimmed_pages \
+    --in <ws>.ocr/prep/cleaned_pages --out <ws>.ocr/prep/trimmed_pages \
     --header-ratio 0.08 --footer-ratio 0.08
 
 python skills/prep-scan/scripts/pages_to_pdf.py \
-    --in <work_dir>/trimmed_pages --out <work_dir>/cleaned.pdf
+    --in <ws>.ocr/prep/trimmed_pages --out <ws>.ocr/prep/cleaned.pdf
 ```
 
 **输入**：原始 `input.pdf`。
-**产物**：`pages/`（原图 PNG）、`cleaned_pages/`（去水印后 PNG）、`trimmed_pages/`（裁边后 PNG，可选）、`cleaned.pdf`。
+**产物**（全部归入 `<ws>.ocr/prep/`）：`pages/`（原图 PNG）、`cleaned_pages/`（去水印后 PNG）、`trimmed_pages/`（裁边后 PNG，可选）、`cleaned.pdf`。
 **算法**：HSV + 连通域面积过滤去彩色馆藏章；灰度旋转 + `MORPH_OPEN` 去对角水印；高斯模糊 + 顶帽变换 + 正文保护去浅灰重复水印。`split_pages.py` 自动探测原生 DPI，上限为 `min(--dpi, max(native, 150))`，不会把 72 dpi 扫描拉到 300 dpi 劣质插值。
 
 **Agent 决策**：
@@ -89,18 +91,18 @@ python skills/prep-scan/scripts/pages_to_pdf.py \
 
 **何时调用**：每次 prep-scan 之后。
 
-**调用**：
+**调用**（skill 会自动推断 `<stem>.ocr/` 工作区）：
 
 ```bash
 python skills/visual-preview/scripts/visualize_prep.py \
-    --prep-dir <work_dir> \
-    --out <work_dir>/visual-preview.html \
+    --prep-dir <ws>.ocr/prep \
+    --out <ws>.ocr/previews/visual-prep.html \
     [--sample 20]    # 仅采样 20 页做 diff 热图，用于长文档加速
     [--no-diff]      # 跳过差异热图，只出原图/清理后对照
 ```
 
-**产物**：`visual-preview.html`（每页三态：原图 / 清理后 / 差异热图）。同时在 stderr 回显平均清理比例与"过度清理候选页"列表。
-**默认 `--out`**：若省略，写到 `<prep-dir>/visual-preview.html`。
+**产物**：`<ws>.ocr/previews/visual-prep.html`（每页三态：原图 / 清理后 / 差异热图）。同时在 stderr 回显平均清理比例与"过度清理候选页"列表。HTML 以相对路径引用 `../prep/pages/` 和 `../prep/cleaned_pages/`，整个 `.ocr/` 目录可原样拷走离线浏览。
+**工作区根 README**：skill 收尾会刷新 `<ws>.ocr/README.md`，把这次预览挂到"过程文档"区块里。
 
 **Agent 决策**（以脚本内置阈值为准）：
 - **过度清理候选页**：任一页清理比例 > 20% → 脚本会在页眉高亮标红。若该页正文面积大（非图版、非白页），高概率误伤正文，回到 prep-scan 去掉 `--aggressive` 或降低 `dewatermark.py` 的 top-hat 阈值重跑。
@@ -118,45 +120,45 @@ python skills/visual-preview/scripts/visualize_prep.py \
 ```bash
 # 一次调用完成：MinerU CLI → 解析 content_list.json → reflow → 产物落盘
 python skills/ocr-run/scripts/run_mineru.py \
-    --pdf <work_dir>/cleaned.pdf \
-    --out <work_dir>/ocr \
+    --pdf <ws>.ocr/prep/cleaned.pdf \
+    --out <ws>.ocr \
     --lang ch \
     --method auto              # auto / txt / ocr，默认 auto
     [--keep-mineru-out]        # 保留 MinerU 的原始中间目录，调试用
 
-# 预览（非自动）：把 raw.md 与 .prep/pages 合成原图/OCR 并排
+# 预览（非自动）：把 raw.md 与 prep/pages 合成原图/OCR 并排
 python skills/ocr-run/scripts/make_preview.py \
-    --markdown <work_dir>/ocr/raw.md \
-    --pages-dir <work_dir>/pages \
-    --out <work_dir>/ocr/preview.html \
+    --markdown <ws>.ocr/raw.md \
+    --pages-dir <ws>.ocr/prep/pages \
+    --out <ws>.ocr/previews/ocr-preview.html \
     [--title "<文档名>"]
 ```
 
-> `run_mineru.py` 内部已链式调用 `import_mineru_output.py`（写 `raw.md / meta.json / assets/`）→ `reflow_mineru.py`（按 `content_list.json` 重排段落）。agent **不需要**单独再跑这两个脚本。`make_preview.py` 需要单独调用。
+> `run_mineru.py` 内部已链式调用 `import_mineru_output.py`（写 `raw.md / meta.json / assets/ / _internal/`）→ `reflow_mineru.py`（按 `content_list.json` 重排段落）。agent **不需要**单独再跑这两个脚本。`make_preview.py` 需要单独调用。
 
-**其它引擎**：
+**其它引擎**（写入同一 `<ws>.ocr/` 根，约定一致）：
 
 ```bash
 # OCR_ENGINE=baidu
 python skills/ocr-run/scripts/baidu_client.py \
-    --pdf <work_dir>/cleaned.pdf \
-    --out <work_dir>/ocr \
+    --pdf <ws>.ocr/prep/cleaned.pdf \
+    --out <ws>.ocr \
     --lang zh-hans \           # zh-hans / zh-hant / en / jp / kor
     --layout horizontal        # horizontal / vertical
-# 百度读取 .prep/pages/*.png（非 cleaned.pdf），产物写 raw.md + <!-- page N --> 标记
+# 百度读取 <ws>.ocr/prep/pages/*.png（非 cleaned.pdf），产物写 raw.md + <!-- page N --> 标记
 
 # OCR_ENGINE=mineru-cloud （走 catbox.moe 中转 → 敏感内容不要用）
 python skills/ocr-run/scripts/mineru_client.py \
-    --pdf <work_dir>/cleaned.pdf \
-    --out <work_dir>/ocr \
+    --pdf <ws>.ocr/prep/cleaned.pdf \
+    --out <ws>.ocr \
     --lang zh-hans \
     --layout horizontal \
     [--poll-interval 10] [--timeout 1800]
 
 # 第三选项：PDF 自带文本层直接提取（不跑 OCR）
 python skills/ocr-run/scripts/extract_text_layer.py \
-    --pdf <work_dir>/cleaned.pdf \
-    --out <work_dir>/ocr \
+    --pdf <ws>.ocr/prep/cleaned.pdf \
+    --out <ws>.ocr \
     --lang zh-hans --layout horizontal
 ```
 
@@ -165,12 +167,13 @@ python skills/ocr-run/scripts/extract_text_layer.py \
 - **云端 MinerU + 百度**：`zh-hans` / `zh-hant` / `en` / `jp` / `kor`
 - 不要跨引擎复用语言码；错码会导致识别退化或直接失败。
 
-**产物**（各引擎统一写入 `<work_dir>/ocr/`）：
+**产物**（各引擎统一写入 `<stem>.ocr/`，严格按 `references/workspace-layout.md` 的目录约定分层）：
 - `raw.md` — OCR 原始 Markdown（百度会注入 `<!-- page N -->` 页标记）
 - `meta.json` — `engine` / `layout` / `lang` / `pages` / `low_confidence_pages` / `duration_seconds`
+- `source.pdf` — 本次入 OCR 的 PDF 副本（仅本地/云端 MinerU）
 - `assets/` — MinerU 抽取的图片
-- `preview.html` — `make_preview.py` 产物（手动调用）
-- `mineru_full.md` / `source.pdf` / `_import_provenance.json`（仅本地/云端 MinerU）
+- `previews/ocr-preview.html` — `make_preview.py` 产物（手动调用）
+- `_internal/mineru_full.md` / `_internal/_import_provenance.json`（仅本地/云端 MinerU）
 
 **Agent 决策**：
 - 文献类型判断依据：文件名提示、扫描底色（古籍常见米黄/灰）、版式（竖排 vs 横排）、raw.md 首页内容的繁简比。
@@ -195,7 +198,7 @@ python skills/ocr-run/scripts/extract_text_layer.py \
   - `modern` → `skills/proofread/references/modern-chinese.md`
 - `meta.json.low_confidence_pages`（如有）
 
-**产物**：`raw.review.md` — 按行号 + 片段 + 建议 + 理由组织的 A/B/C 三级清单，末尾附 checklist 执行证明表。
+**产物**：`<ws>.ocr/review/raw.review.md` — 按行号 + 片段 + 建议 + 理由组织的 A/B/C 三级清单，末尾附 checklist 执行证明表。
 
 **不做**：proofread 阶段绝对不改 raw.md，只出清单。
 
@@ -203,7 +206,7 @@ python skills/ocr-run/scripts/extract_text_layer.py \
 
 ## 6. 应用 proofread 清单（raw.md → final.md）
 
-**此步无独立脚本**。由 agent 读入 `raw.md` 与 `raw.review.md`，按下列策略生成 `final.md`：
+**此步无独立脚本**。由 agent 读入 `<ws>.ocr/raw.md` 与 `<ws>.ocr/review/raw.review.md`，按下列策略生成 `<ws>.ocr/final.md`：
 
 | 清单类别 | 默认处理 |
 |---------|---------|
@@ -224,37 +227,39 @@ python skills/ocr-run/scripts/extract_text_layer.py \
 
 ```bash
 python skills/diff-review/scripts/md_diff.py \
-    --raw <work_dir>/raw.md \
-    --final <work_dir>/final.md \
-    --review <work_dir>/raw.review.md \
-    --out <work_dir>/audit.html \
+    --raw <ws>.ocr/raw.md \
+    --final <ws>.ocr/final.md \
+    --review <ws>.ocr/review/raw.review.md \
+    --out <ws>.ocr/previews/diff-review.html \
     [--summary]          # 额外打印一行摘要到 stdout
     [--expand-equal]     # 在 HTML 中展开未改动段落（体积变大，调试时用）
 ```
 
-**产物**：`audit.html` — 段落级 diff HTML，每处改动归入四类：
+**产物**：`<ws>.ocr/previews/diff-review.html` — 段落级 diff HTML，每处改动归入四类：
 - **accepted** — 与清单建议一致
-- **missed** — 清单上有建议但 final.md 未采纳（需在 audit.html 说明原因，通常是 C 类或 B 类保留学术判断）
+- **missed** — 清单上有建议但 final.md 未采纳（需在 diff-review.html 说明原因，通常是 C 类或 B 类保留学术判断）
 - **outside-checklist fix** — 清单外修正（agent 主动）
 - **unanchored** — 清单里的全局注记，未映射到具体行
 
 **Agent 决策**：
 - `missed` 中如果出现 A 类条目 → 说明第 6 步有遗漏，回到第 6 步补漏。
 - `outside-checklist fix` 数量 > 清单修正数的 30% → 说明 proofread 清单覆盖不足，或 agent 过度干预，回传人类评估。
-- 正常情况下把 `audit.html` 作为最终交付的一部分。
+- 正常情况下把 `<ws>.ocr/previews/diff-review.html` 作为最终交付的一部分（README.md 自动挂链）。
 
 ---
 
 ## 8. to-docx（Word 稿）
 
-**调用**：
+**调用**（输出路径由 skill 自动推断到 `<ws>.ocr/output/<title>_<author>_<year>_final.docx`）：
 
 ```bash
 python skills/to-docx/scripts/md_to_docx.py \
-    --input <work_dir>/final.md \
-    --output <work_dir>/final.docx \
+    --input <ws>.ocr/final.md \
     [--title-from-first-h1]    # 用 final.md 首个 H1 作为文档标题
+    [--output <path>]          # 仅在需要落到工作区外时显式传
 ```
+
+> 文件名由 `<ws>.ocr/meta.json` 里的 `title` / `author` / `year` 组合而成；若 meta.json 缺字段，skill 会退回到工作区 basename。跑完会刷新 `<ws>.ocr/README.md`。
 
 **规范**（由 Alice 定义，单一统一规范，全部输出一致）：
 
@@ -273,25 +278,25 @@ python skills/to-docx/scripts/md_to_docx.py \
 
 ## 9. mp-format（公众号 HTML）
 
-**调用**：
+**调用**（输出路径由 skill 自动推断；`--also-markdown` 不带参数即可同时产出 md）：
 
 ```bash
 python skills/mp-format/scripts/md_to_wechat.py \
-    --input <work_dir>/final.md \
-    --output <work_dir>/final.mp.html \
-    --also-markdown <work_dir>/final.mp.md \
+    --input <ws>.ocr/final.md \
+    --also-markdown \
     [--simplify] [--byline "作者·单位"] [--source "《刊物》期数"]
 ```
 
 **参数**：
 - `--simplify` — 启用 OpenCC t2s 繁转简；`>` 引用块内容原样保留。
 - `--byline` / `--source` — 在标题下显示作者栏与来源栏。
+- `--output` / `--also-markdown <path>` — 仅在需要显式指定落盘路径时使用。
 
-**产物**：
-- `final.mp.html` — CSS 全内联，可直接粘贴到公众号后台
-- `final.mp.md` — xiumi/壹伴可导入的 markdown
+**产物**（默认落在 `<ws>.ocr/output/`）：
+- `<title>_<author>_<year>_wechat.html` — CSS 全内联，可直接粘贴到公众号后台
+- `<title>_<author>_<year>_wechat.md` — xiumi/壹伴可导入的 markdown
 
-**Agent 决策**：若 final.md 含繁体但目标公众号读者主要看简体 → 加 `--simplify`；古籍专业推文 → 不简化。
+**Agent 决策**：若 final.md 含繁体但目标公众号读者主要看简体 → 加 `--simplify`；古籍专业推文 → 不简化。跑完 skill 会刷新 `<ws>.ocr/README.md`。
 
 ---
 
@@ -366,33 +371,47 @@ low_confidence_pages: [3, 7, 12]    # optional, from ocr-run meta.json
 
 ---
 
-## 文件布局（单份 PDF 的工作目录）
+## 文件布局（单份 PDF = 一个 `.ocr/` 工作区）
+
+权威规范见 `references/workspace-layout.md`；各 SKILL.md 默认值都按这个走。
 
 ```
-<work_dir>/
-├── original.pdf             # 人类给的原件（可选备份）
-├── pages/                   # prep-scan split_pages 输出：每页 PNG
-├── cleaned_pages/           # prep-scan dewatermark 输出
-├── trimmed_pages/           # prep-scan remove_margins 输出（古籍可跳过）
-├── cleaned.pdf              # prep-scan 最终产物，ocr-run 输入
-├── visual-preview.html      # visual-preview 输出：三态对照 + 过度清理候选
-├── ocr/
-│   ├── raw.md               # OCR 原始稿
-│   ├── mineru_full.md       # MinerU 原始长稿（仅 MinerU 引擎）
-│   ├── source.pdf           # OCR 输入 PDF 的复本（可追溯）
-│   ├── meta.json            # engine / layout / lang / pages / low_confidence_pages
-│   ├── _import_provenance.json   # 由 import_mineru_output 产出
-│   ├── preview.html         # make_preview 输出：原图/OCR 并排
-│   └── assets/              # 图片附件
-├── raw.review.md            # proofread 清单（A/B/C + 全局注记 + 执行证明）
-├── final.md                 # agent 应用清单后的定稿
-├── audit.html               # diff-review 自审报告
-├── final.docx               # to-docx 产物
-├── final.mp.html            # mp-format 产物
-└── final.mp.md              # mp-format 兼容 markdown
+<basename>.ocr/                    # 一份文献 = 一个工作区，和原 PDF 同级
+├── README.md                      # 工作区自述 + 管线阶段检测（由 workspace_readme.py 自动刷新）
+├── source.pdf                     # 进入 OCR 阶段的 PDF（= prep/cleaned.pdf 的副本）
+├── raw.md                         # OCR 原始稿（proofread / diff-review 的主输入）
+├── meta.json                      # engine / layout / lang / pages / low_confidence_pages / duration_seconds
+├── final.md                       # agent 应用清单后的定稿（手工编辑）
+├── raw.md.bak                     # 上一版 raw.md 的回滚副本（rerun 时自动生成）
+├── assets/                        # MinerU 抽取的图片 / 表格 PNG
+├── prep/                          # prep-scan 的图像中间态（给 visual-preview 消费）
+│   ├── original.pdf
+│   ├── cleaned.pdf
+│   ├── pages/                     # 原始页 PNG
+│   ├── cleaned_pages/             # 清理后
+│   ├── trimmed_pages/             # 裁边后（古籍 / 档案可能跳过）
+│   └── diff_pages/                # visualize_prep.py 生成的红色高亮热图
+├── previews/                      # 面向用户的可读 HTML（离线单文件）
+│   ├── ocr-preview.html           # make_preview.py：左图右文
+│   ├── visual-prep.html           # visualize_prep.py：三态切换 + 过度清理候选
+│   └── diff-review.html           # build_diff_review.py：raw vs final 对照
+├── review/                        # 校对阶段产物（Markdown 报告）
+│   ├── raw.review.md              # proofread 的 A/B/C 清单
+│   └── diff-summary.md            # diff-review 的结构化摘要
+├── output/                        # 交付物（给用户看的 / 投稿用的 / 发公众号的）
+│   ├── <title>_<author>_<year>_final.docx    # to-docx 产物
+│   ├── <title>_<author>_<year>_wechat.html   # mp-format HTML
+│   └── <title>_<author>_<year>_wechat.md     # 秀米兼容 Markdown
+└── _internal/                     # Pipeline 簿记（对用户零价值，但保留审计链）
+    ├── mineru_full.md             # MinerU 原版 full.md（仅本地/云端 MinerU）
+    └── _import_provenance.json    # 导入来源 / artifact_basename / title+author+year
 ```
 
-**不要清理中间产物**。人类可能回头核对。
+**规则**：
+- 一份文献 = 一个 `.ocr/` 工作区，不要在 PDF 同级另建 `.prep/` / `.review/` 等伪工作区
+- 根目录只放用户最关心的几个文件 + README；过程产物按语义塞进子目录
+- 重跑同一阶段就地覆盖，不追加 `_v2` `_v3` 后缀（raw.md 自动存 raw.md.bak 作兜底）
+- 不要清理中间产物，人类可能回头核对
 
 ---
 
@@ -442,4 +461,5 @@ files_preserved: [<paths that remain for inspection>]
 1. 每个 script 在 `skills/<name>/scripts/` 下
 2. `SKILL.md` 说明何时调用、输入输出契约、失败模式
 3. 不引入 GUI、不假设交互；所有参数走命令行
-4. 产物命名沿用 `<work_dir>/` 约定
+4. 产物命名沿用 `<ws>.ocr/` 工作区约定；过程文档归入 `prep/ / previews/ / review/ / _internal/`，用户可见的最终稿归入 `output/`（详见 `references/workspace-layout.md`）
+5. Skill 收尾调用 `scripts/workspace_readme.py --workspace <ws>.ocr`，刷新工作区 README.md
