@@ -103,6 +103,28 @@ def pipeline_stage(workspace: Path) -> tuple[str, list[str]]:
     has_prep = (workspace / "prep" / "cleaned.pdf").is_file()
     has_visual = (workspace / "previews" / "visual-prep.html").is_file()
 
+    # Status override (highest priority): if the pipeline has recorded a
+    # concrete failure, file presence is a trailing indicator of whichever
+    # stage wrote them, not of current health. Codex's 2026-04-20 audit
+    # caught this exact lie — an OCR that crashed still left raw.md behind
+    # from the scan-only text-layer attempt, which the old file-inference
+    # path rendered as "OCR 已完成 — 待校对". Intercept every error/failed
+    # state before any has_* cascade can claim forward progress.
+    if status_state in ("error", "failed"):
+        stage_hint = status.get("stage") or "未知阶段"
+        cause = (
+            status.get("cause")
+            or status.get("error")
+            or "见 _internal/_pipeline_status.json"
+        )
+        return (
+            f"Pipeline 报错（{stage_hint}） — {cause}",
+            [
+                "查看 `_internal/_pipeline_status.json` 获取失败原因与 next_step",
+                "修复阻塞后，从失败阶段重跑 `python3 scripts/run_full_pipeline.py`",
+            ],
+        )
+
     # If status says we stopped at review stage, any downstream artifacts
     # (final.md, docx, wechat.html) are stale and must not be advertised as
     # completed work — even if the files are on disk from a previous run.
