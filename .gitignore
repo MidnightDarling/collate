@@ -12,9 +12,7 @@ credentials.json
 # Agents / skills / instructions / audit reports scoped to the collate
 # maintainer working inside this repo with Claude Code or Codex. These are
 # not part of the plugin surface users install.
-.claude/agents/
-.claude/skills/
-.claude/CLAUDE.md
+.claude/
 .codex/skills/
 .codex/AGENTS.md
 docs/audit/
