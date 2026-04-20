@@ -10,7 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from pipeline_status import infer_workspace, write_status
+from pipeline_status import infer_workspace, read_status, write_status
 
 
 def _engine_from_meta(workspace: Path) -> str | None:
@@ -22,6 +22,54 @@ def _engine_from_meta(workspace: Path) -> str | None:
         return json.loads(meta_path.read_text(encoding="utf-8")).get("engine")
     except Exception:
         return None
+
+
+def _meta(workspace: Path) -> dict:
+    """Return meta.json as a dict, or {} on error/missing."""
+    meta_path = workspace / "meta.json"
+    if not meta_path.is_file():
+        return {}
+    try:
+        return json.loads(meta_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def fidelity_gate(workspace: Path) -> tuple[bool, str]:
+    """Refuse export unless page-grounded proofread has attested the skeleton.
+
+    Two independent conditions fire the gate:
+
+    1. ``meta.json.structural_risk == "high"`` (set by the text-layer
+       fallback) — no layout inference was run, so the review must
+       explicitly ``structure_approved: true`` in its frontmatter; that
+       approval is persisted as ``_internal/_structure_approved``.
+    2. ``_pipeline_status.json.proofread_method`` must be ``"page-grounded"``
+       — the proofread subagent writes this after walking the PNG originals.
+       Its absence means the review came from a purely-textual pass (or a
+       legacy flow), which is what the Codex audit caught: the subagent
+       cannot judge OCR truth without the original image.
+
+    Returns ``(ok, reason)``. When ``ok=False``, ``reason`` is a short,
+    human-readable cause suitable for ``_pipeline_status.error``.
+    """
+    meta = _meta(workspace)
+    if meta.get("structural_risk") == "high":
+        marker = workspace / "_internal" / "_structure_approved"
+        if not marker.is_file():
+            return (
+                False,
+                "structural review required (text-layer fallback) "
+                "but review/raw.review.md lacks `structure_approved: true`",
+            )
+    status = read_status(workspace) or {}
+    if status.get("proofread_method") != "page-grounded":
+        return (
+            False,
+            "page-grounded proofread not recorded "
+            "(status.proofread_method != 'page-grounded')",
+        )
+    return True, ""
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -122,6 +170,37 @@ def post_ocr_stage(workspace: Path) -> int:
         return 10
     if not final.exists():
         run([sys.executable, "scripts/apply_review.py", "--raw", str(workspace / "raw.md"), "--review", str(review), "--out", str(final)], "apply-review")
+
+    # Fidelity gate: apply_review has now consumed the review, which is also
+    # the point at which the _structure_approved marker (if the review
+    # carries the frontmatter attestation) has been written. Run the gate
+    # before any shareable artifact (docx, wechat, diff-review HTML) is
+    # produced. See fidelity_gate() for what it enforces and why.
+    gate_ok, gate_reason = fidelity_gate(workspace)
+    if not gate_ok:
+        write_status(workspace, {
+            "stage": "fidelity_gate",
+            "status": "error",
+            "ocr_engine": _engine_from_meta(workspace),
+            "error": gate_reason,
+            "cause": "pre-export gate refused: export would ship a document "
+                     "whose structural fidelity has not been attested by a "
+                     "page-grounded proofread pass.",
+            "next_step": "Re-run proofread against prep/pages/*.png, ensure "
+                         "review/raw.review.md carries structure_approved: true "
+                         "in its frontmatter (for text-layer fallbacks), and "
+                         "confirm _pipeline_status.proofread_method == "
+                         "'page-grounded'.",
+            "files_preserved": [
+                str(workspace / "raw.md"),
+                str(workspace / "final.md"),
+                str(workspace / "review" / "raw.review.md"),
+                str(workspace / "meta.json"),
+            ],
+        })
+        print(f"[pipeline] fidelity gate refused: {gate_reason}", file=sys.stderr)
+        return 11
+
     run([sys.executable, "skills/diff-review/scripts/md_diff.py", "--raw", str(workspace / "raw.md"), "--final", str(final), "--review", str(review), "--out", str(workspace / "previews" / "diff-review.html"), "--summary", str(workspace / "review" / "diff-summary.md")], "diff-review")
     run([sys.executable, "skills/to-docx/scripts/md_to_docx.py", "--input", str(final), "--title-from-first-h1"], "to-docx")
     run([sys.executable, "skills/mp-format/scripts/md_to_wechat.py", "--input", str(final), "--also-markdown"], "mp-format")

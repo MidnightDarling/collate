@@ -228,7 +228,18 @@ def main() -> int:
         if len(text.strip()) < 50:
             low_confidence.append(i)
 
-    raw = "\n\n".join(blocks).strip() + "\n"
+    # Head-of-file marker: raw.md produced by the text-layer fallback has
+    # *no* layout inference (no column detection, no heading/footnote split),
+    # so structural fidelity is always "high risk" and must be approved by
+    # the page-grounded proofread stage before export. The Bundle 4 fidelity
+    # gate (run_full_pipeline.fidelity_gate) reads this marker out-of-band
+    # via meta.json.structural_risk; the HTML comment here is purely for
+    # human readers of raw.md.
+    risk_banner = (
+        "<!-- structural-risk: high; fallback: pdf-text-layer; "
+        "requires page-grounded proofread -->\n\n"
+    )
+    raw = risk_banner + "\n\n".join(blocks).strip() + "\n"
     (args.out / "raw.md").write_text(raw, encoding="utf-8")
 
     # If *every* page is low-confidence we suppress the list — it means the
@@ -249,6 +260,11 @@ def main() -> int:
 
     meta = {
         "engine": "pdf-text-layer" if not text_layer_missing else "pdf-text-layer-empty",
+        # Text-layer extraction has no layout model → structural fidelity is
+        # never guaranteed. The downstream fidelity gate refuses export
+        # unless a page-grounded review has explicitly approved the
+        # structure (see scripts/run_full_pipeline.fidelity_gate).
+        "structural_risk": "high",
         "layout": args.layout,
         "lang": args.lang,
         "pages": len(pages),

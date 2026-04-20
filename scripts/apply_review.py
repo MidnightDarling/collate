@@ -13,6 +13,29 @@ from review_contract import ReviewItem, parse_review
 
 ARROW_RE = re.compile(r"(?:→|->|⇒)\s*(.+)$")
 QUOTED_RE = re.compile(r"[“\"'「『](.+?)[”\"'」』]")
+STRUCTURE_APPROVED_RE = re.compile(
+    r"^\s*structure_approved\s*:\s*true\s*$", re.IGNORECASE
+)
+
+
+def review_has_structure_approval(review_text: str) -> bool:
+    """Scan top-of-file YAML-ish frontmatter for `structure_approved: true`.
+
+    The proofread subagent, when it has walked every page against the
+    PNG originals and confirmed the structural skeleton (title, author,
+    headings, footnote split) is usable, prepends a small frontmatter
+    block. We look for it *only* inside the first `---`…`---` fence; any
+    later occurrence inside the body is treated as coincidental.
+    """
+    lines = review_text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return False
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        if STRUCTURE_APPROVED_RE.match(line):
+            return True
+    return False
 
 
 def extract_replacement(item: ReviewItem) -> str:
@@ -75,10 +98,22 @@ def main() -> int:
         return 2
 
     out = args.out or (args.raw.parent / "final.md")
+    review_text = args.review.read_text(encoding="utf-8")
     items = parse_review(args.review)
     lines = args.raw.read_text(encoding="utf-8").splitlines()
     rendered, stats = apply_items(lines, items)
     out.write_text("\n".join(rendered).rstrip() + "\n", encoding="utf-8")
+
+    # Emit the _structure_approved marker if the proofread subagent has
+    # attested the structural skeleton of raw.md via frontmatter. The
+    # Bundle 4 fidelity gate reads this marker (alongside meta.json's
+    # structural_risk field) to decide whether export can proceed.
+    if review_has_structure_approval(review_text):
+        workspace = args.raw.parent
+        internal = workspace / "_internal"
+        internal.mkdir(parents=True, exist_ok=True)
+        (internal / "_structure_approved").write_text("", encoding="utf-8")
+
     print(
         f"[apply_review] wrote {out}\n"
         f"  items={len(items)} applied={stats['applied']} commented={stats['commented']} skipped={stats['skipped']}"
