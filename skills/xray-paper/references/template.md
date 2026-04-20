@@ -46,6 +46,9 @@ tags:
 {ASCII napkin diagram — shape matches argument.}
 ```
 
+> [!note] HTML viewer rule
+> If you also emit an attribution-theme HTML page, that `.html` must be a finished showcase. `viewer-template.html` is internal scaffolding; the human-facing output must read like `viewer-showcase.html`, with no visible placeholders or template notes.
+
 ---
 
 ## 二 · 论文在谱系中的位置

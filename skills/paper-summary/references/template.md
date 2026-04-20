@@ -17,6 +17,9 @@ tags:
 
 > {One-sentence overall — what the field collectively knows and what it circles but will not name.}
 
+> [!note] HTML viewer rule
+> If you also emit an attribution-theme HTML page, that `.html` must be a finished showcase. `viewer-template.html` is internal scaffolding; the human-facing output must read like `viewer-showcase.html`, with no visible placeholders or template notes.
+
 ---
 
 ## 0 · Corpus

@@ -204,7 +204,19 @@ If the target exists, ask. Do not overwrite. Create directories as needed.
 
 The Markdown is the durable artifact — it lives in Obsidian, it travels through time. An HTML viewer is optional: a second piece of presentation writing, not a duplicate of the Markdown. Invoke it when the map deserves a proper room — dark stage, typographic respect, lineage diagrams and coverage grids that breathe beyond Obsidian's width. Skip it otherwise. A viewer without a reason is ornament.
 
-When invoked, four rules govern.
+When invoked, the HTML must be a **finished showcase surface**, not an exposed authoring scaffold.
+
+That means:
+
+- the emitted `.html` is what a human should open directly
+- no `{{slot}}`, `[PLACEHOLDER]`, or fill-in markers may remain visible
+- no author-facing binding notes, long internal comments, or "template" language may ship in the final file
+- `references/viewer-template.html` is an internal scaffold only
+- `references/viewer-showcase.html` is the quality bar: the output should feel like that class of finished object
+
+If the HTML still reads like a template, the job is not done.
+
+When invoked, five rules govern.
 
 **1 · Output location** — all viewers collect in a `viewer/` folder at the **workspace parent level**. Not inside the OCR workspace, not under `analysis/`. The viewer is a final surface; it lives where surfaces live.
 
@@ -240,7 +252,9 @@ Example (corpus-only): `2026-04-20-自由与多元共存--伯林学界-价值多
 }
 ```
 
-**4 · The rest is attribution-theme** — refer to the attribution-theme CSS tokens and scene vocabulary (`#08080A` ink-stone ground, `#F0EDE6` signal, Eclipse / Observatory / Star Chart scenes, one Signal per viewport). Do not invent a second visual language. The viewer is a translation of the Markdown into a different room; the room's rules are already written.
+**4 · HTML = showcase, not scaffold** — the final emitted file must read as a polished showcase page from the first paint. `viewer-template.html` may guide structure, but it is never itself the deliverable. The deliverable should feel like `viewer-showcase.html`: finished copy, intentional pacing, and no visible scaffolding syntax.
+
+**5 · The rest is attribution-theme** — refer to the attribution-theme CSS tokens and scene vocabulary (`#08080A` ink-stone ground, `#F0EDE6` signal, Eclipse / Observatory / Star Chart scenes, one Signal per viewport). Do not invent a second visual language. The viewer is a translation of the Markdown into a different room; the room's rules are already written.
 
 ---
 
