@@ -31,6 +31,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from pipeline_status import read_status
+
 
 # The authoritative layout, duplicated here so the generator is a
 # single-file tool that doesn't have to parse the spec markdown.  If the
@@ -83,7 +85,15 @@ def pipeline_stage(workspace: Path) -> tuple[str, list[str]]:
 
     Stage is inferred from file presence.  Suggestions are ordered by
     priority — the first one is what the user probably wants to do next.
+
+    When `_internal/_pipeline_status.json` exists, its `status` field is
+    authoritative: a stale `final.md` / docx / wechat.html from a previous
+    run must not masquerade as "完成 ✓" when status says the pipeline
+    stopped at review or failed.
     """
+    status = read_status(workspace) or {}
+    status_state = status.get("status")
+
     has_raw = (workspace / "raw.md").is_file()
     has_final = (workspace / "final.md").is_file()
     has_review = (workspace / "review" / "raw.review.md").is_file()
@@ -92,6 +102,18 @@ def pipeline_stage(workspace: Path) -> tuple[str, list[str]]:
     has_mp = any((workspace / "output").glob("*_wechat.html")) if (workspace / "output").is_dir() else False
     has_prep = (workspace / "prep" / "cleaned.pdf").is_file()
     has_visual = (workspace / "previews" / "visual-prep.html").is_file()
+
+    # If status says we stopped at review stage, any downstream artifacts
+    # (final.md, docx, wechat.html) are stale and must not be advertised as
+    # completed work — even if the files are on disk from a previous run.
+    if status_state == "awaiting_agent_review" and (has_final or has_docx or has_mp):
+        return (
+            "Pipeline 停在校对阶段 — 下游产物可能是上一次运行的残留",
+            [
+                "跑 /collate:proofread 完成 review/raw.review.md",
+                "然后 python3 scripts/run_full_pipeline.py --workspace <workspace> 重新出交付物",
+            ],
+        )
 
     if not has_prep and not has_raw:
         return ("空工作区 — 还没跑任何 skill", [
@@ -125,6 +147,16 @@ def pipeline_stage(workspace: Path) -> tuple[str, list[str]]:
             "python3 scripts/run_full_pipeline.py --workspace <workspace>",
         ])
     if has_docx and has_mp:
+        if status_state in ("error", "failed"):
+            cause = status.get("cause") or status.get("error") or "见 _internal/_pipeline_status.json"
+            return (
+                f"交付物存在但 pipeline 报错 — {cause}",
+                [
+                    "查看 `_internal/_pipeline_status.json` 获取失败原因",
+                    "确认 meta.json 里的 OCR 引擎与 review 清单未被旧产物污染",
+                ],
+            )
+        # status == "ok" or absent (legacy workspaces lack status.json)
         return ("全部交付物已生成 — 完成 ✓", [])
     # Shouldn't reach here, but don't crash the README.
     return ("状态无法判定（部分文件缺失或顺序异常）", [
