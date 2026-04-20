@@ -39,6 +39,12 @@ def split_by_page(markdown: str, total_pages: int) -> list[tuple[int, str]]:
             blocks.append((page, markdown[start:end].strip()))
         return blocks
 
+    if total_pages > 1:
+        raise ValueError(
+            "page markers missing: multi-page raw.md cannot be split truthfully; "
+            "rerun OCR/reflow so raw.md contains `<!-- page N -->` markers"
+        )
+
     text = markdown.strip()
     if total_pages <= 1:
         return [(1, text)]
@@ -120,7 +126,11 @@ def main() -> int:
         print(f"no page_*.png found under {pages_dir}", file=sys.stderr)
         return 2
 
-    blocks = split_by_page(raw_path.read_text(encoding="utf-8"), len(images))
+    try:
+        blocks = split_by_page(raw_path.read_text(encoding="utf-8"), len(images))
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     block_map = {page: text for page, text in blocks}
     low_conf = low_confidence_pages(workspace / "meta.json")
 

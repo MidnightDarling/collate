@@ -422,8 +422,13 @@ markdown
 beautifulsoup4
 PyPDF2
 python-docx
-opencc-python-reimplemented
 mineru[pipeline]
+```
+
+仅在 `mp-format --simplify` 时才需要的可选依赖：
+
+```text
+opencc-python-reimplemented
 ```
 
 系统依赖:

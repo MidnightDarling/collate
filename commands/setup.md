@@ -22,8 +22,11 @@ For each module, run `python3 -c "import <mod>"` and report pass/fail:
 - `bs4` (beautifulsoup4)
 - `PyPDF2`
 - `docx` (python-docx)
-- `opencc` (opencc-python-reimplemented)
 - `mineru` (mineru[pipeline] — default local OCR engine)
+
+Optional only when the user wants `/collate:mp-format --simplify`:
+
+- `opencc` (opencc-python-reimplemented)
 
 ### 3. System dependencies
 

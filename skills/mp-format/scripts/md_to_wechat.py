@@ -47,6 +47,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.append(str(Path(__file__).resolve().parents[3] / "scripts"))
+from workspace_metadata import load_workspace_metadata
+
 
 # Keep these in sync with import_mineru_output.safe_filename_fragment and
 # md_to_docx._safe_fragment. Mirrored locally to keep this script standalone.
@@ -70,20 +73,6 @@ def _find_workspace(p: Path) -> Path | None:
     return None
 
 
-def _provenance(ws: Path) -> dict:
-    """Load title/author/year metadata written by the OCR import step."""
-    for cand in (
-        ws / "_internal" / "_import_provenance.json",
-        ws / "_import_provenance.json",  # legacy workspaces
-    ):
-        if cand.is_file():
-            try:
-                return json.loads(cand.read_text(encoding="utf-8"))
-            except Exception:
-                return {}
-    return {}
-
-
 def _workspace_default_output(input_md: Path, suffix: str) -> Path:
     """Infer a sensible HTML/Markdown path for the WeChat artifact.
 
@@ -96,11 +85,11 @@ def _workspace_default_output(input_md: Path, suffix: str) -> Path:
         return input_md.with_suffix(f".mp{suffix}")
 
     output_dir = ws / "output"
-    prov = _provenance(ws)
-    if prov:
-        title = _safe_fragment(prov.get("title") or "") or "未知标题"
-        author = _safe_fragment(prov.get("author") or "") or "未知作者"
-        year = _safe_fragment(str(prov.get("year") or "")) or "未知年份"
+    meta = load_workspace_metadata(ws, input_md)
+    if any(meta.values()):
+        title = _safe_fragment(meta.get("title") or "") or "未知标题"
+        author = _safe_fragment(meta.get("author") or "") or "未知作者"
+        year = _safe_fragment(str(meta.get("year") or "")) or "未知年份"
         return output_dir / f"{title}_{author}_{year}_wechat{suffix}"
     return output_dir / f"{input_md.stem}_wechat{suffix}"
 

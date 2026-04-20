@@ -371,10 +371,18 @@ def emit(
 
     for page_idx, body in enumerate(body_pages):
         mapping = page_maps[page_idx]
+        marker = f"<!-- page {page_idx + 1} -->"
+        page_started = False
         for kind, raw_text, meta in body:
             text = rewrite_circles(raw_text, mapping)
 
             if kind == "title":
+                if not page_started:
+                    if lines and lines[-1] != "":
+                        lines.append("")
+                    lines.append(marker)
+                    lines.append("")
+                    page_started = True
                 lvl = meta.get("level", 2)
                 if lines and lines[-1] != "":
                     lines.append("")
@@ -384,6 +392,12 @@ def emit(
                 continue
 
             if kind == "list":
+                if not page_started:
+                    if lines and lines[-1] != "":
+                        lines.append("")
+                    lines.append(marker)
+                    lines.append("")
+                    page_started = True
                 if lines and lines[-1] != "":
                     lines.append("")
                 for item in text.split("\n"):
@@ -395,6 +409,12 @@ def emit(
                 continue
 
             if kind == "image":
+                if not page_started:
+                    if lines and lines[-1] != "":
+                        lines.append("")
+                    lines.append(marker)
+                    lines.append("")
+                    page_started = True
                 # import_mineru_output copies `<job>/images/<hash>.jpg` to
                 # `<ocr>/assets/<hash>.jpg`. We always reference assets/ here.
                 src = meta.get("src", "")
@@ -412,6 +432,12 @@ def emit(
                 continue
 
             if kind == "table":
+                if not page_started:
+                    if lines and lines[-1] != "":
+                        lines.append("")
+                    lines.append(marker)
+                    lines.append("")
+                    page_started = True
                 # Prefer HTML passthrough when MinerU extracted table structure
                 # (python-docx can't parse arbitrary HTML, but the raw HTML
                 # stays legible in the Word draft for the user to manually replace).
@@ -437,7 +463,7 @@ def emit(
             last_body_idx = None
             for idx in range(len(lines) - 1, -1, -1):
                 ln = lines[idx]
-                if not ln or ln.startswith(("#", ">")):
+                if not ln or ln.startswith(("#", ">", "<!--")):
                     continue
                 last_body_idx = idx
                 break
@@ -452,8 +478,18 @@ def emit(
                 can_glue = True
 
             if can_glue and last_body_idx is not None:
-                lines[last_body_idx] = lines[last_body_idx] + text
+                if not page_started:
+                    lines[last_body_idx] = lines[last_body_idx] + marker + text
+                    page_started = True
+                else:
+                    lines[last_body_idx] = lines[last_body_idx] + text
             else:
+                if not page_started:
+                    if lines and lines[-1] != "":
+                        lines.append("")
+                    lines.append(marker)
+                    lines.append("")
+                    page_started = True
                 if lines and lines[-1] != "":
                     lines.append("")
                 lines.append(text)

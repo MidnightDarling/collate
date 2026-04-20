@@ -291,13 +291,13 @@ def main() -> int:
         else:
             ocr_engine = _engine_from_meta(workspace)
         result = post_ocr_stage(workspace)
-        subprocess.run([sys.executable, "scripts/workspace_readme.py", "--workspace", str(workspace)], cwd=ROOT, check=False)
         if result == 0:
             write_status(workspace, {"stage": "done", "status": "ok", "ocr_engine": ocr_engine, "ocr_attempts": ocr_attempts, "next_step": "Review output/ artifacts and README.md.", "files_preserved": [str(workspace / "output"), str(workspace / "previews")]})
+        subprocess.run([sys.executable, "scripts/workspace_readme.py", "--workspace", str(workspace)], cwd=ROOT, check=False)
         return result
     except Exception as exc:
-        subprocess.run([sys.executable, "scripts/workspace_readme.py", "--workspace", str(workspace)], cwd=ROOT, check=False)
         write_status(workspace, {"stage": "failed", "status": "error", "error": str(exc), "cause": "See preserved workspace artifacts and preceding command output.", "ocr_engine": ocr_engine, "ocr_attempts": ocr_attempts, "next_step": "Inspect _pipeline_status.json and rerun the failed stage after fixing the blocker.", "files_preserved": [str(workspace), str(workspace / "previews"), str(workspace / "_internal")]})
+        subprocess.run([sys.executable, "scripts/workspace_readme.py", "--workspace", str(workspace)], cwd=ROOT, check=False)
         print(f"stage: failed\nerror: {exc}\ncause: see command output above\nnext_step: inspect {workspace / '_internal' / '_pipeline_status.json'}\nfiles_preserved: [{workspace}]", file=sys.stderr)
         return 1
 

@@ -20,6 +20,10 @@ Each prints `PASS <name>` on success or raises on failure.
 | [smoke_page_grounded.py](smoke_page_grounded.py) | 3 | `SKILL.md` / `AGENTS.md` require `page_images_dir` in the subagent payload; `make_preview.py` is declared audit-only, not canonical |
 | [smoke_fidelity_gate.py](smoke_fidelity_gate.py) | 4 | Export refused (exit 11) when a text-layer workspace lacks `structure_approved` attestation; passes when the review is mechanically page-grounded and `apply_review.py` emits `_structure_approved` |
 | [smoke_real_user_contract.py](smoke_real_user_contract.py) | reset-task-2 | `build_page_review_packets.py` and `verify_page_grounded_review.py` make page-grounded proofread mechanically executable rather than doc-only |
+| [smoke_apply_review_guardrails.py](smoke_apply_review_guardrails.py) | repair-1 | `apply_review.py` must not leak editorial instructions like “删除该行并与上下文连读” into `final.md` |
+| [smoke_reflow_page_markers.py](smoke_reflow_page_markers.py) | repair-2 | `reflow_mineru.py` must preserve `<!-- page N -->` markers so page-grounded review has real page boundaries |
+| [smoke_output_naming.py](smoke_output_naming.py) | repair-3 | export scripts must fall back to workspace metadata naming when `_import_provenance.json` is absent |
+| [smoke_readme_done_sync.py](smoke_readme_done_sync.py) | repair-4 | `workspace_readme.py` must reflect `status=ok` as done once deliverables exist |
 
 ## Why these exist
 

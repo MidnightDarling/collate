@@ -424,8 +424,13 @@ markdown
 beautifulsoup4
 PyPDF2
 python-docx
-opencc-python-reimplemented
 mineru[pipeline]
+```
+
+Optional for `mp-format --simplify` only:
+
+```text
+opencc-python-reimplemented
 ```
 
 System:

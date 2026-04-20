@@ -39,7 +39,7 @@ test -f "$INPUT" || { echo "文件不存在"; exit 1; }
 
 推荐用校对完的 `final.md`，不要直接用 `raw.md`（仍含 OCR 错）。
 
-> **输出路径约定**：输出 docx 固定落在 `<workspace>/output/<title>_<author>_<year>_final.docx`，由脚本根据 `_internal/_import_provenance.json` 自动推导，不用显式指定。权威规范见插件的 `references/workspace-layout.md`。
+> **输出路径约定**：输出 docx 固定落在 `<workspace>/output/<title>_<author>_<year>_final.docx`。脚本优先读 `_internal/_import_provenance.json`，缺失时再回退到 `meta.json` 与 Markdown 标题，不用显式指定。权威规范见插件的 `references/workspace-layout.md`。
 
 ### Step 2：优先尝试 Anthropic 的 docx skill
 

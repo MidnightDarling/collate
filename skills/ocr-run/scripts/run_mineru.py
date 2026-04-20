@@ -144,6 +144,10 @@ def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
         lang,
     ]
     print(f"[run_mineru] $ {' '.join(cmd)}")
+    print(
+        "[run_mineru] local MinerU may stay quiet for 30-90 seconds during "
+        "layout/model work; silence here is not necessarily a hang"
+    )
     # We tee the child process output so the user still sees progress bars
     # in real time AND we retain the stderr tail to pattern-match for
     # HuggingFace-specific failure modes after exit. subprocess.run with

@@ -32,6 +32,7 @@ from datetime import datetime
 from pathlib import Path
 
 from pipeline_status import read_status
+from workspace_metadata import load_workspace_metadata
 
 
 # The authoritative layout, duplicated here so the generator is a
@@ -39,7 +40,7 @@ from pipeline_status import read_status
 # spec changes, update both together — see workspace-layout.md §"更新本规范".
 LAYOUT_ROOT_FILES = [
     ("source.pdf",   "被处理的 PDF（prep-scan 的 cleaned.pdf 或用户原始 PDF）"),
-    ("raw.md",       "OCR 产出的原始 Markdown（含 <!-- page N --> 标记）"),
+    ("raw.md",       "OCR 产出的原始 Markdown（如支持则含 <!-- page N --> 标记）"),
     ("final.md",     "用户按 review/raw.review.md 修改后的定稿"),
     ("meta.json",    "OCR 元数据（engine/pages/low_confidence_pages/...）"),
 ]
@@ -63,21 +64,6 @@ def human_size(num_bytes: int) -> str:
         return f"{kb:.1f} KB"
     mb = kb / 1024
     return f"{mb:.2f} MB"
-
-
-def load_provenance(workspace: Path) -> dict:
-    """Return title/author/year dict, or {} on any failure."""
-    prov = workspace / "_internal" / "_import_provenance.json"
-    if not prov.is_file():
-        # Backwards compat: before the _internal/ move the file lived at
-        # the workspace root.  Accept both for a graceful transition.
-        prov = workspace / "_import_provenance.json"
-    if not prov.is_file():
-        return {}
-    try:
-        return json.loads(prov.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
 
 
 def pipeline_stage(workspace: Path) -> tuple[str, list[str]]:
@@ -136,6 +122,8 @@ def pipeline_stage(workspace: Path) -> tuple[str, list[str]]:
                 "然后 python3 scripts/run_full_pipeline.py --workspace <workspace> 重新出交付物",
             ],
         )
+    if status_state == "ok" and has_docx and has_mp:
+        return ("全部交付物已生成 — 完成 ✓", [])
 
     if not has_prep and not has_raw:
         return ("空工作区 — 还没跑任何 skill", [
@@ -169,16 +157,6 @@ def pipeline_stage(workspace: Path) -> tuple[str, list[str]]:
             "python3 scripts/run_full_pipeline.py --workspace <workspace>",
         ])
     if has_docx and has_mp:
-        if status_state in ("error", "failed"):
-            cause = status.get("cause") or status.get("error") or "见 _internal/_pipeline_status.json"
-            return (
-                f"交付物存在但 pipeline 报错 — {cause}",
-                [
-                    "查看 `_internal/_pipeline_status.json` 获取失败原因",
-                    "确认 meta.json 里的 OCR 引擎与 review 清单未被旧产物污染",
-                ],
-            )
-        # status == "ok" or absent (legacy workspaces lack status.json)
         return ("全部交付物已生成 — 完成 ✓", [])
     # Shouldn't reach here, but don't crash the README.
     return ("状态无法判定（部分文件缺失或顺序异常）", [
@@ -214,10 +192,10 @@ def list_dir_entries(d: Path, max_entries: int = 20) -> list[str]:
 
 def render(workspace: Path) -> str:
     """Build the README.md body as a single string."""
-    prov = load_provenance(workspace)
-    title = prov.get("title") or "（未知标题）"
-    author = prov.get("author") or "（未知作者）"
-    year = prov.get("year") or "（未知年份）"
+    meta = load_workspace_metadata(workspace)
+    title = meta.get("title") or "（未知标题）"
+    author = meta.get("author") or "（未知作者）"
+    year = meta.get("year") or "（未知年份）"
     stage, next_steps = pipeline_stage(workspace)
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")

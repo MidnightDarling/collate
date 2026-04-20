@@ -26,7 +26,7 @@ allowed-tools: Read, Write, Edit, Bash
 <workspace>/output/<title>_<author>_<year>_wechat.md    ← 秀米兼容 Markdown（用户想进一步精修时用）
 ```
 
-> **路径约定**：输出由脚本根据 `_internal/_import_provenance.json` 自动推导，不用显式指定 `--output`。权威规范见插件的 `references/workspace-layout.md`。
+> **路径约定**：输出由脚本自动推导：优先 `_internal/_import_provenance.json`，缺失时回退到 `meta.json` 与 Markdown 标题，不用显式指定 `--output`。权威规范见插件的 `references/workspace-layout.md`。
 
 ## Process
 

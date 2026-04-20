@@ -44,6 +44,17 @@ def seed_workspace(ws: Path) -> None:
         (ws / "prep" / "pages" / f"page_{n:03d}.png").write_bytes(b"png-stub")
 
 
+def seed_unmarked_workspace(ws: Path) -> None:
+    (ws / "prep" / "pages").mkdir(parents=True, exist_ok=True)
+    (ws / "review").mkdir(parents=True, exist_ok=True)
+    (ws / "raw.md").write_text(
+        "第一页正文。\n\n第二页正文。\n",
+        encoding="utf-8",
+    )
+    for n in (1, 2):
+        (ws / "prep" / "pages" / f"page_{n:03d}.png").write_bytes(b"png-stub")
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as td:
         ws = Path(td) / "smoke_recipe.ocr"
@@ -101,6 +112,22 @@ def main() -> int:
         )
         assert verify_ok.returncode == 0, (
             f"verifier should pass\nstdout:\n{verify_ok.stdout}\nstderr:\n{verify_ok.stderr}"
+        )
+
+        # Multi-page review without explicit page markers must not invent
+        # fake page packets by evenly slicing the text.
+        ws_unmarked = Path(td) / "smoke_recipe_unmarked.ocr"
+        seed_unmarked_workspace(ws_unmarked)
+        build_fail = run_py(
+            "skills/proofread/scripts/build_page_review_packets.py",
+            "--workspace",
+            str(ws_unmarked),
+        )
+        assert build_fail.returncode != 0, (
+            "packet builder must reject multi-page raw.md without page markers"
+        )
+        assert "page markers" in (build_fail.stderr + build_fail.stdout).lower(), (
+            "rejection should explain missing page markers"
         )
 
     print("PASS smoke_real_user_contract")

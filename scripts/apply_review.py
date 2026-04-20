@@ -16,6 +16,14 @@ QUOTED_RE = re.compile(r"[“\"'「『](.+?)[”\"'」』]")
 STRUCTURE_APPROVED_RE = re.compile(
     r"^\s*structure_approved\s*:\s*true\s*$", re.IGNORECASE
 )
+DIRECT_REPLACEMENT_RE = re.compile(
+    r"^(?:改为|改作|应为|應為|修正为|修訂為|更正为)[:：]?\s*(.+)$"
+)
+EDITORIAL_MARKERS = (
+    "删除", "刪除", "移除", "连读", "連讀", "合并", "合併", "脚注",
+    "腳注", "原文", "保留", "注释", "注釋", "未定", "待核", "另起",
+    "不改", "整段", "上下文", "段落",
+)
 
 
 def review_has_structure_approval(review_text: str) -> bool:
@@ -42,10 +50,26 @@ def extract_replacement(item: ReviewItem) -> str:
     suggestion = item.suggestion.strip()
     arrow = ARROW_RE.search(suggestion)
     if arrow:
-        return arrow.group(1).strip().strip('"')
-    quoted = QUOTED_RE.findall(suggestion)
-    if quoted:
-        return quoted[-1].strip()
+        suggestion = arrow.group(1).strip().strip('"')
+    else:
+        direct = DIRECT_REPLACEMENT_RE.match(suggestion)
+        if direct:
+            suggestion = direct.group(1).strip().strip('"')
+        else:
+            quoted = QUOTED_RE.findall(suggestion)
+            if quoted:
+                suggestion = quoted[-1].strip()
+
+    if not suggestion:
+        return ""
+    if any(marker in suggestion for marker in EDITORIAL_MARKERS):
+        return ""
+    if "\n" in suggestion:
+        return ""
+    if len(suggestion) > 40:
+        return ""
+    if any(ch in suggestion for ch in "，。；：？！"):
+        return ""
     return suggestion
 
 

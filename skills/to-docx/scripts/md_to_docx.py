@@ -42,6 +42,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.append(str(Path(__file__).resolve().parents[3] / "scripts"))
+from workspace_metadata import load_workspace_metadata
+
 try:
     from docx import Document
     from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
@@ -511,25 +514,12 @@ def _workspace_default_output(input_md: Path) -> Path:
     if ws is None:
         return input_md.with_suffix(".docx")
 
-    # Try both provenance locations (post-migration and legacy)
-    prov_candidates = [
-        ws / "_internal" / "_import_provenance.json",
-        ws / "_import_provenance.json",
-    ]
-    prov: dict = {}
-    for cand in prov_candidates:
-        if cand.is_file():
-            try:
-                prov = json.loads(cand.read_text(encoding="utf-8"))
-                break
-            except Exception:
-                prov = {}
-
     output_dir = ws / "output"
-    if prov:
-        title = _safe_fragment(prov.get("title") or "") or "未知标题"
-        author = _safe_fragment(prov.get("author") or "") or "未知作者"
-        year = _safe_fragment(str(prov.get("year") or "")) or "未知年份"
+    meta = load_workspace_metadata(ws, input_md)
+    if any(meta.values()):
+        title = _safe_fragment(meta.get("title") or "") or "未知标题"
+        author = _safe_fragment(meta.get("author") or "") or "未知作者"
+        year = _safe_fragment(str(meta.get("year") or "")) or "未知年份"
         return output_dir / f"{title}_{author}_{year}_final.docx"
 
     return output_dir / f"{input_md.stem}_final.docx"
