@@ -4,10 +4,16 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Iterable
 from pathlib import Path
 
 
 H1_RE = re.compile(r"^#\s+(.+?)\s*$")
+CANONICAL_OUTPUT_PATTERNS = {
+    "_final.docx": "*_final.docx",
+    "_wechat.html": "*_wechat.html",
+    "_wechat.md": "*_wechat.md",
+}
 
 
 def _read_json(path: Path) -> dict:
@@ -85,3 +91,36 @@ def load_workspace_metadata(workspace: Path, markdown_hint: Path | None = None) 
             break
 
     return meta
+
+
+def purge_stale_workspace_outputs(
+    workspace: Path,
+    keep_paths: Iterable[Path],
+) -> list[Path]:
+    """Remove superseded canonical outputs from `<workspace>/output/`.
+
+    Reruns are meant to overwrite the canonical deliverables in-place, not
+    accumulate an old title-derived filename beside a new one. The caller
+    passes the output path(s) it intends to keep; sibling files of the same
+    canonical family are deleted.
+    """
+    output_dir = workspace / "output"
+    if not output_dir.is_dir():
+        return []
+
+    keep = list(keep_paths)
+    keep_resolved = {p.resolve() for p in keep}
+    patterns = {
+        glob
+        for path in keep
+        for suffix, glob in CANONICAL_OUTPUT_PATTERNS.items()
+        if path.name.endswith(suffix)
+    }
+    removed: list[Path] = []
+    for pattern in patterns:
+        for candidate in output_dir.glob(pattern):
+            if not candidate.is_file() or candidate.resolve() in keep_resolved:
+                continue
+            candidate.unlink()
+            removed.append(candidate)
+    return removed

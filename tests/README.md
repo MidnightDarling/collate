@@ -24,6 +24,8 @@ Each prints `PASS <name>` on success or raises on failure.
 | [smoke_reflow_page_markers.py](smoke_reflow_page_markers.py) | repair-2 | `reflow_mineru.py` must preserve `<!-- page N -->` markers so page-grounded review has real page boundaries |
 | [smoke_output_naming.py](smoke_output_naming.py) | repair-3 | export scripts must fall back to workspace metadata naming when `_import_provenance.json` is absent |
 | [smoke_readme_done_sync.py](smoke_readme_done_sync.py) | repair-4 | `workspace_readme.py` must reflect `status=ok` as done once deliverables exist |
+| [ocr/smoke_ocr_resilience.py](ocr/smoke_ocr_resilience.py) | repair-5 | local MinerU cold-start hangs must time out, and an `rc=0` cloud fallback without page packets must fall through to text-layer rather than faking success |
+| [ocr/smoke_output_cleanup.py](ocr/smoke_output_cleanup.py) | repair-6 | rerunning export in the same workspace must prune stale title-derived deliverables so `output/` only exposes the current canonical files |
 
 ## Why these exist
 
@@ -36,6 +38,7 @@ and pass on the post-fix tree — that is the definition of "locked".
 ```bash
 bash tests/run_all.sh         # run everything (exit code = failing count)
 python3 tests/smoke_<x>.py    # run one
+python3 tests/ocr/smoke_<x>.py
 ```
 
 No pytest, no fixtures framework. Keeps the test harness visible to

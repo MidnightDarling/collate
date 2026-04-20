@@ -18,7 +18,8 @@ fail=0
 total=0
 failed_names=()
 
-for t in tests/smoke_*.py; do
+for t in tests/smoke_*.py tests/*/smoke_*.py; do
+    [ -f "$t" ] || continue
     total=$((total + 1))
     name="$(basename "$t")"
     echo "=== running $name ==="

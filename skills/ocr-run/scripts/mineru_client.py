@@ -26,8 +26,11 @@ import io
 import json
 import os
 import re
+import shutil
 import statistics
+import subprocess
 import sys
+import tempfile
 import time
 import zipfile
 from pathlib import Path
@@ -233,7 +236,22 @@ def poll(key: str, task_id: str, interval: int, timeout: int) -> dict:
 PAGE_MARKER_RE = re.compile(r"<!--\s*page\s+(\d+)\s*-->", re.IGNORECASE)
 
 
-def compute_page_stats(raw_md: Path, total_pages_hint: int | None) -> tuple[int, list[int]]:
+def _page_text_blocks(markdown: str) -> list[tuple[int, str]]:
+    matches = list(PAGE_MARKER_RE.finditer(markdown))
+    blocks: list[tuple[int, str]] = []
+    for i, match in enumerate(matches):
+        page = int(match.group(1))
+        start = match.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(markdown)
+        blocks.append((page, markdown[start:end].strip()))
+    return blocks
+
+
+def compute_page_stats(
+    raw_md: Path,
+    total_pages_hint: int | None,
+    sidecar_path: Path | None = None,
+) -> tuple[int, list[int]]:
     """Return (pages, low_confidence_pages) from a raw.md file.
 
     MinerU doesn't emit per-page confidence, so we use a layout heuristic:
@@ -251,16 +269,20 @@ def compute_page_stats(raw_md: Path, total_pages_hint: int | None) -> tuple[int,
     except Exception:
         return (total_pages_hint or 0, [])
 
-    matches = list(PAGE_MARKER_RE.finditer(text))
-    if not matches:
+    blocks = _page_text_blocks(text)
+    if not blocks and sidecar_path and sidecar_path.is_file():
+        try:
+            payload = json.loads(sidecar_path.read_text(encoding="utf-8"))
+        except Exception:
+            payload = []
+        if isinstance(payload, list):
+            blocks = [
+                (int(item.get("page")), str(item.get("text", "")))
+                for item in payload
+                if str(item.get("page", "")).isdigit()
+            ]
+    if not blocks:
         return (total_pages_hint or 0, [])
-
-    blocks: list[tuple[int, str]] = []
-    for i, m in enumerate(matches):
-        page = int(m.group(1))
-        start = m.end()
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        blocks.append((page, text[start:end].strip()))
 
     pages = len(blocks)
     lengths = [len(body) for _, body in blocks]
@@ -278,7 +300,66 @@ def compute_page_stats(raw_md: Path, total_pages_hint: int | None) -> tuple[int,
     return (pages, low)
 
 
-def download_and_extract(result: dict, out_dir: Path) -> None:
+def _write_page_text_sidecar(pdf: Path, out_dir: Path, layout: str, lang: str) -> bool:
+    text_pdf = out_dir / "prep" / "original.pdf"
+    if not text_pdf.is_file():
+        text_pdf = pdf
+    repair_dir = out_dir / "_internal" / "_page_text_probe"
+    if repair_dir.exists():
+        shutil.rmtree(repair_dir, ignore_errors=True)
+    repair_dir.mkdir(parents=True, exist_ok=True)
+    script = Path(__file__).with_name("extract_text_layer.py")
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--pdf",
+            str(text_pdf),
+            "--out",
+            str(repair_dir),
+            "--layout",
+            layout,
+            "--lang",
+            lang,
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    raw = repair_dir / "raw.md"
+    if completed.returncode != 0 and not raw.is_file():
+        tail = (completed.stderr or completed.stdout or "").strip()
+        print(
+            f"[mineru] page-text sidecar unavailable: {tail[-200:]}",
+            file=sys.stderr,
+        )
+        return False
+    if not raw.is_file():
+        return False
+    blocks = _page_text_blocks(raw.read_text(encoding="utf-8"))
+    total_chars = sum(len(text) for _, text in blocks)
+    if not blocks or total_chars < max(200, len(blocks) * 20):
+        return False
+    sidecar = out_dir / "_internal" / "page_texts.json"
+    payload = [
+        {"page": page, "text": text, "chars": len(text)}
+        for page, text in blocks
+    ]
+    sidecar.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    print(f"[mineru] wrote page-text sidecar -> {sidecar}")
+    return True
+
+
+def download_and_extract(
+    result: dict,
+    out_dir: Path,
+    pdf: Path | None,
+    layout: str,
+    lang: str,
+) -> None:
     zip_url = result.get("full_zip_url") or result.get("zip_url")
     if not zip_url:
         raise RuntimeError(f"no full_zip_url in result: {result}")
@@ -288,24 +369,65 @@ def download_and_extract(result: dict, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     assets_dir = out_dir / "assets"
     assets_dir.mkdir(exist_ok=True)
+    internal_dir = out_dir / "_internal"
+    internal_dir.mkdir(exist_ok=True)
 
-    with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
-        # Prefer a "full" markdown if present, else the first .md
-        md_candidates = [n for n in zf.namelist() if n.lower().endswith(".md")]
-        md_candidates.sort(key=lambda n: (0 if "full" in n.lower() else 1, len(n)))
-        if not md_candidates:
-            raise RuntimeError("no markdown in MinerU zip")
-        with zf.open(md_candidates[0]) as mf:
-            content = mf.read().decode("utf-8", errors="replace")
-        (out_dir / "raw.md").write_text(content, encoding="utf-8")
+    with tempfile.TemporaryDirectory(prefix="mineru-cloud-") as td:
+        unpacked = Path(td)
+        with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
+            zf.extractall(unpacked)
+            md_candidates = [n for n in zf.namelist() if n.lower().endswith(".md")]
+            md_candidates.sort(key=lambda n: (0 if "full" in n.lower() else 1, len(n)))
+            if not md_candidates:
+                raise RuntimeError("no markdown in MinerU zip")
+            with zf.open(md_candidates[0]) as mf:
+                content = mf.read().decode("utf-8", errors="replace")
+            (internal_dir / "mineru_full.md").write_text(content, encoding="utf-8")
+
+            for name in zf.namelist():
+                lower = name.lower()
+                if any(lower.endswith(ext) for ext in (".png", ".jpg", ".jpeg", ".gif", ".webp")):
+                    target = assets_dir / Path(name).name
+                    with zf.open(name) as src, target.open("wb") as dst:
+                        dst.write(src.read())
+
+        structured = list(unpacked.rglob("*content_list_v2.json"))
+        if structured:
+            if pdf is None:
+                raise RuntimeError("structured cloud output import requires --pdf")
+            importer = Path(__file__).with_name("import_mineru_output.py")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(importer),
+                    "--pdf",
+                    str(pdf),
+                    "--out",
+                    str(out_dir),
+                    "--job-dir",
+                    str(unpacked),
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if completed.returncode != 0:
+                raise RuntimeError(
+                    "import_mineru_output.py failed: "
+                    + (completed.stderr or completed.stdout or "").strip()[-300:]
+                )
+            print("[mineru] rebuilt raw.md from structured cloud output")
+            return
+
+        raw_path = out_dir / "raw.md"
+        raw_path.write_text(content, encoding="utf-8")
         print(f"[mineru] saved raw.md ({len(content)} chars)")
-
-        for name in zf.namelist():
-            lower = name.lower()
-            if any(lower.endswith(ext) for ext in (".png", ".jpg", ".jpeg", ".gif", ".webp")):
-                target = assets_dir / Path(name).name
-                with zf.open(name) as src, target.open("wb") as dst:
-                    dst.write(src.read())
+        if _page_text_blocks(content):
+            return
+        if pdf is None or not _write_page_text_sidecar(pdf, out_dir, layout, lang):
+            raise RuntimeError(
+                "cloud markdown lacks page markers and page-text sidecar repair failed"
+            )
 
 
 def main() -> int:
@@ -345,14 +467,15 @@ def main() -> int:
         total = progress.get("total_pages")
         if isinstance(total, int) and total > 0:
             total_pages_hint = total
-        download_and_extract(result, args.out)
+        download_and_extract(result, args.out, args.pdf, args.layout, args.lang)
     except Exception as e:
         print(f"[mineru] error: {e}", file=sys.stderr)
         return 5
 
-    pages, low_conf = compute_page_stats(args.out / "raw.md", total_pages_hint)
+    sidecar = args.out / "_internal" / "page_texts.json"
+    pages, low_conf = compute_page_stats(args.out / "raw.md", total_pages_hint, sidecar)
     meta = {
-        "engine": "mineru",
+        "engine": "mineru-cloud",
         "layout": args.layout,
         "lang": args.lang,
         "pages": pages,

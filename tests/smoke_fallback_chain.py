@@ -57,7 +57,7 @@ def main() -> int:
                 out = Path(cmd[out_idx])
                 out.mkdir(parents=True, exist_ok=True)
                 (out / "raw.md").write_text(
-                    "<!-- structural-risk: high -->\n\n# stub\n",
+                    "<!-- structural-risk: high -->\n\n<!-- page 1 -->\n\n# stub\n",
                     encoding="utf-8",
                 )
                 (out / "meta.json").write_text(

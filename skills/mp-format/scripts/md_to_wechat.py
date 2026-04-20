@@ -48,7 +48,7 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[3] / "scripts"))
-from workspace_metadata import load_workspace_metadata
+from workspace_metadata import load_workspace_metadata, purge_stale_workspace_outputs
 
 
 # Keep these in sync with import_mineru_output.safe_filename_fragment and
@@ -299,7 +299,24 @@ def main() -> int:
     if args.simplify:
         text = maybe_simplify(text)
 
+    workspace = _find_workspace(args.input)
     output = args.output or _workspace_default_output(args.input, ".html")
+    also_md = None
+    if args.also_markdown is not None:
+        also_md = args.also_markdown
+        if str(also_md) == "__auto__":
+            also_md = _workspace_default_output(args.input, ".md")
+    if args.output is None and workspace is not None:
+        keep_paths = [output]
+        if also_md is not None and str(also_md).endswith(".md"):
+            keep_paths.append(also_md)
+        removed = purge_stale_workspace_outputs(workspace, keep_paths)
+        if removed:
+            print(
+                "[md_to_wechat] removed stale outputs: "
+                + ", ".join(p.name for p in sorted(removed)),
+                file=sys.stderr,
+            )
     output.parent.mkdir(parents=True, exist_ok=True)
 
     html_str = render(text, args.byline, args.source)
@@ -310,10 +327,7 @@ def main() -> int:
     #   None           — don't emit
     #   Path("__auto__") sentinel — user passed --also-markdown bare, infer path
     #   explicit Path  — use as-is
-    if args.also_markdown is not None:
-        also_md = args.also_markdown
-        if str(also_md) == "__auto__":
-            also_md = _workspace_default_output(args.input, ".md")
+    if also_md is not None:
         also_md.parent.mkdir(parents=True, exist_ok=True)
         also_md.write_text(also_markdown(text, args.byline, args.source), encoding="utf-8")
         print(f"[md_to_wechat] wrote {also_md}")

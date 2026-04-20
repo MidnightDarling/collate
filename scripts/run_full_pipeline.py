@@ -75,6 +75,20 @@ def fidelity_gate(workspace: Path) -> tuple[bool, str]:
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _has_page_markers(raw_path: Path) -> bool:
+    if not raw_path.is_file():
+        return False
+    return "<!-- page " in raw_path.read_text(encoding="utf-8", errors="ignore").lower()
+
+
+def _has_page_sidecar(workspace: Path) -> bool:
+    return (workspace / "_internal" / "page_texts.json").is_file()
+
+
+def _review_packets_ready(workspace: Path) -> bool:
+    return _has_page_markers(workspace / "raw.md") or _has_page_sidecar(workspace)
+
+
 def run(cmd: list[str], stage: str) -> None:
     print(f"[pipeline] {stage}: {' '.join(map(str, cmd))}")
     rc = subprocess.run(cmd, cwd=ROOT, check=False).returncode
@@ -168,11 +182,14 @@ def try_ocr(workspace: Path) -> tuple[str, list[str]]:
     layer at all), which flows into the downstream fidelity gate.
     """
     source = workspace / "source.pdf"
+    text_layer_source = workspace / "prep" / "original.pdf"
+    if not text_layer_source.is_file():
+        text_layer_source = source
     local = [sys.executable, "skills/ocr-run/scripts/run_mineru.py", "--pdf", str(source), "--out", str(workspace), "--lang", "ch"]
     cloud = [sys.executable, "skills/ocr-run/scripts/mineru_client.py", "--pdf", str(source), "--out", str(workspace), "--layout", "horizontal", "--lang", "zh-hans", "--poll-interval", "10", "--timeout", "1800"]
-    text_layer = [sys.executable, "skills/ocr-run/scripts/extract_text_layer.py", "--pdf", str(source), "--out", str(workspace), "--layout", "horizontal", "--lang", "zh-hans"]
+    text_layer = [sys.executable, "skills/ocr-run/scripts/extract_text_layer.py", "--pdf", str(text_layer_source), "--out", str(workspace), "--layout", "horizontal", "--lang", "zh-hans"]
 
-    if (workspace / "raw.md").exists():
+    if (workspace / "raw.md").exists() and _review_packets_ready(workspace):
         existing = _engine_from_meta(workspace) or "unknown"
         return existing, [f"cache-hit rc=0 engine={existing}"]
 
@@ -187,9 +204,12 @@ def try_ocr(workspace: Path) -> tuple[str, list[str]]:
             continue
         completed = subprocess.run(cmd, cwd=ROOT, check=False, capture_output=True, text=True)
         rc = completed.returncode
-        if rc == 0 and (workspace / "raw.md").exists():
+        if rc == 0 and (workspace / "raw.md").exists() and _review_packets_ready(workspace):
             attempts.append(f"{name} rc=0")
             return name, attempts
+        if rc == 0 and (workspace / "raw.md").exists():
+            attempts.append(f"{name} rc=0 but page packets remain unavailable")
+            continue
         tail = (completed.stderr or "").strip().splitlines()[-3:]
         tail_str = " | ".join(tail)[-200:]
         attempts.append(f"{name} rc={rc}: {tail_str}" if tail_str else f"{name} rc={rc}")

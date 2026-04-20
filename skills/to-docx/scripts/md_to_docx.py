@@ -43,7 +43,7 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[3] / "scripts"))
-from workspace_metadata import load_workspace_metadata
+from workspace_metadata import load_workspace_metadata, purge_stale_workspace_outputs
 
 try:
     from docx import Document
@@ -548,7 +548,16 @@ def main() -> int:
         print(f"input not found: {args.input}", file=sys.stderr)
         return 2
 
+    workspace = _find_workspace(args.input)
     output = args.output or _workspace_default_output(args.input)
+    if args.output is None and workspace is not None:
+        removed = purge_stale_workspace_outputs(workspace, [output])
+        if removed:
+            print(
+                "[md_to_docx] removed stale outputs: "
+                + ", ".join(p.name for p in sorted(removed)),
+                file=sys.stderr,
+            )
     output.parent.mkdir(parents=True, exist_ok=True)
 
     try:

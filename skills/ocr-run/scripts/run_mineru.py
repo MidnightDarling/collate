@@ -27,10 +27,12 @@ from __future__ import annotations
 
 import argparse
 import os
+import signal
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 
@@ -127,6 +129,21 @@ def _captures_hf_failure(stderr_tail: str) -> bool:
     return any(marker in stderr_tail for marker in HF_FAILURE_MARKERS)
 
 
+def _terminate_process_group(proc: subprocess.Popen[str]) -> None:
+    try:
+        os.killpg(proc.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            return
+        proc.wait(timeout=5)
+
+
 def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
     _mirror_preflight()
 
@@ -148,6 +165,8 @@ def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
         "[run_mineru] local MinerU may stay quiet for 30-90 seconds during "
         "layout/model work; silence here is not necessarily a hang"
     )
+    quiet_timeout = int(os.environ.get("COLLATE_MINERU_QUIET_TIMEOUT", "120"))
+    total_timeout = int(os.environ.get("COLLATE_MINERU_TOTAL_TIMEOUT", "900"))
     # We tee the child process output so the user still sees progress bars
     # in real time AND we retain the stderr tail to pattern-match for
     # HuggingFace-specific failure modes after exit. subprocess.run with
@@ -156,6 +175,7 @@ def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
     # to spot ProxyError markers.
     tail: list[str] = []
     tail_cap = 80  # keep the last ~80 stderr lines
+    last_output = [time.monotonic()]
 
     proc = subprocess.Popen(
         cmd,
@@ -163,6 +183,7 @@ def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
         stderr=subprocess.PIPE,
         bufsize=1,
         text=True,
+        start_new_session=True,
     )
     # Read both streams concurrently via select so neither buffer blocks the
     # other. Using threads here is simpler than asyncio for a one-shot call.
@@ -172,6 +193,7 @@ def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
         for line in stream:
             dest.write(line)
             dest.flush()
+            last_output[0] = time.monotonic()
             if keep_tail:
                 tail.append(line)
                 if len(tail) > tail_cap:
@@ -181,10 +203,41 @@ def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
     t_err = threading.Thread(target=_relay, args=(proc.stderr, sys.stderr, True))
     t_out.start()
     t_err.start()
+    start = time.monotonic()
+    timeout_reason = ""
+    while proc.poll() is None:
+        elapsed = time.monotonic() - start
+        quiet_for = time.monotonic() - last_output[0]
+        no_artifacts_yet = not any(tmp_out.iterdir())
+        if total_timeout > 0 and elapsed > total_timeout:
+            timeout_reason = (
+                f"[run_mineru] local MinerU exceeded {total_timeout}s total runtime; "
+                "falling back to the next OCR path"
+            )
+            _terminate_process_group(proc)
+            break
+        if quiet_timeout > 0 and elapsed > quiet_timeout and no_artifacts_yet:
+            timeout_reason = (
+                f"[run_mineru] local MinerU produced no job files within "
+                f"{quiet_timeout}s; falling back to the next OCR path"
+            )
+            _terminate_process_group(proc)
+            break
+        if quiet_timeout > 0 and quiet_for > quiet_timeout and not no_artifacts_yet:
+            timeout_reason = (
+                f"[run_mineru] local MinerU stopped emitting progress for "
+                f"{quiet_timeout}s after startup; falling back to the next OCR path"
+            )
+            _terminate_process_group(proc)
+            break
+        time.sleep(1)
     rc = proc.wait()
     t_out.join()
     t_err.join()
 
+    if timeout_reason:
+        print(timeout_reason, file=sys.stderr)
+        raise SystemExit(124)
     if rc != 0:
         stderr_tail = "".join(tail)
         if _captures_hf_failure(stderr_tail):

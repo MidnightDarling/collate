@@ -49,6 +49,29 @@ except ImportError:
 PARA_BREAK_PUNCT = tuple("。！？；.!?;」』）)”〉》")
 
 
+def _count_cjk(text: str) -> int:
+    return sum(1 for ch in text if "\u4e00" <= ch <= "\u9fff")
+
+
+def repair_cjk_mojibake(text: str) -> str:
+    """Recover common GBK-ish mojibake emitted by PyPDF2 on CN academic PDFs.
+
+    PyPDF2 sometimes decodes a GBK-backed text layer as Latin-1 looking glyphs
+    like `±±´ó...`. Reinterpreting those codepoints as bytes and decoding them
+    as GB18030 usually recovers readable Chinese. We only accept the repair
+    when it materially increases the amount of CJK text.
+    """
+    if not text:
+        return text
+    original_cjk = _count_cjk(text)
+    try:
+        repaired = text.encode("latin1").decode("gb18030")
+    except Exception:
+        return text
+    repaired_cjk = _count_cjk(repaired)
+    return repaired if repaired_cjk >= max(8, original_cjk * 3) else text
+
+
 def strip_pua(text: str) -> str:
     """Drop Private Use Area characters that the PDF font uses for its own
     glyph bookkeeping (U+E000–U+F8FF).
@@ -155,7 +178,7 @@ def extract_pages(pdf_path: Path) -> list[str]:
             except Exception as e:
                 print(f"[text-layer] page {i} extraction error: {e}", file=sys.stderr)
                 raw = ""
-            pages.append(smart_merge(strip_pua(raw)))
+            pages.append(repair_cjk_mojibake(smart_merge(strip_pua(raw))))
     return pages
 
 

@@ -46,6 +46,7 @@ def seed_workspace(ws: Path) -> None:
 
 def seed_unmarked_workspace(ws: Path) -> None:
     (ws / "prep" / "pages").mkdir(parents=True, exist_ok=True)
+    (ws / "_internal").mkdir(parents=True, exist_ok=True)
     (ws / "review").mkdir(parents=True, exist_ok=True)
     (ws / "raw.md").write_text(
         "第一页正文。\n\n第二页正文。\n",
@@ -128,6 +129,36 @@ def main() -> int:
         )
         assert "page markers" in (build_fail.stderr + build_fail.stdout).lower(), (
             "rejection should explain missing page markers"
+        )
+
+        # A multi-page fallback may keep raw.md unmarked but still provide
+        # page-grounded sidecar text. That should be accepted.
+        (ws_unmarked / "_internal" / "page_texts.json").write_text(
+            json.dumps(
+                [
+                    {"page": 1, "text": "第一页正文。", "chars": 6},
+                    {"page": 2, "text": "第二页正文。", "chars": 6},
+                ],
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        build_sidecar = run_py(
+            "skills/proofread/scripts/build_page_review_packets.py",
+            "--workspace",
+            str(ws_unmarked),
+        )
+        assert build_sidecar.returncode == 0, (
+            "page_texts sidecar should let packet builder proceed"
+        )
+        packets_sidecar = json.loads(
+            (ws_unmarked / "review" / "page_review_packets.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        assert packets_sidecar[0]["ocr_text"] == "第一页正文。", (
+            f"sidecar packet text mismatch: {packets_sidecar}"
         )
 
     print("PASS smoke_real_user_contract")

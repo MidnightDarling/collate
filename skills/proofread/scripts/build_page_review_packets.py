@@ -11,9 +11,11 @@ Output:
 
 Each packet gives the proofread agent one page worth of source evidence:
 the original PNG path plus the OCR text currently attributed to that page.
-When raw.md lacks explicit `<!-- page N -->` markers, we degrade to a
-stable paragraph-bucket split across the known page count. That keeps the
-recipe mechanically executable even when the OCR engine omitted page tags.
+Primary source is raw.md with explicit `<!-- page N -->` markers. If a
+fallback OCR path cannot truthfully inject markers into raw.md, it may
+write `_internal/page_texts.json` as a separate per-page sidecar; we accept
+that too. What we do NOT do is invent page boundaries by evenly slicing the
+document.
 """
 from __future__ import annotations
 
@@ -48,35 +50,30 @@ def split_by_page(markdown: str, total_pages: int) -> list[tuple[int, str]]:
     text = markdown.strip()
     if total_pages <= 1:
         return [(1, text)]
-    if not text:
-        return [(i + 1, "") for i in range(total_pages)]
 
-    paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
-    if not paragraphs:
-        return [(i + 1, "") for i in range(total_pages)]
+    raise ValueError(
+        "page markers missing: multi-page raw.md cannot be split truthfully; "
+        "rerun OCR/reflow so raw.md contains `<!-- page N -->` markers"
+    )
 
-    target = max(1, sum(len(p) for p in paragraphs) // total_pages)
-    buckets: list[str] = []
-    current: list[str] = []
-    current_len = 0
-    for idx, para in enumerate(paragraphs):
-        current.append(para)
-        current_len += len(para)
-        remaining_paras = len(paragraphs) - idx - 1
-        remaining_pages = total_pages - len(buckets) - 1
-        if current_len >= target and remaining_paras >= remaining_pages:
-            buckets.append("\n\n".join(current).strip())
-            current = []
-            current_len = 0
-    if current:
-        buckets.append("\n\n".join(current).strip())
 
-    while len(buckets) < total_pages:
-        buckets.append("")
-    if len(buckets) > total_pages:
-        buckets = buckets[: total_pages - 1] + ["\n\n".join(buckets[total_pages - 1 :]).strip()]
-    return [(i + 1, bucket) for i, bucket in enumerate(buckets)]
-
+def sidecar_blocks(sidecar_path: Path, total_pages: int) -> list[tuple[int, str]]:
+    if not sidecar_path.is_file():
+        return []
+    try:
+        payload = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    if not isinstance(payload, list):
+        return []
+    blocks = [
+        (int(item.get("page")), str(item.get("text", "")))
+        for item in payload
+        if str(item.get("page", "")).isdigit()
+    ]
+    if len(blocks) != total_pages:
+        return []
+    return sorted(blocks)
 
 def low_confidence_pages(meta_path: Path) -> set[int]:
     if not meta_path.is_file():
@@ -129,8 +126,10 @@ def main() -> int:
     try:
         blocks = split_by_page(raw_path.read_text(encoding="utf-8"), len(images))
     except ValueError as exc:
-        print(str(exc), file=sys.stderr)
-        return 2
+        blocks = sidecar_blocks(workspace / "_internal" / "page_texts.json", len(images))
+        if not blocks:
+            print(str(exc), file=sys.stderr)
+            return 2
     block_map = {page: text for page, text in blocks}
     low_conf = low_confidence_pages(workspace / "meta.json")
 
