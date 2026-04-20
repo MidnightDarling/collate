@@ -12,12 +12,13 @@ allowed-tools: Read, Write, Edit, Bash, Grep
 给 `historical-proofreader` agent 喂一份 OCR 产出的 Markdown，让它输出一份**校对清单**。用户最核心的工作（校对）就围绕这份清单展开。
 
 你的责任是：
-1. 读用户给的 Markdown
-2. 判断文献类型（也可以用户指定）
-3. 加载对应 reference 文件到上下文
-4. 调用 `historical-proofreader` agent，传入文本 + reference
-5. 把 agent 返回的标注清单保存到工作区的 `review/raw.review.md`
-6. 刷新工作区 README.md，然后用 `open` 打开 review 供用户审阅
+1. 加载 `prep/pages/page_*.png` 作为**第一类证据**（subagent 必须对着原图判 OCR 对错，不能只盯 Markdown 自证）
+2. 读用户给的 Markdown
+3. 判断文献类型（也可以用户指定）
+4. 加载对应 reference 文件到上下文
+5. 调用 `historical-proofreader` agent，传入文本 + reference + `page_images_dir`
+6. 把 agent 返回的标注清单保存到工作区的 `review/raw.review.md`，并在 `_pipeline_status.json` 记录 `proofread_method: "page-grounded"`
+7. 刷新工作区 README.md，然后用 `open` 打开 review 供用户审阅
 
 > **目录约定**：清单固定落在 `<workspace>.ocr/review/raw.review.md`，不落在工作区根目录。权威规范见插件的 `references/workspace-layout.md`。
 
@@ -63,8 +64,13 @@ Read 这个 Markdown 前 50 行，判断文献类型（或读 `meta.json` 如果
 文献类型：<type>
 reference 已加载：<path>
 待校对文本：<path>
+page_images_dir：<workspace>/prep/pages/   # PNG 序列；subagent 必须把它当第一类证据，逐页对照原图判对错，不能只盯 Markdown
+page_image_format：png                      # 默认 png；prep-scan 的 split_pages.py 落盘即为此格式
+low_confidence_pages：[3, 7, 12]            # 从 meta.json 来；若有，这些页优先对图核查
 输出要求：按 A/B/C 分类的标注清单（参见 agent 内部规范），不改原文
 ```
+
+**page-grounded 硬约束**：如果 `prep/pages/` 不存在或未含 `page_*.png`，直接终止并报"校对阶段缺少原图证据"，不要退化为纯文本校对。纯文本校对会把 OCR 错当"笔误存疑"，让导出 gate 无法把关。
 
 同时读 OCR 阶段产出的 `meta.json`（如果存在），把 `low_confidence_pages` 传给 agent 作为**重点盯防**提示。
 
@@ -95,7 +101,7 @@ pages    = meta.get("pages") or 0
 
 ### Step 5：保存报告
 
-推导工作区根，把 agent 输出写到 `<workspace>/review/raw.review.md`：
+推导工作区根，把 agent 输出写到 `<workspace>/review/raw.review.md`，并在 `_pipeline_status.json` 写入 `proofread_method: "page-grounded"` 作为 fidelity gate 识别证据：
 
 ```bash
 INPUT="<input-markdown-path>"
@@ -104,6 +110,19 @@ OCR="$(dirname "$INPUT")"
 mkdir -p "$OCR/review"
 REVIEW_OUT="$OCR/review/raw.review.md"
 ```
+
+保存清单后，用 `pipeline_status.write_status` 附加一个 marker（保留 status/stage 不变），例如：
+
+```python
+from pipeline_status import read_status, write_status
+from pathlib import Path
+ws = Path("$OCR")
+payload = read_status(ws) or {}
+payload["proofread_method"] = "page-grounded"
+write_status(ws, payload)
+```
+
+Bundle 4 的 fidelity gate 会检查这个字段；缺失则拒绝导出。
 
 例：`~/Downloads/论文.ocr/raw.md` → `~/Downloads/论文.ocr/review/raw.review.md`
 

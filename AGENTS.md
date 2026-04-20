@@ -208,7 +208,11 @@ python skills/ocr-run/scripts/extract_text_layer.py \
   - `classics` → `skills/proofread/references/traditional-classics.md`
   - `republican` → `skills/proofread/references/republican-era.md`
   - `modern` → `skills/proofread/references/modern-chinese.md`
+- `page_images_dir`：`<ws>.ocr/prep/pages/`（**必填**；page-grounded 校对的第一类证据，subagent 必须逐页对照原图判 OCR 对错）
+- `page_image_format`：默认 `png`（prep-scan 的 `split_pages.py` 落盘格式）
 - `meta.json.low_confidence_pages`（如有）
+
+**proofread_method 写回**：subagent 完成并落盘 `review/raw.review.md` 之后，调用方必须在 `_internal/_pipeline_status.json` 写入 `proofread_method: "page-grounded"`，作为 Bundle 4 fidelity gate 的识别证据。缺失该字段将拒绝导出。
 
 **产物**：`<ws>.ocr/review/raw.review.md` — 按行号 + 片段 + 建议 + 理由组织的 A/B/C 三级清单，末尾附 checklist 执行证明表。
 
@@ -324,8 +328,12 @@ python skills/mp-format/scripts/md_to_wechat.py \
 type: classics | republican | modern
 raw_md_path: <absolute path>
 reference_path: <absolute path to references/*.md>
-low_confidence_pages: [3, 7, 12]    # optional, from ocr-run meta.json
+page_images_dir: <absolute path to <ws>.ocr/prep/pages/>   # 必填：PDF 分页 PNG 序列，校对第一类证据
+page_image_format: png                                      # 默认 png；prep-scan 落盘即为此格式
+low_confidence_pages: [3, 7, 12]                            # optional, from ocr-run meta.json
 ```
+
+**硬约束**：`page_images_dir` 不存在或其中无 `page_*.png` 时，subagent 必须终止，不得退化为纯文本校对。纯文本校对无法分辨 OCR 错与古文字异体，会把结构性错误编进"C 类存疑"静默带过去。
 
 **subagent 必须按五步 checklist 执行**：
 

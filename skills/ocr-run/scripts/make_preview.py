@@ -1,18 +1,34 @@
 #!/usr/bin/env python3
-"""Generate a side-by-side HTML viewer for OCR review.
+"""Audit-only OCR preview (NOT a canonical pipeline step).
 
-Left column shows each page's rendered PNG. Right column shows the
-corresponding OCR text as editable HTML. The user can fix obvious OCR errors
-directly in the browser; clicking "下载修改后的 Markdown" saves a file named
-`corrected.md` to the browser's Downloads folder. The file is NOT written
-back to `raw.md` in place — browsers cannot silently write to disk, so the
-user is expected to move `corrected.md` over `raw.md` before the next step.
-The footer of the generated HTML spells this out.
+This tool renders `raw.md` next to each page's rendered PNG for human
+inspection. It is **never invoked by `run_full_pipeline.py`** and must not
+be relied upon to produce `corrected.md` as a replacement for `raw.md`.
+
+Canonical OCR correction lives in the page-grounded proofread stage
+(see AGENTS.md §5 and skills/proofread/SKILL.md): the `historical-
+proofreader` subagent reads the same `prep/pages/*.png` directly and
+emits `review/raw.review.md` with A/B/C classifications that `apply_
+review.py` then applies to produce `final.md`. That path is machine-
+auditable and gated by `_pipeline_status.json.proofread_method ==
+"page-grounded"`; this HTML viewer is not.
+
+Use this tool when:
+- you want a quick visual sanity check of OCR fidelity before running proofread
+- you are investigating a Codex / reviewer claim about a specific page
+
+Do NOT use this tool to:
+- bypass the proofread subagent ("I'll just fix it in the browser")
+- produce `corrected.md` and copy it over `raw.md`; that skips the gate
+
+Left column: page PNG. Right column: OCR text as editable HTML. The save
+handler writes `corrected.md` to Downloads for manual inspection only;
+the footer of the generated HTML spells this out.
 
 Entirely offline — uses relative paths for images, no external scripts
 except a tiny inline save handler.
 
-Usage:
+Usage (audit-only):
     python3 make_preview.py --markdown raw.md --pages-dir ../pages \
         --out preview.html
 """
