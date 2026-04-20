@@ -142,6 +142,6 @@ PR 规范：
 - **版权持有人**：Alice（见 [NOTICE](NOTICE)）
 - **联合作者**：Alice、Claude Opus 4.7 与 GPT-5.4
 - **代码许可**：[Apache License 2.0](LICENSE)
-- **引用材料许可**：[CC-BY-4.0](LICENSE-REFERENCES)
+- **引用材料许可**：[CC BY 4.0](LICENSING.md)
 
 在引用、转载、改编本项目的任何部分时，请同时标注版权持有人（Alice）与联合作者（Alice、Claude Opus 4.7 与 GPT-5.4），以及对应许可证的引用链接。

@@ -212,7 +212,7 @@ collate/
 ├── INSTALL.md                   Long-form install guide
 ├── NOTICE                       Copyright + co-authorship + third-party licenses
 ├── LICENSE                      Apache-2.0 (code)
-└── LICENSE-REFERENCES           CC-BY-4.0 (reference materials)
+└── LICENSING.md                 CC-BY-4.0 scope notes for reference materials
 ```
 
 ---
@@ -476,7 +476,7 @@ The plugin itself issues no telemetry or reporting calls. `~/.cache/baidu_ocr_to
 ## License
 
 - **Code** (all Python scripts, configs, shell snippets, SKILL.md files): [Apache License 2.0](LICENSE)
-- **Reference materials** (docs/, skills/*/references/, README, AGENTS.md, authored artwork): [CC-BY-4.0](LICENSE-REFERENCES)
+- **Reference materials** (docs/, skills/*/references/, README, AGENTS.md, authored artwork): [CC BY 4.0](LICENSING.md)
 - **Third-party dependencies** retain their own licenses — see [NOTICE](NOTICE).
 
 Copyright 2026 Alice <Mcyunying@gmail.com>. Co-authored by Alice, Claude Opus 4.7 (Anthropic), and GPT-5.4 (OpenAI); under applicable law governing AI-assisted works, copyright is held by Alice alone, while authorship credit is joint. See [NOTICE](NOTICE) and [CONTRIBUTORS.md](CONTRIBUTORS.md).

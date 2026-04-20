@@ -16,8 +16,8 @@ contributors.
 
 Unless otherwise stated in an individual file header, each file in this
 repository is licensed under one of the following two licenses. See the
-LICENSE (Apache 2.0) and LICENSE-REFERENCES (CC BY 4.0) files for the
-full legal text.
+LICENSE file for the Apache 2.0 legal text, and LICENSING.md for the
+CC BY 4.0 scope notes plus canonical legal-code links.
 
   Apache License 2.0 — applies to:
     - All source code: skills/*/scripts/**, agents/**/*.py
