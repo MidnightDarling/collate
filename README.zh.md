@@ -68,6 +68,8 @@ curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/script
 
 诊断 Python 版本、十个依赖包、`pdftoppm` 二进制、OCR 引擎凭据。逐项报告通过/缺失,每个缺失给一条修复建议。从不自动安装。
 
+在会直接暴露 skill 的 runtime 里，`setup` 是 skill 本身的 slash surface，不再需要一层同名 command 壳。
+
 ### 3 · 跑
 
 **公开用户路径** 只有 `/collate:ocr <pdf-path>`。
@@ -159,7 +161,7 @@ collate/
 ├── .agents/
 │   └── plugins/marketplace.json Codex 用的 repo 级 marketplace
 │
-├── skills/                      10 个 skill · 流水线 + 阅读层
+├── skills/                      14 个 skill · 8 个流水线 + 6 个阅读层
 │   ├── setup/                   环境诊断(Python、poppler、OCR 凭据)
 │   ├── prep-scan/               PDF → 清理后逐页 PNG(HSV 章法、形态学水印、裁边)
 │   ├── visual-preview/          逐页三态 HTML(原始 / 清理后 / 差异热图)
@@ -169,27 +171,19 @@ collate/
 │   ├── to-docx/                 python-docx,统一学术规范
 │   ├── mp-format/               公众号 HTML 内联 CSS + xiumi 附件
 │   ├── xray-paper/              单篇历史论文 X 光透视(Obsidian 原生)
-│   └── paper-summary/           5–30 篇文献绘图(Obsidian 原生)
+│   ├── paper-summary/           5–30 篇文献绘图(Obsidian 原生)
+│   ├── chunqiu/                 读禁忌、定谳与策略性沉默
+│   ├── kaozheng/                审引证、证据层级与 warrant
+│   ├── prometheus/              为单个概念下定义并渲染 SVG 卡
+│   └── real-thesis/             挖作者绕而不写的真论题
 │
 ├── agents/                      2 个专职 subagent
 │   ├── ocr-pipeline-operator.md 流水线总操作员:机械 → 校对 → 自审 → 交付
 │   └── historical-proofreader.md 领域专家:执行五步清单,产出 A/B/C 校对
 │
-├── commands/                    14 个 slash 命令 · 总编排 + 阶段 + 阅读视角
+├── commands/                    2 个独立 command · 仅做总编排
 │   ├── ocr.md                   /ocr — 一次性全流水线
-│   ├── status.md                /status — 读 _pipeline_status.json,报阶段与下一步
-│   ├── setup.md                 /setup — 验证依赖与凭据
-│   ├── prep-scan.md             /prep-scan — 仅做预处理
-│   ├── visual-preview.md        /visual-preview — 重新生成三态预览
-│   ├── ocr-run.md               /ocr-run — 仅 OCR 阶段(不向下传应用/docx/wechat)
-│   ├── proofread.md             /proofread — 调度 historical-proofreader,输出 raw.review.md
-│   ├── diff-review.md           /diff-review — 闭环自审
-│   ├── to-docx.md               /to-docx — 把 final.md 出成学术 Word
-│   ├── mp-format.md             /mp-format — 把 final.md 出成公众号 HTML
-│   ├── chunqiu.md               /chunqiu — 读禁忌、定谳、有意模糊(春秋笔法)
-│   ├── kaozheng.md              /kaozheng — 核引证、审 warrant(乾嘉考证)
-│   ├── prometheus.md            /prometheus — 为概念定义,渲染 attribution-theme SVG 卡
-│   └── real-thesis.md           /real-thesis — 挖作者绕而不写的真论题
+│   └── status.md                /status — 读 _pipeline_status.json,报阶段与下一步
 │
 ├── scripts/
 │   ├── run_full_pipeline.py     机械总编排(不依赖 agent)
@@ -217,7 +211,7 @@ collate/
 
 ## Skills 详述
 
-每个 skill 是自包含目录:`SKILL.md`(agent 读取的操作指令)+ `scripts/`(Python 工具)+ `references/`(结构化知识库,如适用)。八个 skill 组成 OCR 流水线;两个 skill 在阅读层。
+每个 skill 是自包含目录:`SKILL.md`(agent 读取的操作指令)+ `scripts/`(Python 工具)+ `references/`(结构化知识库,如适用)。Collate 现在明确以 skill 为唯一能力本体: **8 个流水线 skill + 6 个阅读 skill**。如果某个 slash surface 有能力，那能力就应该写回 skill 本身。
 
 ### 流水线 skill
 
@@ -310,7 +304,7 @@ collate/
 
 ### 阅读层 skill
 
-上面的流水线在 `final.md` 干净之后结束。阅读层从那里开始。文本可靠了,工具箱才把它当作学术来读 —— 不是为了概述,而是为了进入历史学家之间的那场对话。两个阅读 skill 都是 Obsidian 原生格式;两者都可以选渲染一份 attribution-theme HTML viewer(规则与文件名约定写在各自的 `SKILL.md` 里)。
+上面的流水线在 `final.md` 干净之后结束。阅读层从那里开始。文本可靠了,工具箱才把它当作学术来读 —— 不是为了概述,而是为了进入历史学家之间的那场对话。`xray-paper` 与 `paper-summary` 是大房间;另外四个 lens skill 是更锋利的单问题工具。
 
 > **xray-paper**
 
@@ -332,44 +326,59 @@ collate/
 
 ---
 
-## Commands 详述
+> **chunqiu**
 
-十四个 slash 命令。按层次自然分为三类 —— 全流水线总编排、单阶段执行器(需要手动控制时用)、以及对 OCR 后文本的阅读视角。
+读禁忌、定谳与策略性沉默。最适合处理真正的力量不在明说,而在用字、重复、停顿与借古讽今里的论文。
 
-### 总编排
+产出:`analysis/{stem}_chunqiu.md`。
+
+*触发*:"春秋笔法"、"作者不敢明说什么"、"借古讽今"、"读读沉默"。
+
+---
+
+> **kaozheng**
+
+乾嘉式 evidential audit: claims、sources、warrants、citation rank、truncation risk。最适合处理"这篇论文到底站不站得住"而不是"它是什么意思"的问题。
+
+产出:`analysis/{stem}_kaozheng.md`。
+
+*触发*:"考证一下"、"核引证"、"这个论证站得住吗"、"审 warrant"。
+
+---
+
+> **prometheus**
+
+为单个概念、制度或专名下定义,并渲染成一张 ATTRIBUTION 风格的 SVG 卡。最适合把一个词真正变成脑子里能抓住的东西。
+
+产出:`analysis/prometheus/{concept}.svg`。
+
+*触发*:"给这个概念下定义"、"做一张概念卡"、"这个词到底是什么"。
+
+---
+
+> **real-thesis**
+
+挖出作者绕着走但不肯明写的论题。最适合那种表面主题明显比真实压力更安全、更窄的论文。
+
+产出:`analysis/{stem}_real-thesis.md`。
+
+*触发*:"它真正想说什么"、"挖真论题"、"作者到底在绕什么"。
+
+---
+
+## 独立 Commands
+
+现在只保留两个独立 command:
+
+- `/collate:ocr <pdf>` —— 面向人的一次性总编排入口
+- `/collate:status [workspace]` —— 状态与收口检查器
+
+其余都改成 **skill-first**。在会直接暴露 skill 的 runtime 里,你直接调用 `/collate:<skill>`，不再维护一层同名 command 壳。若 command 里有 skill 没有的能力,那能力就应该并回 skill,而不是让双轨继续长下去。
 
 | 命令 | 干什么 | 何时用 |
 |------|--------|--------|
-| `/ocr <pdf>` | 调度 `ocr-pipeline-operator`。一次调用跑完 prep → OCR → 校对 → 应用 → diff-review → docx → wechat,返回交付路径与审计摘要。 | 默认入口。把扫描 PDF 交给 agent,让它走完那一长段;你回来时拿到的是交付物与审计记录。 |
+| `/ocr <pdf>` | 调度 `ocr-pipeline-operator`。一次调用跑完 prep → OCR → 校对 → 应用 → diff-review → docx → wechat,返回交付路径与审计摘要。 | 公开入口。把扫描 PDF 交给 agent,让它走完那一长段。 |
 | `/status [workspace]` | 读 `<ws>/_internal/_pipeline_status.json`,报阶段/状态/下一步,逐项核对哪些交付物在场或缺失。 | 跑了一半被打断,或想知道接下来该干什么。 |
-| `/setup` | 诊断 Python 依赖、poppler、OCR 凭据。逐项报告通过/缺失,每个缺失给一条修复建议。从不自动安装。 | 首次安装、环境刷新,或者东西莫名其妙坏了。 |
-
-### 流水线阶段
-
-这些命令直接调单个 skill。当你想检查或重跑某一段时用。
-
-| 命令 | 干什么 | 何时用 |
-|------|--------|--------|
-| `/prep-scan <pdf>` | 300 DPI 切分、去水印、裁边、生成 `cleaned.pdf`、出三态预览。**不会自动走到 OCR**。 | 第一阶段。在花钱跑 OCR 前先看预览。 |
-| `/visual-preview <ws>` | 为已经预处理过的 workspace 重新生成三态预览。 | 调了 `--header-ratio` 想看新效果时。 |
-| `/ocr-run <pdf-or-ws>` | 只跑 OCR,不向下传。按 `OCR_ENGINE` 选引擎(默认本地 MinerU)。`run_full_pipeline.py` 的 canonical 兜底链:本地 MinerU → `mineru-cloud`(需 `MINERU_API_KEY`)→ `extract_text_layer.py`(设 `COLLATE_ALLOW_TEXTLAYER=0` 可关)。 | 预处理已确认无误,只想跑 OCR 这一段时。 |
-| `/proofread <ws> [type]` | 调度 `historical-proofreader`。读 `raw.md` + `meta.json`,如果没传类型就自动分类,产出 `review/raw.review.md` 走 canonical 格式(`### A1. <title> · Line 42` + 原文 + 建议 + 依据)。已存在审计文件时拒绝静默覆盖。 | `raw.md` 就绪,只想要校对清单,先不应用任何修改时。 |
-| `/diff-review <ws>` | 对比 `raw.md` 与 `final.md`,与 `raw.review.md` 关联,把每处改动归类到 采纳/漏改/清单外/未锚定。出 HTML 报告与 Markdown 摘要。 | 闭环检查。`apply_review.py` 跑完后任何时候都可以跑,看漏改和即兴改动。 |
-| `/to-docx <ws>` | 用统一学术规范从 `final.md` 出 `<ws>/output/<stem>_final.docx`。文档标题取自第一个 H1。 | 文本定稿,需要期刊就绪的 Word 版本时。 |
-| `/mp-format <ws>` | 从 `final.md` 出 `<ws>/output/<stem>_wechat.html` 加一份 xiumi 附件。全内联 CSS,OpenCC t2s 但保留引用块原貌,脚注集中文末。 | 发公众号时。严格基于 `final.md`,不会从 `raw.md` 出。 |
-
-### 阅读视角
-
-四个解读命令。它们在 OCR 后、校对后的文本上运行,写入独立的解读报告 —— 永不改动源文件。每个命令以一个传统或人物命名,各以不同意图阅读。
-
-| 命令 | 传统 | 读什么 | 产出 |
-|------|------|--------|------|
-| `/chunqiu` | 春秋笔法 | 禁忌、定谳、有意模糊 —— 作者不愿明说的部分。卒/薨/崩 与 诛/弑/戮 这种区分承载判断之重。 | `analysis/{stem}_chunqiu.md` —— 用字定谳、重复与停顿、借古之镜、一句不说的话。 |
-| `/kaozheng` | 乾嘉考证 | 论证可靠性 —— evidentiary bridge 撑得住吗,每条引文是否对应原文,warrant 经得起推敲吗。flag 孤证不立。 | `analysis/{stem}_kaozheng.md` —— Toulmin 论证骨架、引证审计表、要害失误与修复建议。 |
-| `/prometheus` | 普罗米修斯 | 文中的某一概念 —— 设其属、明其差、给白话注、放回它的制度与时代脉络。 | `analysis/prometheus/{concept}.svg` —— attribution-theme SVG 卡片,one Signal per page,IBM Plex Mono Light 正文。 |
-| `/real-thesis` | — | 作者反复绕但不敢正面写的那个论题。看哪里一再回来、哪里 略而不论、哪里引证最密、哪里脚注比正文更卖力。 | `analysis/{stem}_real-thesis.md` —— 表面话题、漂浮的关切、一到三个候选真论题及其证据、一个作者不敢自问的问题。 |
-
-挑与论文所问相配的那一个:`chunqiu` 读沉默,`kaozheng` 核 warrant,`prometheus` 给概念命名,`real-thesis` 挖未明说者。
 
 ---
 
@@ -397,7 +406,7 @@ collate/
 
 | Runtime | 接入方式 |
 |---------|----------|
-| **Claude Code** | `/plugin install /path/to/collate`。原生 `.claude-plugin/plugin.json`;skills 注册为 `/collate:<skill>`。 |
+| **Claude Code** | `/plugin install /path/to/collate`。原生 `.claude-plugin/plugin.json`;skills 注册为 `/collate:<skill>`，而独立 command 只保留 `ocr` 与 `status`。 |
 | **OpenCode** | `cd /path/to/collate && opencode`。原生读取 `AGENTS.md`(缺失时回落到 `CLAUDE.md`)。Skill 可放 `.opencode/skills/`,或走 Claude Code 兼容层直接复用 `~/.claude/skills/`。 |
 | **Hermes agents** | `cd /path/to/collate && hermes`。原生读取 `AGENTS.md` 与 `.hermes.md`;skill 落到 `~/.hermes/skills/`。已有 OpenClaw 配置的用户可用 `hermes claw migrate --workspace-target /path/to/collate` 迁过来。 |
 | **Codex** | 仓库随发原生 `.codex-plugin/plugin.json` 与 repo 级 `.agents/plugins/marketplace.json`。支持 plugin directory 的 Codex 端重启后可直接从该 marketplace 安装 `collate`;在仓库里直接工作时,`cd /path/to/collate && codex` 仍会从 git root 自动加载 `AGENTS.md`。 |

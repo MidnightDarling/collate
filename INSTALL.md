@@ -44,7 +44,7 @@ curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/script
 2. 跑 `pip install --user -U -r requirements.txt` 装 Python 依赖
 3. 自动识别本机已装的 agent runtime，并为每个 runtime 做对应接入：
     - **Claude Code**：把仓库软链到 `~/.claude/plugins/collate`
-    - **Hermes agents**：把 10 个 skill 软链到 `~/.hermes/skills/collate-*`
+    - **Hermes agents**：把 14 个 skill 软链到 `~/.hermes/skills/collate-*`
     - **OpenCode**：零配置，只打印 `cd + 启动` 命令
     - **Codex**：打印两条路径
       - 直接在 repo 里运行 `codex`（原生读取 `AGENTS.md`）
@@ -168,6 +168,8 @@ gemini
 ```
 
 setup skill 会引导注册 OCR 引擎凭据并检查 Python 依赖完整性。非 Claude Code 场景直接手动把 OCR 凭据写到 `~/.env` 即可（见下一节）。
+
+接口约定也已收敛：仓库只保留 `ocr` 与 `status` 两个独立 command，其余 slash surface 直接来自对应 skill。
 
 ---
 

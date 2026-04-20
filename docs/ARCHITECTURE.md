@@ -15,7 +15,7 @@ status: v0.1.0
 - `.claude-plugin/`：Claude Code 原生插件入口
 - `.codex-plugin/` + `.agents/plugins/marketplace.json`：Codex 原生插件入口
 
-两者都直接指向仓库根的 `skills/`，不再维护第二份运行时专用 skill 副本。
+两者都直接指向仓库根的 `skills/`，不再维护第二份运行时专用 skill 副本。命令层也已收敛：`commands/` 只保留 `ocr` 与 `status` 两个独立入口，其余能力统一回收到 skill 本体。
 
 ---
 
@@ -29,6 +29,9 @@ collate/
 ├── README.md                       用户入口
 ├── AGENTS.md                       给未来接管的 agent 看
 ├── INSTALL.md                      三个宿主的装法
+├── commands/
+│   ├── ocr.md                      公共一键入口（总编排）
+│   └── status.md                   状态 / 闭环检查
 ├── scripts/
 │   ├── run_full_pipeline.py        机械总编排入口
 │   ├── apply_review.py             review 清单保守应用器
@@ -49,7 +52,13 @@ collate/
     ├── proofread/                  校对（调 agent）
     ├── diff-review/                校对核对
     ├── to-docx/                    Word 生成
-    └── mp-format/                  公众号 HTML
+    ├── mp-format/                  公众号 HTML
+    ├── xray-paper/                 单篇论文 X 光透视
+    ├── paper-summary/              文献场全景地图
+    ├── chunqiu/                    读禁忌、定谳与沉默
+    ├── kaozheng/                   审引证与 warrant
+    ├── prometheus/                 概念定义卡
+    └── real-thesis/                挖真论题
 ```
 
 每个 skill 目录结构：
@@ -59,7 +68,7 @@ skills/<name>/
 ├── SKILL.md                        触发词 + 工作流规范（给 agent / 用户看）
 ├── scripts/                        Python 可执行工具
 │   └── *.py
-└── references/                     知识库（仅 proofread 有）
+└── references/                     知识库（如适用）
     └── *.md
 ```
 
@@ -159,6 +168,16 @@ skills/<name>/
 ---
 
 ## 核心设计决策
+
+### 0.5 Skill-first interface
+
+能力的唯一权威定义在 `skills/`。
+
+- skill 可以被 runtime 直接暴露成 `/collate:<skill>`
+- 独立 command 只保留需要额外编排的 `ocr` 与需要额外收口的 `status`
+- 如果某个 command 出现了 skill 没有的能力，这说明能力放错层了，应该并回 skill，再删掉 command 壳
+
+这样做的目的不是“少几个文件”，而是消灭双轨 drift：同一能力不再由 command 和 skill 各写一套规范。
 
 ### 1. SKILL.md 写契约，脚本遵守契约
 

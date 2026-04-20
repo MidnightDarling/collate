@@ -10,6 +10,8 @@ status: v0.1.0
 
 按出错所在的 skill 分类索引。将报错信息复制到本页搜索，命中条目后按方案操作。
 
+说明：本页中像 `/collate:prep-scan` 这样的调用现在表示**直接激活对应 skill**；仓库只保留 `ocr` 与 `status` 两个独立 command。
+
 ---
 
 ## 安装 / setup

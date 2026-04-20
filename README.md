@@ -19,7 +19,7 @@ From the scanned page to the final text, from a single x-ray to a field-wide map
 
 A workbench shared by three parties — a historian, the agents working with them, and the original author whose text passes through. The human supplies the scan and holds final judgment. The agents do the patient, repetitive labor between: cleaning, recognition, collation, self-audit, typesetting. Every intermediate stays in the workspace, so any decision can be traced back to the page it came from.
 
-Beyond the pipeline lies a **reading layer** — skills and commands that meet the recovered text as scholarship rather than as data. X-ray a single paper to enter its argument; map a corpus to see a field's shape; audit a citation; read what the author chose not to say; define a key concept; circle the thesis the author approaches but cannot quite commit to writing. These are not extractions. They are ways of joining the conversation the historian has been having all along.
+Beyond the pipeline lies a **reading layer** — skills that meet the recovered text as scholarship rather than as data. X-ray a single paper to enter its argument; map a corpus to see a field's shape; audit a citation; read what the author chose not to say; define a key concept; circle the thesis the author approaches but cannot quite commit to writing. These are not extractions. They are ways of joining the conversation the historian has been having all along.
 
 The toolkit is **runtime-agnostic**: any agent that can run Python and read structured Markdown knowledge bases can pick it up. The compatibility matrix below names exactly where that is verified versus where it still requires manual wiring.
 
@@ -67,6 +67,8 @@ System dependency: `poppler` (`brew install poppler` on macOS, `apt install popp
 ```
 
 Diagnoses Python version, ten required packages, the `pdftoppm` binary, and OCR engine credentials. Reports passes, missing items, and one fix suggestion per gap. Never auto-installs.
+
+In runtimes that expose skills directly, `setup` is a skill surface rather than a separate command shim.
 
 ### 3 · Run
 
@@ -161,7 +163,7 @@ collate/
 ├── .agents/
 │   └── plugins/marketplace.json Repo-local marketplace for Codex
 │
-├── skills/                      10 skills · pipeline + reading layer
+├── skills/                      14 skills · 8 pipeline + 6 reading
 │   ├── setup/                   Environment diagnosis (Python, poppler, OCR creds)
 │   ├── prep-scan/               PDF → cleaned per-page PNGs (HSV stamp masking, top-hat watermarks, margin trim)
 │   ├── visual-preview/          Three-state HTML preview (original / cleaned / diff heatmap)
@@ -171,27 +173,19 @@ collate/
 │   ├── to-docx/                 python-docx output, unified academic spec
 │   ├── mp-format/               WeChat MP HTML with inline CSS + xiumi sidecar
 │   ├── xray-paper/              X-ray a single historical paper (Obsidian-native)
-│   └── paper-summary/           Map a corpus of 5–30 papers (Obsidian-native)
+│   ├── paper-summary/           Map a corpus of 5–30 papers (Obsidian-native)
+│   ├── chunqiu/                 Read taboo, verdict, and strategic silence
+│   ├── kaozheng/                Audit citations, source rank, and warrants
+│   ├── prometheus/              Define one concept and render an SVG card
+│   └── real-thesis/             Excavate the thesis the paper circles
 │
 ├── agents/                      2 specialized subagents
 │   ├── ocr-pipeline-operator.md Pipeline conductor: mechanical → proofreader → self-audit → delivery
 │   └── historical-proofreader.md Domain expert: applies the five-step checklist, emits A/B/C review
 │
-├── commands/                    14 slash commands · orchestration + stages + reading lenses
+├── commands/                    2 standalone commands · orchestration only
 │   ├── ocr.md                   /ocr — one-shot full pipeline
-│   ├── status.md                /status — read _pipeline_status.json, report stage + next step
-│   ├── setup.md                 /setup — verify deps and credentials
-│   ├── prep-scan.md             /prep-scan — preprocessing only
-│   ├── visual-preview.md        /visual-preview — regenerate the three-state preview
-│   ├── ocr-run.md               /ocr-run — OCR stage only (no apply-review / docx / wechat)
-│   ├── proofread.md             /proofread — dispatch historical-proofreader, emit raw.review.md
-│   ├── diff-review.md           /diff-review — closure self-audit
-│   ├── to-docx.md               /to-docx — export final.md to academic Word
-│   ├── mp-format.md             /mp-format — export final.md to WeChat HTML
-│   ├── chunqiu.md               /chunqiu — read taboos, verdicts, studied ambiguity (春秋笔法)
-│   ├── kaozheng.md              /kaozheng — verify citations, audit warrants (乾嘉考证)
-│   ├── prometheus.md            /prometheus — define a concept, render attribution-theme SVG card
-│   └── real-thesis.md           /real-thesis — excavate the thesis the author circles but does not write
+│   └── status.md                /status — read _pipeline_status.json, report stage + next step
 │
 ├── scripts/
 │   ├── run_full_pipeline.py     Mechanical orchestrator (no agent required)
@@ -219,7 +213,7 @@ collate/
 
 ## The Skills
 
-A skill is a self-contained directory: `SKILL.md` (operational instructions the agent reads) + `scripts/` (Python tools) + `references/` (structured knowledge base where applicable). Eight skills compose the OCR pipeline; two skills sit in the reading layer.
+A skill is a self-contained directory: `SKILL.md` (operational instructions the agent reads) + `scripts/` (Python tools) + `references/` (structured knowledge base where applicable). Collate is now explicitly **skill-first**: 8 pipeline skills plus 6 reading skills. If a slash surface has capability, that capability belongs in the skill itself.
 
 ### Pipeline skills
 
@@ -312,7 +306,7 @@ Also emits a xiumi-compatible Markdown sidecar for users who prefer to do the fi
 
 ### Reading layer skills
 
-The pipeline above ends when `final.md` is clean. The reading layer begins there. Once the text is reliable, the toolkit reads it as scholarship — not to summarize, but to enter the historian's conversation. Both reading skills are Obsidian-native; both can optionally render an attribution-theme HTML viewer (rules and filename conventions live in each `SKILL.md`).
+The pipeline above ends when `final.md` is clean. The reading layer begins there. Once the text is reliable, the toolkit reads it as scholarship — not to summarize, but to enter the historian's conversation. `xray-paper` and `paper-summary` are the larger rooms; the other four are sharper single-question lenses.
 
 > **xray-paper**
 
@@ -334,44 +328,59 @@ Output: `<workspace>/analysis/literature-map.md` or `docs/literature-map/{corpus
 
 ---
 
-## The Commands
+> **chunqiu**
 
-Fourteen slash commands. They group naturally into three layers — full-pipeline orchestration, single-stage runners (call when you want manual control), and reading lenses for the post-OCR text.
+Reads taboo, verdict, and strategic silence. Best when a paper's force lies in diction, repetition, omission, or borrowing antiquity to say something obliquely.
 
-### Orchestration
+Output: `analysis/{stem}_chunqiu.md`.
+
+*Trigger:* "read the silences", "春秋笔法", "what is the author not saying", "借古讽今".
+
+---
+
+> **kaozheng**
+
+Evidential audit in the Qian-Jia mode: claims, sources, warrants, citation rank, and truncation risk. Best when the question is not "what does it mean" but "does the argument actually hold".
+
+Output: `analysis/{stem}_kaozheng.md`.
+
+*Trigger:* "audit the citations", "考证一下", "does this argument hold", "verify the warrant".
+
+---
+
+> **prometheus**
+
+Defines one concept, institution, or proper noun and renders it as a compact ATTRIBUTION-style SVG card. Best when one term needs to become mentally graspable.
+
+Output: `analysis/prometheus/{concept}.svg`.
+
+*Trigger:* "define this concept", "make a concept card", "这个词到底是什么".
+
+---
+
+> **real-thesis**
+
+Excavates the thesis the paper circles but does not quite dare write. Best when the explicit topic feels safer or narrower than the pressure underneath it.
+
+Output: `analysis/{stem}_real-thesis.md`.
+
+*Trigger:* "what is the paper really about", "挖真论题", "what is the author circling".
+
+---
+
+## Standalone Commands
+
+Only two capabilities remain standalone commands:
+
+- `/collate:ocr <pdf>` — the public one-shot orchestration path
+- `/collate:status [workspace]` — the status and closure inspector
+
+Everything else is now **skill-first**. In runtimes that expose skills directly, you invoke them as `/collate:<skill>` without a second same-name command shim. If a command ever contains capability the skill lacks, that capability belongs back in the skill.
 
 | Command | What it does | When to use |
 |---------|--------------|-------------|
-| `/ocr <pdf>` | Dispatches `ocr-pipeline-operator`. Runs prep → OCR → proofread → apply → diff-review → docx → wechat in one call, returns deliverable paths and audit summary. | The default front door. Hand the scan to the agent and let it work the long pass; come back to the deliverables and the audit trail. |
-| `/status [workspace]` | Reads `<ws>/_internal/_pipeline_status.json`, reports stage / status / next step, and ticks off which deliverables are present or missing. | When a run is interrupted, or you need to know what to do next. |
-| `/setup` | Diagnoses Python deps, poppler, and OCR engine credentials. Reports passes, missing items, and one fix suggestion per gap. Never auto-installs. | First install, environment refresh, or when something is unexpectedly broken. |
-
-### Pipeline stages
-
-These call individual skills directly. Use when you want to inspect or rerun one segment.
-
-| Command | What it does | When to use |
-|---------|--------------|-------------|
-| `/prep-scan <pdf>` | Splits at 300 DPI, dewatermarks, trims margins, builds `cleaned.pdf`, generates the three-state preview. **Does not auto-continue into OCR.** | First stage. Inspect the preview before paying for OCR. |
-| `/visual-preview <ws>` | Regenerates the three-state preview for a workspace already prep-scanned. | When you tweaked `--header-ratio` and want a fresh look. |
-| `/ocr-run <pdf-or-ws>` | OCR only, no downstream stages. Picks engine via `OCR_ENGINE` (default local MinerU). Canonical fallback chain inside `run_full_pipeline.py`: local MinerU → `mineru-cloud` (if `MINERU_API_KEY`) → `extract_text_layer.py` (disable with `COLLATE_ALLOW_TEXTLAYER=0`). | When prep is verified and you want only the OCR pass. |
-| `/proofread <ws> [type]` | Dispatches `historical-proofreader`. Reads `raw.md` + `meta.json`, classifies the document type if not supplied, emits `review/raw.review.md` in canonical format (`### A1. <title> · Line 42` + original + suggestion + rationale). Refuses to silently overwrite an existing audit trail. | When `raw.md` is ready and you want only the review checklist, before applying any edits. |
-| `/diff-review <ws>` | Diffs `raw.md` against `final.md`, correlates each change with `raw.review.md`, classifies into accepted / missed / outside-checklist / unanchored. Emits HTML report and Markdown summary. | Closure check. Run any time after `apply_review.py` to catch what was skipped or improvised. |
-| `/to-docx <ws>` | Builds `<ws>/output/<stem>_final.docx` from `final.md` with the unified academic spec. Title taken from the first H1. | When the text is final and you need a journal-ready Word document. |
-| `/mp-format <ws>` | Builds `<ws>/output/<stem>_wechat.html` plus a xiumi sidecar from `final.md`. Inlines all CSS, applies OpenCC t2s while preserving blockquote content, collects footnotes at the end. | When you're publishing to a WeChat Official Account. Built strictly from `final.md`, never `raw.md`. |
-
-### Reading lenses
-
-Four interpretive commands. They operate on post-OCR, post-proofread text and write to separate report artifacts — they never modify source files. Each command is named after a tradition or a figure, and each reads with a different intent.
-
-| Command | Tradition | Reads for | Output |
-|---------|-----------|-----------|--------|
-| `/chunqiu` | 春秋笔法 · Chunqiu brushwork | Taboos, verdicts, studied ambiguity — what the author will not say aloud. Distinctions like 卒/薨/崩 and 诛/弑/戮 carry the weight of judgment. | `analysis/{stem}_chunqiu.md` — diction verdicts, repetitions and pauses, mirror of antiquity, one unsaid sentence. |
-| `/kaozheng` | 乾嘉考证 · Qian-Jia textual criticism | Argument soundness — whether the evidentiary bridge bears its weight, whether each citation matches its source, whether the warrant survives scrutiny. Flags 孤证 (single-witness claims). | `analysis/{stem}_kaozheng.md` — Toulmin argument skeleton, citation audit table, cardinal errors with repair suggestions. |
-| `/prometheus` | Prometheus | A single concept from the text — set its genus and differentia, give the plain gloss, place it in its institutional and temporal context. | `analysis/prometheus/{concept}.svg` — attribution-theme SVG card, one Signal per page, IBM Plex Mono Light body. |
-| `/real-thesis` | — | The thesis the author circles but does not quite dare write. Watches where the argument returns, what is 略而不论, where citations are densest, where footnotes work harder than the body. | `analysis/{stem}_real-thesis.md` — surface topic, floating concerns, candidate real theses with evidence, a question the author dare not ask themselves. |
-
-Choose the lens that matches what the paper asks: `chunqiu` reads silences, `kaozheng` verifies warrants, `prometheus` names concepts, `real-thesis` excavates what the paper will not state outright.
+| `/ocr <pdf>` | Dispatches `ocr-pipeline-operator`. Runs prep → OCR → proofread → apply → diff-review → docx → wechat in one call, returns deliverable paths and audit summary. | The public front door. Hand the scan to the agent and let it work the long pass. |
+| `/status [workspace]` | Reads `<ws>/_internal/_pipeline_status.json`, reports stage / status / next step, and checks which deliverables are present or missing. | When a run is interrupted, or you need to know what to do next. |
 
 ---
 
@@ -399,7 +408,7 @@ Runtimes that natively read `AGENTS.md` need almost nothing; the rest need a sho
 
 | Runtime | How to wire |
 |---------|-------------|
-| **Claude Code** | `/plugin install /path/to/collate`. Native `.claude-plugin/plugin.json`; skills register as `/collate:<skill>`. |
+| **Claude Code** | `/plugin install /path/to/collate`. Native `.claude-plugin/plugin.json`; skills register as `/collate:<skill>`, while only `ocr` and `status` remain standalone commands. |
 | **OpenCode** | `cd /path/to/collate && opencode`. Native: `AGENTS.md` is auto-loaded (with `CLAUDE.md` as fallback). Skills can live in `.opencode/skills/` or reuse `~/.claude/skills/` via OpenCode's Claude Code compatibility layer. |
 | **Hermes agents** | `cd /path/to/collate && hermes`. Native: `AGENTS.md` and `.hermes.md` are auto-loaded; skills copied to `~/.hermes/skills/`. Existing OpenClaw setups can switch over with `hermes claw migrate --workspace-target /path/to/collate`. |
 | **Codex** | Repo ships native `.codex-plugin/plugin.json` plus a repo marketplace at `.agents/plugins/marketplace.json`. For plugin-directory surfaces, restart Codex, choose the repo marketplace, and install `collate`. For direct repo work, `cd /path/to/collate && codex` still auto-loads `AGENTS.md` from the Git root. |

@@ -2,6 +2,41 @@
 
 ## 2026-04-20
 
+### Interface convergence: skill-first surface
+
+This release collapses the duplicated command/skill surface into a cleaner
+shape: skills are now the canonical capability layer, while standalone
+commands remain only where they genuinely orchestrate or inspect.
+
+#### Added
+
+- Four formal reading-layer skills promoted from command-only lenses:
+  `skills/chunqiu/SKILL.md`
+  `skills/kaozheng/SKILL.md`
+  `skills/prometheus/SKILL.md`
+  `skills/real-thesis/SKILL.md`
+
+#### Changed
+
+- `commands/` now keeps only two standalone command shims:
+  `ocr.md` and `status.md`
+- Pipeline-stage surfaces such as `setup`, `prep-scan`, `ocr-run`,
+  `proofread`, `diff-review`, `to-docx`, `mp-format`, and
+  `visual-preview` are now documented as direct skill surfaces rather than
+  same-name command wrappers
+- Reading lenses are now canonical skills rather than command-only prompts
+- Repository docs now state the governing rule explicitly:
+  if a command ever contains capability absent from the skill, that
+  capability belongs back in the skill
+
+#### Removed
+
+- Same-name command wrappers for:
+  `setup`, `prep-scan`, `visual-preview`, `ocr-run`, `proofread`,
+  `diff-review`, `to-docx`, `mp-format`
+- Command-only lens files for:
+  `chunqiu`, `kaozheng`, `prometheus`, `real-thesis`
+
 ### Viewer upgrade: finished ATTRIBUTION showcases
 
 This release upgrades the reading-layer HTML references from exposed scaffolds

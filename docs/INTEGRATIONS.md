@@ -7,13 +7,13 @@ status: stable
 
 # 跨运行时接入手册
 
-> 本文档说明如何在不同 agent 运行时 (runtime) 中启用 `collate` 的八步工作流。对工作流本身与 skill 契约的说明见 [AGENTS.md](../AGENTS.md)；本文档只谈 runtime 层面的差异——SKILL.md 如何被发现、subagent 如何被调度、环境变量怎么注入、失败如何上报。
+> 本文档说明如何在不同 agent 运行时 (runtime) 中启用 `collate` 的八步工作流与六个阅读 skill。对工作流本身与 skill 契约的说明见 [AGENTS.md](../AGENTS.md)；本文档只谈 runtime 层面的差异——SKILL.md 如何被发现、subagent 如何被调度、环境变量怎么注入、失败如何上报。
 
 ---
 
 ## 1. 总览
 
-本插件的八个 skill 都是**纯 Python 脚本 + Markdown 契约**，不依赖特定 agent 框架；任何能做到以下三件事的 runtime 都能跑：
+本插件的十四个 skill 都是**纯 Python 脚本 + Markdown 契约**，不依赖特定 agent 框架；任何能做到以下三件事的 runtime 都能跑：
 
 1. **读文件**：读 `skills/<name>/SKILL.md` 与 `agents/<name>.md` 进入上下文
 2. **跑 shell**：用命令行调 `python skills/*/scripts/*.py`
@@ -46,7 +46,13 @@ status: stable
 
 ### 2.1 插件根定位
 
-八个 skill 的 Python 脚本都用相对路径引用资源（如 `skills/proofread/references/traditional-classics.md`）。运行时必须保证 agent 在工作时知道「插件根目录在哪」。
+十四个 skill 的 Python 脚本或参考文件都用相对路径引用资源（如 `skills/proofread/references/traditional-classics.md`）。运行时必须保证 agent 在工作时知道「插件根目录在哪」。
+
+接口也已收敛成 skill-first：
+
+- `skill` 是能力本体
+- `ocr` 与 `status` 是仅存的独立 command
+- 其余 slash surface 若存在，应直接暴露 skill，而不是再维护同名 command 壳
 
 - **Claude Code**：自动注入 `${CLAUDE_PLUGIN_ROOT}`
 - **其它 runtime**：通过环境变量 `COLLATE_ROOT` 传入，或 agent 在上下文顶部记住绝对路径
@@ -470,7 +476,7 @@ gemini    # 交互式 CLI；首轮粘贴 AGENTS.md 作为上下文
 
 Gemini CLI 的用户配置在 `~/.gemini/settings.json`，可以在此登记 MCP server 与工具允许列表。扩展位于 `~/.gemini/extensions/<name>/`，根目录必须有 `gemini-extension.json`。
 
-**路线图（native extension）**：collate 仓库将补一份 `gemini-extension.json`，`contextFileName` 指向 `AGENTS.md`，并把八个 skill 拆成 `commands/` 下的 TOML，让：
+**路线图（native extension）**：collate 仓库将补一份 `gemini-extension.json`，`contextFileName` 指向 `AGENTS.md`，并直接暴露十四个 skill，只保留 `ocr` / `status` 两个独立 command，让：
 
 ```bash
 gemini extensions install /path/to/collate
