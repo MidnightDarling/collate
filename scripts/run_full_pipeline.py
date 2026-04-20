@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -87,6 +88,24 @@ def _has_page_sidecar(workspace: Path) -> bool:
 
 def _review_packets_ready(workspace: Path) -> bool:
     return _has_page_markers(workspace / "raw.md") or _has_page_sidecar(workspace)
+
+
+MISSED_A_RE = re.compile(r"^-\s+`A\d+`")
+
+
+def _missed_a_items(summary_path: Path) -> list[str]:
+    if not summary_path.is_file():
+        return []
+    hits: list[str] = []
+    in_rejected = False
+    for raw in summary_path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if line.startswith("## "):
+            in_rejected = line.startswith("## 拒绝或漏改")
+            continue
+        if in_rejected and MISSED_A_RE.match(line):
+            hits.append(line)
+    return hits
 
 
 def run(cmd: list[str], stage: str) -> None:
@@ -281,7 +300,31 @@ def post_ocr_stage(workspace: Path) -> int:
         print(f"[pipeline] fidelity gate refused: {gate_reason}", file=sys.stderr)
         return 11
 
-    run([sys.executable, "skills/diff-review/scripts/md_diff.py", "--raw", str(workspace / "raw.md"), "--final", str(final), "--review", str(review), "--out", str(workspace / "previews" / "diff-review.html"), "--summary", str(workspace / "review" / "diff-summary.md")], "diff-review")
+    summary_path = workspace / "review" / "diff-summary.md"
+    run([sys.executable, "skills/diff-review/scripts/md_diff.py", "--raw", str(workspace / "raw.md"), "--final", str(final), "--review", str(review), "--out", str(workspace / "previews" / "diff-review.html"), "--summary", str(summary_path)], "diff-review")
+    missed_a = _missed_a_items(summary_path)
+    if missed_a:
+        write_status(workspace, {
+            "stage": "diff_review",
+            "status": "error",
+            "ocr_engine": _engine_from_meta(workspace),
+            "error": "missed A-class proofread items remain after apply_review",
+            "cause": "diff-review still reports un-applied A items; export is blocked until the accepted high-confidence OCR fixes are reflected in final.md.",
+            "next_step": "Inspect review/diff-summary.md, repair the missed A items in review/raw.review.md or apply_review.py, then rerun scripts/run_full_pipeline.py --workspace <workspace>.",
+            "files_preserved": [
+                str(workspace / "raw.md"),
+                str(workspace / "final.md"),
+                str(review),
+                str(summary_path),
+                str(workspace / "previews" / "diff-review.html"),
+            ],
+        })
+        print(
+            "[pipeline] diff-review refused export because missed A items remain: "
+            + "; ".join(missed_a[:3]),
+            file=sys.stderr,
+        )
+        return 13
     run([sys.executable, "skills/to-docx/scripts/md_to_docx.py", "--input", str(final), "--title-from-first-h1"], "to-docx")
     run([sys.executable, "skills/mp-format/scripts/md_to_wechat.py", "--input", str(final), "--also-markdown"], "mp-format")
     return 0

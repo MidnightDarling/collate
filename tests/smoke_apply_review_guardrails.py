@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""apply_review must not leak editorial instructions into final.md."""
+"""apply_review must skip editorial text and preserve mixed-quote fixes."""
 from __future__ import annotations
 
 import subprocess
@@ -57,6 +57,42 @@ def main() -> int:
         )
         assert "问题行" in text, (
             "non-literal instruction should be skipped rather than deleting text"
+        )
+
+        raw.write_text(
+            '# 三胡亥的自主性與"趙高傅胡亥”\n',
+            encoding="utf-8",
+        )
+        review.write_text(
+            "# 校对报告：smoke\n\n"
+            "## A 类 — 极可能是 OCR 错\n\n"
+            "### A1. 含引號的整句替換不得被截斷 · Line 1\n"
+            "> 三胡亥的自主性與\"趙高傅胡亥”\n"
+            "**建议**：三 胡亥的自主性與「趙高傅胡亥」\n"
+            "**理由**：整句替換，不能只抽取引號中的片段。\n",
+            encoding="utf-8",
+        )
+        run_quotes = subprocess.run(
+            [
+                sys.executable,
+                "scripts/apply_review.py",
+                "--raw",
+                str(raw),
+                "--review",
+                str(review),
+                "--out",
+                str(out),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        assert run_quotes.returncode == 0, (
+            f"quoted replacement should run\nstdout:\n{run_quotes.stdout}\nstderr:\n{run_quotes.stderr}"
+        )
+        quoted_text = out.read_text(encoding="utf-8")
+        assert '三 胡亥的自主性與「趙高傅胡亥」' in quoted_text, (
+            "apply_review truncated a full-line replacement that contained quotes"
         )
 
     print("PASS smoke_apply_review_guardrails")

@@ -12,7 +12,7 @@ from review_contract import ReviewItem, parse_review
 
 
 ARROW_RE = re.compile(r"(?:→|->|⇒)\s*(.+)$")
-QUOTED_RE = re.compile(r"[“\"'「『](.+?)[”\"'」』]")
+WHOLE_QUOTED_RE = re.compile(r'^[“"\'「『](.+?)[”"\'」』]$')
 STRUCTURE_APPROVED_RE = re.compile(
     r"^\s*structure_approved\s*:\s*true\s*$", re.IGNORECASE
 )
@@ -56,9 +56,9 @@ def extract_replacement(item: ReviewItem) -> str:
         if direct:
             suggestion = direct.group(1).strip().strip('"')
         else:
-            quoted = QUOTED_RE.findall(suggestion)
-            if quoted:
-                suggestion = quoted[-1].strip()
+            whole = WHOLE_QUOTED_RE.match(suggestion)
+            if whole:
+                suggestion = whole.group(1).strip()
 
     if not suggestion:
         return ""

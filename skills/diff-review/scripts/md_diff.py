@@ -613,10 +613,6 @@ def main() -> int:
     raw_text = args.raw.read_text(encoding="utf-8")
     final_text = args.final.read_text(encoding="utf-8")
 
-    if raw_text == final_text:
-        print("raw 与 final 完全一致，无修改。不生成报告。")
-        return 0
-
     raw_paras = split_paragraphs(raw_text)
     final_paras = split_paragraphs(final_text)
 
