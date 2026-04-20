@@ -23,8 +23,10 @@ color: blue
 
 ### 1. 入口只有两个
 
-- **人类 / shell / CI**：`python3 scripts/run_full_pipeline.py --pdf <input.pdf>`
-- **agent runtime**：由你接管，同样把 `scripts/run_full_pipeline.py` 当作机械总入口
+- **公开用户路径**：`/collate:ocr <input.pdf>`
+- **内部 / 调试路径**：`python3 scripts/run_full_pipeline.py --pdf <input.pdf>`
+
+对外只把 `/collate:ocr` 当产品入口。机械脚本是你协调下游阶段的内部总入口，不单独充当发布证明。
 
 ### 2. Canonical OCR path
 
@@ -38,7 +40,7 @@ color: blue
 
 ### Step 1: Start the mechanical pipeline
 
-先跑：
+先跑内部机械入口：
 
 ```bash
 python3 scripts/run_full_pipeline.py --pdf "<input.pdf>"
@@ -52,13 +54,20 @@ python3 scripts/run_full_pipeline.py --pdf "<input.pdf>"
 
 ### Step 2: Call `historical-proofreader`
 
-当 `<workspace>/raw.md` 已存在且 `<workspace>/review/raw.review.md` 尚不存在时：
+当 `<workspace>/raw.md` 已存在时，你要把 proofread 真正做完，而不是把 `awaiting_agent_review` 当作 resting state：
 
-1. 判定文献类型：`classics | republican | modern`
-2. 选择对应 reference
-3. 把 `<workspace>/meta.json` 的 `low_confidence_pages` 一并传入
-4. 要求 subagent 产出 **canonical review format**
-5. 落盘到 `<workspace>/review/raw.review.md`
+1. 先生成 `<workspace>/review/page_review_packets.json`
+2. 判定文献类型：`classics | republican | modern`
+3. 选择对应 reference
+4. 把 `<workspace>/meta.json` 的 `low_confidence_pages` 一并传入
+5. 调 `historical-proofreader` 时显式传入：
+   - `<workspace>/prep/pages/`
+   - `<workspace>/review/page_review_packets.json`
+6. 要求 subagent 产出 **canonical review format**
+7. 落盘到 `<workspace>/review/raw.review.md`
+8. 立刻运行 `skills/proofread/scripts/verify_page_grounded_review.py --workspace "<workspace>"`
+
+只有 verifier 通过，proofread 才算完成。失败时按 Failure Contract 回传，不得继续导出。
 
 输出格式必须与 `agents/historical-proofreader.md` 和 `scripts/review_contract.py` 对齐：
 

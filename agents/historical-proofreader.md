@@ -31,9 +31,13 @@ color: amber
 - `--type classics | republican | modern`
 - `--input <raw.md 路径>`
 - `--reference <对应 reference 的路径>`（已由 proofread skill 加载到上下文）
+- `--page-images <prep/pages/ 路径>`（必填；原图第一类证据）
+- `--page-packets <review/page_review_packets.json 路径>`（必填；机械 recipe，逐页工作底稿）
 - `--meta <meta.json 路径>`（可选，含 `low_confidence_pages`）
 
 若 `--type` 未给，读 raw.md 前 300 字判定：竖排 + 无现代标点 → classics；繁简混 + 1912-1949 + 新式"．" → republican；纯简体 + 现代学术格式 → modern。拿不准问用户。
+
+如果 `--page-images` 或 `--page-packets` 缺失，直接终止，不得退化成纯文本校对。
 
 ---
 

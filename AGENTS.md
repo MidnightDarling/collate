@@ -209,6 +209,7 @@ python skills/ocr-run/scripts/extract_text_layer.py \
   - `republican` → `skills/proofread/references/republican-era.md`
   - `modern` → `skills/proofread/references/modern-chinese.md`
 - `page_images_dir`：`<ws>.ocr/prep/pages/`（**必填**；page-grounded 校对的第一类证据，subagent 必须逐页对照原图判 OCR 对错）
+- `page_packets_path`：`<ws>.ocr/review/page_review_packets.json`（**必填**；由 `build_page_review_packets.py` 生成，固定每页原图与 OCR 文本的对应）
 - `page_image_format`：默认 `png`（prep-scan 的 `split_pages.py` 落盘格式）
 - `meta.json.low_confidence_pages`（如有）
 
@@ -329,11 +330,27 @@ type: classics | republican | modern
 raw_md_path: <absolute path>
 reference_path: <absolute path to references/*.md>
 page_images_dir: <absolute path to <ws>.ocr/prep/pages/>   # 必填：PDF 分页 PNG 序列，校对第一类证据
+page_packets_path: <absolute path to <ws>.ocr/review/page_review_packets.json>  # 必填：逐页工作底稿
 page_image_format: png                                      # 默认 png；prep-scan 落盘即为此格式
 low_confidence_pages: [3, 7, 12]                            # optional, from ocr-run meta.json
 ```
 
 **硬约束**：`page_images_dir` 不存在或其中无 `page_*.png` 时，subagent 必须终止，不得退化为纯文本校对。纯文本校对无法分辨 OCR 错与古文字异体，会把结构性错误编进"C 类存疑"静默带过去。
+
+**完成标记**：subagent 输出的 `review/raw.review.md` frontmatter 必须至少包含：
+
+```yaml
+proofread_method: page-grounded
+checked_pages: [1, 2, 3]
+```
+
+若 text-layer fallback 触发了结构风险，还必须再写：
+
+```yaml
+structure_approved: true
+```
+
+调用方随后用 `skills/proofread/scripts/verify_page_grounded_review.py --workspace <ws>.ocr` 做机械校验；不过校验则不得继续导出。
 
 **subagent 必须按五步 checklist 执行**：
 

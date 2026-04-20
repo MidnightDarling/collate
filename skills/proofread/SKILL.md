@@ -12,13 +12,15 @@ allowed-tools: Read, Write, Edit, Bash, Grep
 给 `historical-proofreader` agent 喂一份 OCR 产出的 Markdown，让它输出一份**校对清单**。用户最核心的工作（校对）就围绕这份清单展开。
 
 你的责任是：
-1. 加载 `prep/pages/page_*.png` 作为**第一类证据**（subagent 必须对着原图判 OCR 对错，不能只盯 Markdown 自证）
-2. 读用户给的 Markdown
-3. 判断文献类型（也可以用户指定）
-4. 加载对应 reference 文件到上下文
-5. 调用 `historical-proofreader` agent，传入文本 + reference + `page_images_dir`
-6. 把 agent 返回的标注清单保存到工作区的 `review/raw.review.md`，并在 `_pipeline_status.json` 记录 `proofread_method: "page-grounded"`
-7. 刷新工作区 README.md，然后用 `open` 打开 review 供用户审阅
+1. 从 `raw.md` + `prep/pages/page_*.png` 构建 `review/page_review_packets.json`，把“哪一页原图对应哪一段 OCR 文本”固定下来
+2. 加载 `prep/pages/page_*.png` 作为**第一类证据**（subagent 必须对着原图判 OCR 对错，不能只盯 Markdown 自证）
+3. 读用户给的 Markdown
+4. 判断文献类型（也可以用户指定）
+5. 加载对应 reference 文件到上下文
+6. 调用 `historical-proofreader` agent，传入文本 + reference + `page_images_dir` + `page_packets_path`
+7. 用 `verify_page_grounded_review.py` 验证这份 review 是否真的覆盖了全部页面
+8. 把 agent 返回的标注清单保存到工作区的 `review/raw.review.md`，并在 `_pipeline_status.json` 记录 `proofread_method: "page-grounded"`
+9. 刷新工作区 README.md，然后用 `open` 打开 review 供用户审阅
 
 > **目录约定**：清单固定落在 `<workspace>.ocr/review/raw.review.md`，不落在工作区根目录。权威规范见插件的 `references/workspace-layout.md`。
 
@@ -32,6 +34,21 @@ test -f "$INPUT" || { echo "文件不存在"; exit 1; }
 ```
 
 Read 这个 Markdown 前 50 行，判断文献类型（或读 `meta.json` 如果存在）。
+
+同时生成 deterministic page packets：
+
+```bash
+INPUT="<markdown-path>"
+OCR="$(dirname "$INPUT")"
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/proofread/scripts/build_page_review_packets.py" \
+  --workspace "$OCR"
+```
+
+产物固定是：
+
+```text
+<workspace>/review/page_review_packets.json
+```
 
 ### Step 2：判定文献类型
 
@@ -66,11 +83,25 @@ reference 已加载：<path>
 待校对文本：<path>
 page_images_dir：<workspace>/prep/pages/   # PNG 序列；subagent 必须把它当第一类证据，逐页对照原图判对错，不能只盯 Markdown
 page_image_format：png                      # 默认 png；prep-scan 的 split_pages.py 落盘即为此格式
+page_packets_path：<workspace>/review/page_review_packets.json   # 必填；机械 recipe，固定每页原图与 OCR 文本的对应
 low_confidence_pages：[3, 7, 12]            # 从 meta.json 来；若有，这些页优先对图核查
 输出要求：按 A/B/C 分类的标注清单（参见 agent 内部规范），不改原文
 ```
 
 **page-grounded 硬约束**：如果 `prep/pages/` 不存在或未含 `page_*.png`，直接终止并报"校对阶段缺少原图证据"，不要退化为纯文本校对。纯文本校对会把 OCR 错当"笔误存疑"，让导出 gate 无法把关。
+
+**packet 硬约束**：`page_packets_path` 是 subagent 的固定工作底稿。subagent 必须逐页处理这些 packet，并在输出 frontmatter 里写：
+
+```yaml
+proofread_method: page-grounded
+checked_pages: [1, 2, 3]
+```
+
+如果 text-layer fallback 触发过结构风险，还必须再写：
+
+```yaml
+structure_approved: true
+```
 
 同时读 OCR 阶段产出的 `meta.json`（如果存在），把 `low_confidence_pages` 传给 agent 作为**重点盯防**提示。
 
@@ -99,7 +130,7 @@ pages    = meta.get("pages") or 0
 - `avg_confidence` 为 `None` → 只展示，不做阈值判断
 - `pages` 为 0 → 说明是旧版 meta 或解析失败，不要阻塞流程
 
-### Step 5：保存报告
+### Step 5：保存报告并验证
 
 推导工作区根，把 agent 输出写到 `<workspace>/review/raw.review.md`，并在 `_pipeline_status.json` 写入 `proofread_method: "page-grounded"` 作为 fidelity gate 识别证据：
 
@@ -127,6 +158,15 @@ Bundle 4 的 fidelity gate 会检查这个字段；缺失则拒绝导出。
 例：`~/Downloads/论文.ocr/raw.md` → `~/Downloads/论文.ocr/review/raw.review.md`
 
 > 为什么固定叫 `raw.review.md` 而不是跟着输入文件命名：diff-review 默认从 `<workspace>/review/raw.review.md` 读清单，路径稳定才不会 every-skill-reinvents-path。
+
+写完之后立刻跑 verifier：
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/proofread/scripts/verify_page_grounded_review.py" \
+  --workspace "$OCR"
+```
+
+只有 verifier 通过，才算这份 review 真正完成。
 
 ### Step 6：刷新 README + 打开 + 报告
 

@@ -70,14 +70,26 @@ Diagnoses Python version, ten required packages, the `pdftoppm` binary, and OCR 
 
 ### 3 · Run
 
+The **public user path** is `/collate:ocr <pdf-path>`.
+Treat `python3 scripts/run_full_pipeline.py --pdf <pdf-path>` as an internal
+or debug path unless it has been proven equivalent by the same fresh-agent
+real-PDF gate.
+
 Two supported entrypoints:
 
 | Path | When to use |
 |------|-------------|
-| `/collate:ocr <pdf-path>` | Single-shot agent run — dispatches `ocr-pipeline-operator`, returns deliverable paths and audit summary |
-| `python3 scripts/run_full_pipeline.py --pdf <pdf-path>` | Mechanical-only run, no agent in the loop, for CI or batch jobs |
+| `/collate:ocr <pdf-path>` | Public one-command path — agent-owned run that must stay aligned with the release gate |
+| `python3 scripts/run_full_pipeline.py --pdf <pdf-path>` | Internal / debug mechanical path, useful for CI or batch jobs, but not release evidence on its own |
 
-The agent path is the canonical one: it calls the mechanical runner, dispatches `historical-proofreader` for the tiered review, re-enters the runner to apply edits and self-audit, and surfaces the delivery message verbatim.
+The agent path is the canonical one: it calls the mechanical runner, builds page review packets, dispatches `historical-proofreader` with page evidence, verifies the review mechanically, re-enters the runner to apply edits and self-audit, and surfaces the delivery message verbatim.
+
+Smoke passes and truthful failure states remain useful guardrails, but they are
+not publish evidence by themselves. Release still means:
+
+```text
+fresh clone + supported agent runtime + /collate:ocr <real-pdf> + no human intervention + valid final.docx/wechat.html
+```
 
 ---
 
@@ -369,7 +381,7 @@ Two subagents handle delegation. Skills are passive instructions; agents own end
 
 | Agent | Role |
 |-------|------|
-| `ocr-pipeline-operator` | Pipeline conductor. Calls the mechanical runner, dispatches `historical-proofreader` when `_pipeline_status.json` says `awaiting_agent_review`, re-enters the runner to chain apply-review / diff-review / to-docx / mp-format, and surfaces the human-facing delivery message. |
+| `ocr-pipeline-operator` | Pipeline conductor. Calls the mechanical runner, builds page review packets, dispatches `historical-proofreader` with page evidence, verifies the review mechanically, then re-enters the runner to chain apply-review / diff-review / to-docx / mp-format and surface the human-facing delivery message. |
 | `historical-proofreader` | Domain expert. Loads the matching reference table for the document type, executes the mandatory five-step checklist, emits `raw.review.md` in canonical format with the execution-proof table appended. |
 
 ---
@@ -380,7 +392,7 @@ The status labels and surface promises for each row are stated honestly in [`## 
 
 Two general-purpose paths to know first:
 
-- **Mechanical-only path:** `python3 scripts/run_full_pipeline.py --pdf <input.pdf>` — useful for CI and batch jobs where no agent is in the loop.
+- **Mechanical-only path:** `python3 scripts/run_full_pipeline.py --pdf <input.pdf>` — useful for CI and batch jobs where no agent is in the loop, but not release proof on its own.
 - **One-shot agent path:** `agents/ocr-pipeline-operator.md` + `agents/historical-proofreader.md` — the two agents `/ocr` calls into.
 
 Runtimes that natively read `AGENTS.md` need almost nothing; the rest need a short rule file, a wrapper manifest, or an explicit shell-tool call. The full per-runtime guide lives in [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md).

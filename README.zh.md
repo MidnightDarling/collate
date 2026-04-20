@@ -70,14 +70,24 @@ curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/script
 
 ### 3 · 跑
 
+**公开用户路径** 只有 `/collate:ocr <pdf-path>`。
+`python3 scripts/run_full_pipeline.py --pdf <pdf-path>` 只是内部 / 调试入口，
+除非它也通过同一套 fresh-agent + real-PDF gate，否则不能单独当发布证据。
+
 支持两种入口:
 
 | 入口 | 适用 |
 |------|------|
-| `/collate:ocr <pdf-path>` | 一次性 agent 全流程 —— 调度 `ocr-pipeline-operator`,返回交付路径与审计摘要 |
-| `python3 scripts/run_full_pipeline.py --pdf <pdf-path>` | 纯机械模式,无 agent 介入,适合 CI 与批量任务 |
+| `/collate:ocr <pdf-path>` | 公开的一次性完整入口 —— agent 自主跑完并对最终交付负责 |
+| `python3 scripts/run_full_pipeline.py --pdf <pdf-path>` | 内部 / 调试机械入口,适合 CI 与批量任务,但本身不构成发布完成 |
 
-agent 入口是 canonical 路径:它调机械总编排脚本、起 `historical-proofreader` 输出三级清单、再重入总编排脚本完成应用修改与自审、把交付总结原样上抛。
+agent 入口是 canonical 路径:它调机械总编排脚本、生成逐页 review packets、带着页图证据调 `historical-proofreader`、机械验证 review 完整性、再重入总编排脚本完成应用修改与自审、把交付总结原样上抛。
+
+smoke 通过和 truthful failure 只算 guardrail,不算发布完成。真正的发布标准仍然只有这一句:
+
+```text
+fresh clone + supported agent runtime + /collate:ocr <real-pdf> + no human intervention + valid final.docx/wechat.html
+```
 
 ---
 
@@ -369,7 +379,7 @@ collate/
 
 | Agent | 角色 |
 |-------|------|
-| `ocr-pipeline-operator` | 流水线总操作员。调机械总编排,在 `_pipeline_status.json` 写 `awaiting_agent_review` 时调度 `historical-proofreader`,再重入总编排串起 apply-review / diff-review / to-docx / mp-format,最后把面向人类的交付总结上抛。 |
+| `ocr-pipeline-operator` | 流水线总操作员。调机械总编排、生成逐页 review packets、带页图证据调度 `historical-proofreader`、机械验证 review，再重入总编排串起 apply-review / diff-review / to-docx / mp-format,最后把面向人类的交付总结上抛。 |
 | `historical-proofreader` | 领域专家。按文献类型加载对应 reference 表,执行强制五步清单,产出走 canonical 格式的 `raw.review.md`,末尾附执行自证表。 |
 
 ---
@@ -380,7 +390,7 @@ collate/
 
 先两条通用捷径:
 
-- **机械路径(无 agent)**:`python3 scripts/run_full_pipeline.py --pdf <input.pdf>` —— 适合 CI 与批量任务。
+- **机械路径(无 agent)**:`python3 scripts/run_full_pipeline.py --pdf <input.pdf>` —— 适合 CI 与批量任务,但本身不算发布完成证据。
 - **一次请求的 agent 路径**:`agents/ocr-pipeline-operator.md` + `agents/historical-proofreader.md` —— `/ocr` 调起的两个 agent。
 
 原生识别 `AGENTS.md` 的 runtime 几乎零配置;其余需要一份短规则文件、wrapper manifest,或显式 shell-tool 调用。每个 runtime 的完整接入指南在 [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)。

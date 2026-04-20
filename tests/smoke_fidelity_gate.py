@@ -3,13 +3,12 @@
 
 Exercises two scenarios end-to-end through run_full_pipeline.py:
 
-  A. Text-layer workspace (structural_risk=high) with no
-     `structure_approved: true` frontmatter and no page-grounded
-     proofread marker. Expectation: exit code 11, status stage=fidelity_gate,
-     no docx/wechat artifacts.
+  A. Text-layer workspace (structural_risk=high) with a mechanically valid
+     page-grounded review, but no `structure_approved: true` attestation.
+     Expectation: exit code 11, status stage=fidelity_gate, no docx/wechat
+     artifacts.
 
-  B. Same skeleton, but the review carries the frontmatter attestation
-     AND _pipeline_status.json records `proofread_method: "page-grounded"`.
+  B. Same skeleton, but the review carries the structural attestation too.
      Expectation: exit 0, `_structure_approved` marker written, export
      artifacts produced.
 
@@ -33,6 +32,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def seed_workspace(ws: Path, *, approved: bool, proofread_method: str | None) -> None:
     for sub in ("_internal", "review", "prep/pages", "previews", "output"):
         (ws / sub).mkdir(parents=True, exist_ok=True)
+    (ws / "prep" / "pages" / "page_001.png").write_bytes(b"stub-png")
     (ws / "raw.md").write_text(
         "<!-- structural-risk: high; fallback: pdf-text-layer; requires "
         "page-grounded proofread -->\n\n# smoke\n\ncontent\n",
@@ -54,7 +54,14 @@ def seed_workspace(ws: Path, *, approved: bool, proofread_method: str | None) ->
         }, ensure_ascii=False),
         encoding="utf-8",
     )
-    frontmatter = "---\nstructure_approved: true\n---\n\n" if approved else ""
+    frontmatter = [
+        "---",
+        "proofread_method: page-grounded",
+        "checked_pages: [1]",
+    ]
+    if approved:
+        frontmatter.append("structure_approved: true")
+    frontmatter = "---\n" + "\n".join(frontmatter[1:]) + "\n---\n\n"
     (ws / "review" / "raw.review.md").write_text(
         frontmatter + "# 校对清单\n## A 类 OCR 错\n无\n"
         "## B 类 规范\n无\n## C 类 存疑\n无\n",

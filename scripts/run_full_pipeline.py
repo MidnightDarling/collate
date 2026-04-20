@@ -115,6 +115,41 @@ def prep_stage(pdf: Path, workspace: Path) -> None:
         run([sys.executable, "skills/visual-preview/scripts/visualize_prep.py", "--prep-dir", str(prep), "--out", str(workspace / "previews" / "visual-prep.html")], "visual-preview")
 
 
+def ensure_page_review_packets(workspace: Path) -> Path:
+    packets = workspace / "review" / "page_review_packets.json"
+    if packets.is_file():
+        return packets
+    run(
+        [
+            sys.executable,
+            "skills/proofread/scripts/build_page_review_packets.py",
+            "--workspace",
+            str(workspace),
+        ],
+        "build-page-review-packets",
+    )
+    return packets
+
+
+def verify_page_grounded_review(workspace: Path) -> tuple[bool, str]:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "skills/proofread/scripts/verify_page_grounded_review.py",
+            "--workspace",
+            str(workspace),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode == 0:
+        return True, (completed.stdout or "").strip()
+    reason = (completed.stderr or completed.stdout or "").strip()
+    return False, reason or "verify_page_grounded_review failed"
+
+
 def try_ocr(workspace: Path) -> tuple[str, list[str]]:
     """Run OCR fallback chain. Returns (engine_name, attempts).
 
@@ -164,10 +199,35 @@ def try_ocr(workspace: Path) -> tuple[str, list[str]]:
 def post_ocr_stage(workspace: Path) -> int:
     review = workspace / "review" / "raw.review.md"
     final = workspace / "final.md"
+    packets = ensure_page_review_packets(workspace)
     if not review.exists():
-        write_status(workspace, {"stage": "proofread", "status": "awaiting_agent_review", "ocr_engine": _engine_from_meta(workspace), "next_step": "Generate review/raw.review.md with historical-proofreader, then rerun this command.", "files_preserved": [str(workspace / "raw.md"), str(workspace / "meta.json"), str(workspace / "previews" / "visual-prep.html")]})
+        write_status(workspace, {"stage": "proofread", "status": "awaiting_agent_review", "ocr_engine": _engine_from_meta(workspace), "next_step": "Generate review/raw.review.md with historical-proofreader using review/page_review_packets.json and prep/pages/*.png, then rerun this command.", "files_preserved": [str(workspace / "raw.md"), str(workspace / "meta.json"), str(packets), str(workspace / "previews" / "visual-prep.html")]})
         print("[pipeline] OCR ready. Awaiting review/raw.review.md before auto-applying and exporting.")
         return 10
+    verified, verify_reason = verify_page_grounded_review(workspace)
+    if not verified:
+        write_status(workspace, {
+            "stage": "proofread_verification",
+            "status": "error",
+            "ocr_engine": _engine_from_meta(workspace),
+            "error": verify_reason,
+            "cause": "review/raw.review.md does not satisfy the deterministic "
+                     "page-grounded recipe required by the canonical path.",
+            "next_step": "Regenerate review/raw.review.md from review/page_review_packets.json; "
+                         "frontmatter must include `proofread_method: page-grounded` "
+                         "and `checked_pages: [...]` covering every packet page.",
+            "files_preserved": [
+                str(workspace / "raw.md"),
+                str(review),
+                str(packets),
+                str(workspace / "prep" / "pages"),
+            ],
+        })
+        print(f"[pipeline] proofread verification refused: {verify_reason}", file=sys.stderr)
+        return 12
+    status = read_status(workspace) or {}
+    status["proofread_method"] = "page-grounded"
+    write_status(workspace, status)
     if not final.exists():
         run([sys.executable, "scripts/apply_review.py", "--raw", str(workspace / "raw.md"), "--review", str(review), "--out", str(final)], "apply-review")
 
