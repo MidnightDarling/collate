@@ -342,7 +342,7 @@ collate/
 |------|--------|--------|
 | `/prep-scan <pdf>` | 300 DPI 切分、去水印、裁边、生成 `cleaned.pdf`、出三态预览。**不会自动走到 OCR**。 | 第一阶段。在花钱跑 OCR 前先看预览。 |
 | `/visual-preview <ws>` | 为已经预处理过的 workspace 重新生成三态预览。 | 调了 `--header-ratio` 想看新效果时。 |
-| `/ocr-run <pdf-or-ws>` | 只跑 OCR,不向下传。按 `OCR_ENGINE` 选引擎(默认本地 MinerU)。本地引擎失败且 `MINERU_API_KEY` 已配时,自动降级到 `mineru-cloud` 一次。 | 预处理已确认无误,只想跑 OCR 这一段时。 |
+| `/ocr-run <pdf-or-ws>` | 只跑 OCR,不向下传。按 `OCR_ENGINE` 选引擎(默认本地 MinerU)。`run_full_pipeline.py` 的 canonical 兜底链:本地 MinerU → `mineru-cloud`(需 `MINERU_API_KEY`)→ `extract_text_layer.py`(设 `COLLATE_ALLOW_TEXTLAYER=0` 可关)。 | 预处理已确认无误,只想跑 OCR 这一段时。 |
 | `/proofread <ws> [type]` | 调度 `historical-proofreader`。读 `raw.md` + `meta.json`,如果没传类型就自动分类,产出 `review/raw.review.md` 走 canonical 格式(`### A1. <title> · Line 42` + 原文 + 建议 + 依据)。已存在审计文件时拒绝静默覆盖。 | `raw.md` 就绪,只想要校对清单,先不应用任何修改时。 |
 | `/diff-review <ws>` | 对比 `raw.md` 与 `final.md`,与 `raw.review.md` 关联,把每处改动归类到 采纳/漏改/清单外/未锚定。出 HTML 报告与 Markdown 摘要。 | 闭环检查。`apply_review.py` 跑完后任何时候都可以跑,看漏改和即兴改动。 |
 | `/to-docx <ws>` | 用统一学术规范从 `final.md` 出 `<ws>/output/<stem>_final.docx`。文档标题取自第一个 H1。 | 文本定稿,需要期刊就绪的 Word 版本时。 |

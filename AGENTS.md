@@ -161,12 +161,18 @@ python skills/ocr-run/scripts/mineru_client.py \
     --layout horizontal \
     [--poll-interval 10] [--timeout 1800]
 
-# 第三选项：PDF 自带文本层直接提取（不跑 OCR）
+# 第三选项：PDF 自带文本层直接提取（canonical 第三级兜底，默认自动）
+# run_full_pipeline.py 会在前两级失败后自动调用此工具；
+# 如需单独手动调用（例如审计时禁用自动兜底）可用：
+#   COLLATE_ALLOW_TEXTLAYER=0 python scripts/run_full_pipeline.py ...
+# 然后再跑：
 python skills/ocr-run/scripts/extract_text_layer.py \
     --pdf <ws>.ocr/prep/cleaned.pdf \
     --out <ws>.ocr \
     --lang zh-hans --layout horizontal
 ```
+
+**自动兜底语义**：当 `run_full_pipeline.py` 进入 `try_ocr` 时，上述三级按顺序逐个尝试，第一个产出 `raw.md` 的策略被记录到 `_pipeline_status.json.ocr_engine`。text-layer 兜底会在 `meta.json` 写 `engine: pdf-text-layer` 与 `structural_risk: high`，下游 fidelity gate 因此要求一次 page-grounded proofread 才能放行导出。
 
 **语言码差异（易错点）**：
 - **本地 MinerU CLI**：`ch` / `chinese_cht` / `en` / `japan` / `korean`

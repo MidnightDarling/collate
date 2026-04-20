@@ -23,7 +23,13 @@ Based on `OCR_ENGINE` (default `mineru`):
 | `mineru-cloud` (needs `MINERU_API_KEY`) | `python3 skills/ocr-run/scripts/mineru_client.py --pdf <ws>/source.pdf --out <ws> --layout horizontal --lang zh-hans --poll-interval 10 --timeout 1800` |
 | `baidu` (needs `BAIDU_OCR_*`) | `python3 skills/ocr-run/scripts/baidu_client.py --pdf <ws>/source.pdf --out <ws>` |
 
-If the local engine exits non-zero and `MINERU_API_KEY` is set, fall back to `mineru-cloud` once. If that also fails, stop and report. Do not silently invoke `extract_text_layer.py` — that is a last resort and requires explicit user approval.
+`run_full_pipeline.py` applies the canonical fallback chain automatically:
+
+1. `run-mineru` (local) — always attempted first
+2. `mineru-cloud` — attempted if `MINERU_API_KEY` is set
+3. `extract_text_layer.py` — attempted if `COLLATE_ALLOW_TEXTLAYER` is unset or `!= "0"` (default on)
+
+`extract_text_layer.py` is the documented third-tier fallback, not a silent workaround. Its engine name (`pdf-text-layer` or `pdf-text-layer-empty`) is written to `meta.json.engine` and `_pipeline_status.json.ocr_engine`, and it carries `structural_risk: "high"` so the downstream fidelity gate requires a page-grounded proofread before export. Set `COLLATE_ALLOW_TEXTLAYER=0` to opt out (e.g., for audits that must see MinerU-only failures).
 
 ### Report
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -10,6 +11,17 @@ import sys
 from pathlib import Path
 
 from pipeline_status import infer_workspace, write_status
+
+
+def _engine_from_meta(workspace: Path) -> str | None:
+    """Return meta.json.engine if readable, else None."""
+    meta_path = workspace / "meta.json"
+    if not meta_path.is_file():
+        return None
+    try:
+        return json.loads(meta_path.read_text(encoding="utf-8")).get("engine")
+    except Exception:
+        return None
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,31 +67,57 @@ def prep_stage(pdf: Path, workspace: Path) -> None:
         run([sys.executable, "skills/visual-preview/scripts/visualize_prep.py", "--prep-dir", str(prep), "--out", str(workspace / "previews" / "visual-prep.html")], "visual-preview")
 
 
-def try_ocr(workspace: Path) -> None:
-    if (workspace / "raw.md").exists():
-        return
+def try_ocr(workspace: Path) -> tuple[str, list[str]]:
+    """Run OCR fallback chain. Returns (engine_name, attempts).
+
+    engine_name is the first strategy that produced raw.md.
+    attempts is the full log of strategies tried, each entry:
+        "<name> rc=<rc>[: <stderr-tail>]"
+
+    The chain is:
+      1. run-mineru (local MinerU) — always enabled
+      2. mineru-cloud — enabled iff MINERU_API_KEY is set
+      3. text-layer  — enabled iff COLLATE_ALLOW_TEXTLAYER != "0"
+         (default on; set COLLATE_ALLOW_TEXTLAYER=0 to opt out for audits)
+
+    text-layer is the documented canonical fallback. meta.json.engine will
+    be "pdf-text-layer" (or "pdf-text-layer-empty" if the PDF had no text
+    layer at all), which flows into the downstream fidelity gate.
+    """
     source = workspace / "source.pdf"
     local = [sys.executable, "skills/ocr-run/scripts/run_mineru.py", "--pdf", str(source), "--out", str(workspace), "--lang", "ch"]
     cloud = [sys.executable, "skills/ocr-run/scripts/mineru_client.py", "--pdf", str(source), "--out", str(workspace), "--layout", "horizontal", "--lang", "zh-hans", "--poll-interval", "10", "--timeout", "1800"]
-    errors: list[str] = []
+    text_layer = [sys.executable, "skills/ocr-run/scripts/extract_text_layer.py", "--pdf", str(source), "--out", str(workspace), "--layout", "horizontal", "--lang", "zh-hans"]
+
+    if (workspace / "raw.md").exists():
+        existing = _engine_from_meta(workspace) or "unknown"
+        return existing, [f"cache-hit rc=0 engine={existing}"]
+
+    attempts: list[str] = []
     for name, cmd, enabled in (
         ("run-mineru", local, True),
         ("mineru-cloud", cloud, bool(os.environ.get("MINERU_API_KEY"))),
+        ("text-layer", text_layer, os.environ.get("COLLATE_ALLOW_TEXTLAYER", "1") != "0"),
     ):
         if not enabled:
+            attempts.append(f"{name} skipped=not-enabled")
             continue
-        rc = subprocess.run(cmd, cwd=ROOT, check=False).returncode
+        completed = subprocess.run(cmd, cwd=ROOT, check=False, capture_output=True, text=True)
+        rc = completed.returncode
         if rc == 0 and (workspace / "raw.md").exists():
-            return
-        errors.append(f"{name} rc={rc}")
-    raise RuntimeError("ocr-run failed: " + ", ".join(errors))
+            attempts.append(f"{name} rc=0")
+            return name, attempts
+        tail = (completed.stderr or "").strip().splitlines()[-3:]
+        tail_str = " | ".join(tail)[-200:]
+        attempts.append(f"{name} rc={rc}: {tail_str}" if tail_str else f"{name} rc={rc}")
+    raise RuntimeError("ocr-run failed: " + ", ".join(attempts))
 
 
 def post_ocr_stage(workspace: Path) -> int:
     review = workspace / "review" / "raw.review.md"
     final = workspace / "final.md"
     if not review.exists():
-        write_status(workspace, {"stage": "proofread", "status": "awaiting_agent_review", "next_step": "Generate review/raw.review.md with historical-proofreader, then rerun this command.", "files_preserved": [str(workspace / "raw.md"), str(workspace / "meta.json"), str(workspace / "previews" / "visual-prep.html")]})
+        write_status(workspace, {"stage": "proofread", "status": "awaiting_agent_review", "ocr_engine": _engine_from_meta(workspace), "next_step": "Generate review/raw.review.md with historical-proofreader, then rerun this command.", "files_preserved": [str(workspace / "raw.md"), str(workspace / "meta.json"), str(workspace / "previews" / "visual-prep.html")]})
         print("[pipeline] OCR ready. Awaiting review/raw.review.md before auto-applying and exporting.")
         return 10
     if not final.exists():
@@ -101,6 +139,8 @@ def main() -> int:
         return 2
     workspace = infer_workspace(args.pdf, args.workspace)
     pdf = resolve_pdf_hint(args.pdf, workspace)
+    ocr_engine: str | None = None
+    ocr_attempts: list[str] = []
     try:
         if pdf is None and not (workspace / "raw.md").exists():
             raise RuntimeError("no input PDF found in workspace (expected prep/original.pdf or source.pdf)")
@@ -108,15 +148,17 @@ def main() -> int:
             ensure_workspace(pdf, workspace)
         if pdf is not None and not (workspace / "raw.md").exists():
             prep_stage(pdf, workspace)
-            try_ocr(workspace)
+            ocr_engine, ocr_attempts = try_ocr(workspace)
+        else:
+            ocr_engine = _engine_from_meta(workspace)
         result = post_ocr_stage(workspace)
         subprocess.run([sys.executable, "scripts/workspace_readme.py", "--workspace", str(workspace)], cwd=ROOT, check=False)
         if result == 0:
-            write_status(workspace, {"stage": "done", "status": "ok", "next_step": "Review output/ artifacts and README.md.", "files_preserved": [str(workspace / "output"), str(workspace / "previews")]})
+            write_status(workspace, {"stage": "done", "status": "ok", "ocr_engine": ocr_engine, "ocr_attempts": ocr_attempts, "next_step": "Review output/ artifacts and README.md.", "files_preserved": [str(workspace / "output"), str(workspace / "previews")]})
         return result
     except Exception as exc:
         subprocess.run([sys.executable, "scripts/workspace_readme.py", "--workspace", str(workspace)], cwd=ROOT, check=False)
-        write_status(workspace, {"stage": "failed", "status": "error", "error": str(exc), "cause": "See preserved workspace artifacts and preceding command output.", "next_step": "Inspect _pipeline_status.json and rerun the failed stage after fixing the blocker.", "files_preserved": [str(workspace), str(workspace / "previews"), str(workspace / "_internal")]})
+        write_status(workspace, {"stage": "failed", "status": "error", "error": str(exc), "cause": "See preserved workspace artifacts and preceding command output.", "ocr_engine": ocr_engine, "ocr_attempts": ocr_attempts, "next_step": "Inspect _pipeline_status.json and rerun the failed stage after fixing the blocker.", "files_preserved": [str(workspace), str(workspace / "previews"), str(workspace / "_internal")]})
         print(f"stage: failed\nerror: {exc}\ncause: see command output above\nnext_step: inspect {workspace / '_internal' / '_pipeline_status.json'}\nfiles_preserved: [{workspace}]", file=sys.stderr)
         return 1
 
