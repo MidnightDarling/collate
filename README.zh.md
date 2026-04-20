@@ -203,7 +203,7 @@ collate/
 │   ├── ARCHITECTURE.md          skill 职责边界、数据流、文件布局
 │   ├── INTEGRATIONS.md          分 runtime 的接入步骤
 │   ├── TROUBLESHOOTING.md       常见报错与兜底
-│   └── audit/                   按日期归档的发版审计报告
+│   └── ...                      仅保留公开文档
 │
 ├── AGENTS.md                    agent 契约 —— 调用约定、决策矩阵、失败处理
 ├── CONTRIBUTORS.md              作者与贡献者(署名,非法律归属)

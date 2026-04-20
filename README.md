@@ -205,7 +205,7 @@ collate/
 │   ├── ARCHITECTURE.md          Skill boundaries, data flow, file layout
 │   ├── INTEGRATIONS.md          Per-runtime wiring (Codex, Cursor, Hermes, Gemini, …)
 │   ├── TROUBLESHOOTING.md       Common errors and workarounds
-│   └── audit/                   Release audit reports, by date
+│   └── ...                      Public documentation only
 │
 ├── AGENTS.md                    Agent runtime contract — calling conventions, decision matrix, failure modes
 ├── CONTRIBUTORS.md              Authors and contributors (credit, not legal attribution)

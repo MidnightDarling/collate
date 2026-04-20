@@ -23,11 +23,9 @@ Each prints `PASS <name>` on success or raises on failure.
 
 ## Why these exist
 
-Every test was written because Codex's 2026-04-20 audit found the contract
-missing or silently broken. See
-[docs/audit/20260420_pipeline_fidelity_audit_report.md](../docs/audit/20260420_pipeline_fidelity_audit_report.md)
-for the original findings. Each test must fail on the pre-fix tree and pass
-on the post-fix tree — that is the definition of "locked".
+Every test was written because a 2026-04-20 delivery review found the
+contract missing or silently broken. Each test must fail on the pre-fix tree
+and pass on the post-fix tree — that is the definition of "locked".
 
 ## Running
 

@@ -17,6 +17,8 @@ credentials.json
 .claude/CLAUDE.md
 .codex/skills/
 .codex/AGENTS.md
+docs/audit/
+docs/superpowers/
 reports/
 
 # ---- Python ----
