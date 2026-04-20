@@ -3,1113 +3,240 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>X-Ray · 面对多元价值冲突的困境</title>
-
+  <title>X-Ray · Liu Qing</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-0:   #08080A;
-      --bg-1:   #0E0E11;
-      --bg-2:   #161618;
-      --bg-3:   #1E1E21;
-      --text-1: #E0DCD6;
-      --text-2: #9A9690;
-      --text-3: #605C56;
-      --text-4: #3A3834;
+      --bg0: #08080A;
+      --bg1: #0E0E11;
+      --bg2: #161618;
+      --text1: #E0DCD6;
+      --text2: #9A9690;
+      --text3: #605C56;
+      --text4: #3A3834;
+      --line1: rgba(255,255,255,0.07);
+      --line2: rgba(255,255,255,0.12);
       --signal: #F0EDE6;
-      --line-1: rgba(255,255,255,0.07);
-      --line-2: rgba(255,255,255,0.12);
-      --line-3: rgba(255,255,255,0.20);
-      --display: 'Cormorant Garamond', 'Songti SC', 'Source Han Serif SC', serif;
-      --mono:    'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+      --display: "Cormorant Garamond", "Songti SC", serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
     }
-
     * { box-sizing: border-box; }
-
-    html, body {
-      background: var(--bg-0);
-      color: var(--text-2);
-      font-family: var(--mono);
-      font-weight: 300;
-      font-size: 14px;
-      line-height: 1.7;
-      margin: 0; padding: 0;
-      -webkit-font-smoothing: antialiased;
-      min-height: 100%;
-    }
-
-    /* ═══════════════ 全页天文台背景 ═══════════════ */
+    html, body { margin: 0; padding: 0; background: var(--bg0); color: var(--text2); }
     body {
+      font: 300 14px/1.78 var(--mono);
       background:
-        radial-gradient(ellipse 1400px 900px at 55% 12%, rgba(240,237,230,0.070) 0%, transparent 52%),
-        radial-gradient(ellipse 1000px 700px at 85% 48%, rgba(240,237,230,0.030) 0%, transparent 60%),
-        radial-gradient(ellipse 900px 620px at 12% 82%, rgba(240,237,230,0.022) 0%, transparent 65%),
-        linear-gradient(180deg, #0B0B0E 0%, #08080A 28%, #08080A 72%, #0B0B0E 100%);
-      background-attachment: fixed;
+        radial-gradient(ellipse 1200px 760px at 56% 14%, rgba(240,237,230,0.08), transparent 56%),
+        radial-gradient(ellipse 900px 560px at 88% 54%, rgba(240,237,230,0.03), transparent 64%),
+        linear-gradient(180deg, #0B0B0E 0%, #08080A 34%, #0B0B0E 100%);
+      -webkit-font-smoothing: antialiased;
     }
-    /* Film grain */
     body::before {
-      content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.025'/%3E%3C/svg%3E");
-      opacity: 0.4; mix-blend-mode: overlay;
+      opacity: 0.35;
+      mix-blend-mode: overlay;
     }
-    /* 全页 coord grid 底纹 */
-    body::after {
-      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background:
-        linear-gradient(rgba(255,255,255,0.013) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.013) 1px, transparent 1px);
-      background-size: 160px 160px;
-      mask-image: radial-gradient(ellipse at 50% 40%, black 5%, transparent 85%);
-      -webkit-mask-image: radial-gradient(ellipse at 50% 40%, black 5%, transparent 85%);
-    }
-
-    /* ═══════════════ FULLSCREEN HERO ═══════════════ */
     .hero {
       position: relative;
       min-height: 100vh;
-      padding: 10vh 6vw 8vh;
+      padding: 9vh 6vw 8vh;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      align-items: center;
       overflow: hidden;
-      z-index: 1;
     }
-    /* Hero coord grid · 更密更亮 */
     .hero::after {
-      content: ''; position: absolute; inset: 0;
+      content: "";
+      position: absolute;
+      inset: 0;
       background:
-        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-      background-size: 96px 96px; pointer-events: none;
-      mask-image: radial-gradient(ellipse at 55% 50%, black 20%, transparent 80%);
-      -webkit-mask-image: radial-gradient(ellipse at 55% 50%, black 20%, transparent 80%);
-      z-index: 0;
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 92px 92px;
+      mask-image: radial-gradient(ellipse at 55% 48%, black 18%, transparent 78%);
+      -webkit-mask-image: radial-gradient(ellipse at 55% 48%, black 18%, transparent 78%);
+      pointer-events: none;
     }
-
-    /* 主 orb · 右上升起，大而未满 */
-    .hero .orb {
+    .orb {
       position: absolute;
-      top: 8vh; right: -8vw;
-      width: min(720px, 65vw);
-      aspect-ratio: 1 / 1;
+      top: 8vh;
+      right: -10vw;
+      width: min(760px, 66vw);
+      aspect-ratio: 1;
       border-radius: 50%;
-      background: radial-gradient(circle at 42% 58%, rgba(240,237,230,0.12) 0%, rgba(240,237,230,0.04) 30%, transparent 68%);
-      box-shadow:
-        0 0 120px rgba(240,237,230,0.05),
-        0 0 320px rgba(240,237,230,0.03);
-      pointer-events: none;
-      z-index: 0;
+      background: radial-gradient(circle at 42% 58%, rgba(240,237,230,0.12) 0%, rgba(240,237,230,0.04) 30%, transparent 70%);
+      box-shadow: 0 0 120px rgba(240,237,230,0.06), 0 0 280px rgba(240,237,230,0.03);
     }
-    /* 同心轨道弧 + 读数节点 */
-    .hero .arcs {
+    .arcs {
       position: absolute;
-      top: 8vh; right: -8vw;
-      width: min(720px, 65vw);
-      aspect-ratio: 1 / 1;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.5;
+      top: 6vh;
+      right: -9vw;
+      width: min(760px, 66vw);
+      aspect-ratio: 1;
+      opacity: 0.52;
     }
-
-    /* 左侧大号刻度 · 垂直骨架 */
-    .hero .ruler {
-      position: absolute;
-      left: 3vw; top: 10vh; bottom: 10vh;
-      width: 1px;
-      background: linear-gradient(180deg, transparent, var(--line-2) 10%, var(--line-2) 90%, transparent);
-      z-index: 0;
-    }
-    .hero .ruler::before,
-    .hero .ruler::after {
-      content: ''; position: absolute;
-      left: -4px; width: 9px; height: 1px;
-      background: var(--text-3);
-    }
-    .hero .ruler::before { top: 10%; }
-    .hero .ruler::after  { bottom: 10%; }
-
-    .hero-inner {
-      position: relative;
-      z-index: 2;
-      max-width: 1100px;
-      margin-left: 4vw;
-    }
-
-    .hero-meta {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 400;
-      letter-spacing: 0.26em;
+    .hero-inner { position: relative; z-index: 1; max-width: 1080px; margin-left: 4vw; }
+    .meta, .foot { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--text3); }
+    .meta { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 44px; }
+    .title {
+      margin: 0 0 22px;
+      font: 400 clamp(56px, 11.5vw, 164px)/0.94 var(--display);
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      color: var(--text-3);
-      margin-bottom: 56px;
-      display: flex; flex-wrap: wrap; gap: 16px 24px;
+      color: var(--text1);
+      max-width: 7.2em;
     }
-    .hero-meta span { display: inline-flex; align-items: center; gap: 10px; }
-    .hero-meta span::before {
-      content: ''; width: 16px; height: 1px; background: var(--text-4);
+    .glow { color: var(--signal); text-shadow: 0 0 24px rgba(240,237,230,0.28), 0 0 84px rgba(240,237,230,0.08); }
+    .subtitle {
+      margin: 0 0 26px;
+      max-width: 860px;
+      font: 400 clamp(24px, 3.1vw, 44px)/1.28 var(--display);
+      color: var(--text1);
     }
-    .hero-meta span:first-child::before { display: none; }
-
-    .hero-title {
-      font-family: var(--display);
-      font-weight: 400;
-      font-size: clamp(56px, 11.5vw, 168px);
-      line-height: 0.94;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-      color: var(--text-1);
-      margin: 0 0 48px;
-    }
-    .hero-title .glow {
-      color: var(--signal);
-      text-shadow:
-        0 0 28px rgba(240,237,230,0.35),
-        0 0 100px rgba(240,237,230,0.14),
-        0 0 220px rgba(240,237,230,0.07);
-    }
-
-    .hero-cn {
-      font-family: var(--display);
-      font-weight: 400;
-      font-size: clamp(24px, 3.3vw, 44px);
-      line-height: 1.35;
-      color: var(--text-1);
-      margin: 0 0 48px;
-      max-width: 900px;
-    }
-
-    .hero-stance {
-      font-family: var(--mono);
-      font-size: 14px;
-      font-weight: 300;
-      letter-spacing: 0.02em;
-      line-height: 1.9;
-      color: var(--text-2);
-      padding-left: 24px;
-      border-left: 1px solid var(--line-2);
-      max-width: 680px;
-    }
-
-    /* Hero footer chrome */
-    .hero-chrome {
-      position: absolute;
-      left: 6vw; right: 6vw; bottom: 4vh;
-      display: flex; justify-content: space-between; align-items: flex-end;
-      font-family: var(--mono); font-size: 10px;
-      letter-spacing: 0.24em; text-transform: uppercase;
-      color: var(--text-4);
-      z-index: 2;
-    }
-    .hero-chrome .left, .hero-chrome .right {
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .hero-chrome .right { text-align: right; }
-    .hero-chrome .bar {
-      display: block; width: 1px; height: 32px;
-      background: var(--line-2);
-    }
-    .hero-chrome .right .bar { margin-left: auto; }
-
-    /* ═══════════════ MAIN CONTENT ═══════════════ */
-
-    .main {
-      position: relative;
-      z-index: 1;
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 0 6vw 120px;
-    }
-
-    .chapter {
-      margin-bottom: 140px;
-      position: relative;
-    }
-
-    /* 章节刻度 · 左侧大号数字 */
-    .chapter-head {
-      display: grid;
-      grid-template-columns: 140px 1fr;
-      gap: 48px;
-      margin-bottom: 56px;
-      align-items: baseline;
-    }
-    .chapter-n {
-      font-family: var(--display);
-      font-weight: 400;
-      font-size: 72px;
-      line-height: 0.9;
-      color: var(--text-4);
-      border-top: 1px solid var(--line-2);
-      padding-top: 16px;
-    }
-    .chapter-titles .kicker {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin: 0 0 16px;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .chapter-titles .kicker::before {
-      content: ''; width: 32px; height: 1px; background: var(--text-3);
-    }
-    .chapter-titles h2 {
-      font-family: var(--display);
-      font-weight: 400;
-      font-size: clamp(32px, 4.5vw, 56px);
-      line-height: 1.08;
-      letter-spacing: 0.01em;
-      color: var(--text-1);
+    .stance {
+      max-width: 720px;
       margin: 0;
-    }
-
-    @media (max-width: 720px) {
-      .chapter-head { grid-template-columns: 1fr; gap: 16px; }
-      .chapter-n { font-size: 48px; border-top: none; padding-top: 0; }
-    }
-
-    .sub {
-      margin-top: 64px;
-      display: grid;
-      grid-template-columns: 140px 1fr;
-      gap: 48px;
-      align-items: baseline;
-    }
-    .sub-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin: 0;
-    }
-    .sub-body { max-width: 720px; }
-
-    @media (max-width: 720px) {
-      .sub { grid-template-columns: 1fr; gap: 12px; }
-    }
-
-    .prose {
-      font-family: var(--mono);
-      font-weight: 300;
-      font-size: 15px;
+      padding-left: 22px;
+      border-left: 1px solid var(--line2);
       line-height: 1.9;
-      color: var(--text-2);
     }
-    .prose + .prose { margin-top: 20px; }
-    .prose em { color: var(--text-1); font-style: italic; font-family: var(--display); font-size: 17px; }
-    .prose strong { color: var(--text-1); font-weight: 400; }
-
-    /* ═══════════════ DECK (three cards under hero) ═══════════════ */
-
+    main { max-width: 1080px; margin: 0 auto; padding: 0 6vw 120px; }
+    section { margin-bottom: 120px; }
+    .kicker { margin: 0 0 10px; color: var(--text3); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; }
+    h2 { margin: 0 0 24px; color: var(--text1); font: 400 clamp(30px, 4vw, 52px)/1.08 var(--display); }
+    .prose { max-width: 760px; font-size: 15px; line-height: 1.92; }
+    .prose + .prose { margin-top: 16px; }
     .deck {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-      border-top: 1px solid var(--line-2);
-      border-bottom: 1px solid var(--line-2);
-      margin: 0 -6vw 120px;
-      padding: 0 6vw;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px solid var(--line2);
+      border-bottom: 1px solid var(--line2);
     }
-    .deck .card {
-      padding: 48px 32px 48px 0;
-      border-right: 1px solid var(--line-1);
+    .card { padding: 34px 24px 34px 0; border-right: 1px solid var(--line1); }
+    .card:nth-child(2), .card:last-child { padding-left: 24px; }
+    .card:last-child { border-right: 0; }
+    .card .n { margin: 0 0 12px; color: var(--text4); font: 400 28px/1 var(--display); }
+    .card h3, .panel h3 { margin: 0 0 10px; color: var(--text1); font: 400 24px/1.2 var(--display); }
+    .figure {
+      margin-top: 40px;
+      padding: 24px;
+      background: rgba(22,22,24,0.68);
+      border: 1px solid var(--line1);
     }
-    .deck .card:nth-child(2) { padding: 48px 32px; }
-    .deck .card:last-child { border-right: none; padding: 48px 0 48px 32px; }
-    .deck .card .n {
-      font-family: var(--display); font-size: 32px;
-      color: var(--text-3); line-height: 1;
-      margin: 0 0 20px;
-    }
-    .deck .card-label {
-      font-family: var(--mono); font-size: 10px; font-weight: 400;
-      letter-spacing: 0.24em; text-transform: uppercase;
-      color: var(--text-3); margin: 0 0 14px;
-    }
-    .deck .card-title {
-      font-family: var(--display); font-size: 24px;
-      color: var(--text-1); margin: 0 0 16px;
-      line-height: 1.3;
-    }
-    .deck .card-body {
-      font-family: var(--mono); font-size: 13px; line-height: 1.8;
-      color: var(--text-2);
-    }
-    @media (max-width: 860px) {
-      .deck { grid-template-columns: 1fr; }
-      .deck .card { border-right: none; border-bottom: 1px solid var(--line-1); padding: 40px 0 !important; }
-      .deck .card:last-child { border-bottom: none; }
-    }
-
-    /* ═══════════════ 核心机制 SVG ═══════════════ */
-
-    .mechanism {
-      margin-top: 48px;
-      padding: 40px;
-      background: var(--bg-1);
-      border: 1px solid var(--line-1);
-      position: relative;
-    }
-    .mechanism::before {
-      content: 'FIG · 01';
-      position: absolute;
-      top: -10px; left: 32px;
-      background: var(--bg-0);
-      padding: 0 12px;
-      font-family: var(--mono); font-size: 10px;
-      letter-spacing: 0.26em; color: var(--text-3);
-    }
-    .mechanism svg { width: 100%; height: auto; display: block; }
-
-    /* ═══════════════ POSITIONING SVG ═══════════════ */
-
-    .positioning {
-      margin-top: 48px;
-      padding: 56px 40px;
-      background: var(--bg-1);
-      border: 1px solid var(--line-1);
-      position: relative;
-    }
-    .positioning::before {
-      content: 'FIG · 02 · POSITIONING';
-      position: absolute;
-      top: -10px; left: 32px;
-      background: var(--bg-0);
-      padding: 0 12px;
-      font-family: var(--mono); font-size: 10px;
-      letter-spacing: 0.26em; color: var(--text-3);
-    }
-    .positioning svg { width: 100%; max-width: 620px; margin: 0 auto; height: auto; display: block; }
-
-    /* ═══════════════ 年代纪 — SVG 华丽时间线 ═══════════════ */
-
-    .chronicle-stage {
-      margin: 80px -6vw 0;
-      padding: 80px 6vw 100px;
-      background:
-        radial-gradient(ellipse 900px 500px at 50% 50%, rgba(240,237,230,0.035) 0%, transparent 65%),
-        linear-gradient(180deg, var(--bg-0), var(--bg-1) 30%, var(--bg-1) 70%, var(--bg-0));
-      border-top: 1px solid var(--line-1);
-      border-bottom: 1px solid var(--line-1);
-      position: relative;
-      overflow: hidden;
-    }
-    .chronicle-stage::before {
-      content: '';
-      position: absolute; inset: 0;
-      background:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-      background-size: 72px 72px;
-      mask-image: radial-gradient(ellipse at 50% 50%, black 25%, transparent 80%);
-      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 25%, transparent 80%);
-      pointer-events: none;
-    }
-    .chronicle-stage .chapter-head { margin-bottom: 64px; }
-
-    .chronicle-svg {
-      width: 100%;
-      height: auto;
-      max-width: 1080px;
-      margin: 0 auto;
-      display: block;
-      position: relative;
-      z-index: 1;
-    }
-    .chronicle-legend {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 24px;
-      margin-top: 56px;
-      max-width: 1080px;
-      margin-left: auto; margin-right: auto;
-      position: relative; z-index: 1;
-    }
-    .chronicle-legend .item {
-      padding-top: 16px;
-      border-top: 1px solid var(--line-1);
-    }
-    .chronicle-legend .year {
-      font-family: var(--display);
-      font-size: 28px;
-      color: var(--text-1);
-      line-height: 1;
-      margin: 0 0 8px;
-    }
-    .chronicle-legend .caption {
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.7;
-      color: var(--text-2);
-    }
-
-    .chronicle-coda {
-      max-width: 720px;
-      margin: 64px auto 0;
-      padding-left: 20px;
-      border-left: 1px solid var(--line-2);
-      font-family: var(--display);
-      font-style: italic;
-      font-size: 18px;
-      line-height: 1.7;
-      color: var(--text-1);
-      position: relative; z-index: 1;
-    }
-
-    /* ═══════════════ 认知卡片 ═══════════════ */
-
-    .cog-card {
-      margin-top: 64px;
-      padding: 48px;
-      background: var(--bg-1);
-      border: 1px solid var(--line-1);
-      position: relative;
-    }
-    .cog-card::before {
-      content: attr(data-fig);
-      position: absolute;
-      top: -10px; left: 40px;
-      background: var(--bg-0);
-      padding: 0 14px;
-      font-family: var(--mono); font-size: 10px;
-      letter-spacing: 0.26em; color: var(--text-3);
-    }
-    .cog-card .cog-kicker {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin: 0 0 12px;
-    }
-    .cog-card .cog-title {
-      font-family: var(--display);
-      font-weight: 400;
-      font-size: 28px;
-      color: var(--text-1);
-      margin: 0 0 28px;
-    }
-    .cog-card pre.ascii {
-      font-family: var(--mono);
-      font-size: 13px;
-      line-height: 1.65;
-      color: var(--text-2);
-      margin: 0 0 28px;
-      white-space: pre;
-      overflow-x: auto;
-    }
-    .cog-card pre.ascii .hi { color: var(--text-1); }
-    .cog-card pre.ascii .lo { color: var(--text-3); }
-    .cog-card .cog-takeaway {
-      padding-left: 24px;
-      border-left: 1px solid var(--line-2);
-      font-family: var(--display);
-      font-weight: 400;
-      font-style: italic;
-      font-size: 20px;
-      line-height: 1.55;
-      color: var(--text-1);
-    }
-
-    /* 开放问题 */
-    .open-questions {
-      margin-top: 80px;
-      padding: 48px 0 0;
-      border-top: 1px solid var(--line-1);
-    }
-    .open-questions .label {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin: 0 0 32px;
-    }
-    .open-questions ol {
-      list-style: none; counter-reset: q; padding: 0; margin: 0;
-    }
-    .open-questions ol li {
-      counter-increment: q;
-      padding: 28px 0;
-      border-bottom: 1px solid var(--line-1);
-      display: grid;
-      grid-template-columns: 64px 1fr;
-      gap: 24px;
-      align-items: baseline;
-    }
-    .open-questions ol li::before {
-      content: counter(q, decimal-leading-zero);
-      font-family: var(--mono); font-size: 12px;
-      letter-spacing: 0.18em; color: var(--text-3);
-    }
-    .open-questions ol li .q {
-      font-family: var(--display);
-      font-size: 20px;
-      color: var(--text-1);
-      line-height: 1.45;
-    }
-
-    /* ═══════════════ FINALE ═══════════════ */
-
+    .figure-label { margin-bottom: 12px; color: var(--text3); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+    .panel { padding-top: 18px; border-top: 1px solid var(--line2); }
     .finale {
-      margin: 160px -6vw 0;
-      padding: 20vh 6vw;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-      border-top: 1px solid var(--line-1);
-      border-bottom: 1px solid var(--line-1);
-      background:
-        radial-gradient(circle at 50% 50%, rgba(240,237,230,0.06) 0%, transparent 50%),
-        linear-gradient(180deg, var(--bg-0), var(--bg-1) 50%, var(--bg-0));
+      padding: 40px 0 0;
+      border-top: 1px solid var(--line2);
+      color: var(--text1);
+      font: 400 clamp(26px, 3vw, 40px)/1.35 var(--display);
+      max-width: 860px;
     }
-    .finale::before {
-      content: ''; position: absolute;
-      top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: min(900px, 90vw); aspect-ratio: 1;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(240,237,230,0.09) 0%, transparent 55%);
-      pointer-events: none; z-index: 0;
+    .foot { display: flex; justify-content: space-between; gap: 16px; padding-top: 20px; border-top: 1px solid var(--line1); }
+    a { color: var(--text1); text-decoration-color: rgba(224,220,214,0.28); }
+    @media (max-width: 900px) {
+      .deck, .grid-2 { grid-template-columns: 1fr; }
+      .card, .card:nth-child(2), .card:last-child { padding: 28px 0; border-right: 0; border-bottom: 1px solid var(--line1); }
+      .card:last-child { border-bottom: 0; }
+      .hero-inner { margin-left: 0; }
     }
-    .finale::after {
-      content: ''; position: absolute; inset: 0;
-      background:
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 80px 80px;
-      mask-image: radial-gradient(ellipse at 50% 50%, black 10%, transparent 70%);
-      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 10%, transparent 70%);
-      pointer-events: none;
-    }
-    .finale-inner { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; }
-    .finale-label {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin: 0 0 40px;
-      display: flex; justify-content: center; align-items: center; gap: 16px;
-    }
-    .finale-label::before, .finale-label::after {
-      content: ''; width: 32px; height: 1px; background: var(--line-2);
-    }
-    .finale-text {
-      font-family: var(--display);
-      font-weight: 400;
-      font-size: clamp(26px, 3.4vw, 44px);
-      line-height: 1.4;
-      color: var(--text-1);
-      margin: 0;
-    }
-    .finale-text .glow {
-      color: var(--signal);
-      text-shadow: 0 0 22px rgba(240,237,230,0.20), 0 0 60px rgba(240,237,230,0.08);
-    }
-
-    /* ═══════════════ FOOTER ═══════════════ */
-
-    .footer {
-      margin-top: 0;
-      padding: 56px 6vw;
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 300;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--text-4);
-      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px;
-      background: var(--bg-0);
-    }
-    .footer .dot { margin: 0 10px; color: var(--text-4); }
   </style>
 </head>
-
 <body>
-
-  <!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
-  <section class="hero">
-    <span class="orb"></span>
-    <svg class="arcs" viewBox="0 0 720 720" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <g fill="none" stroke="rgba(240,237,230,0.35)" stroke-width="0.6">
-        <circle cx="360" cy="360" r="140" />
-        <circle cx="360" cy="360" r="210" />
-        <circle cx="360" cy="360" r="280" stroke-dasharray="2 7" />
-        <circle cx="360" cy="360" r="340" stroke-dasharray="1 12" opacity="0.5" />
-      </g>
-      <g fill="rgba(240,237,230,0.7)">
-        <circle cx="360" cy="80"  r="1.3" />
-        <circle cx="640" cy="360" r="1" />
-        <circle cx="200" cy="540" r="1" />
-        <circle cx="520" cy="180" r="0.8" />
-        <circle cx="150" cy="280" r="0.7" />
-      </g>
-      <g fill="none" stroke="rgba(240,237,230,0.25)" stroke-width="0.4">
-        <path d="M 360 360 L 360 20" />
-        <path d="M 360 360 L 700 360" />
-      </g>
+  <header class="hero">
+    <div class="orb"></div>
+    <svg class="arcs" viewBox="0 0 720 720" fill="none" aria-hidden="true">
+      <circle cx="360" cy="360" r="188" stroke="rgba(255,255,255,0.08)"/>
+      <circle cx="360" cy="360" r="244" stroke="rgba(255,255,255,0.06)"/>
+      <circle cx="360" cy="360" r="300" stroke="rgba(255,255,255,0.05)"/>
+      <path d="M72 456C170 260 390 160 610 180" stroke="rgba(255,255,255,0.12)"/>
+      <path d="M120 558C252 326 476 254 666 292" stroke="rgba(255,255,255,0.09)"/>
     </svg>
-    <div class="ruler"></div>
-
     <div class="hero-inner">
-      <div class="hero-meta">
-        <span>2026 · 04 · 20</span>
-        <span>X-Ray Viewer</span>
-        <span>刘擎</span>
-        <span>《华东师范大学学报》2007</span>
-      </div>
-      <h1 class="hero-title">THE UNPROVEN <span class="glow">RING</span></h1>
-      <p class="hero-cn">面对多元价值冲突的困境 · 伯林论题的再考察</p>
-      <p class="hero-stance">刘擎不是在替伯林辩护，也不是在驳他；他是在论证：<em>价值多元论那一圈未被证明的起点，恰是自由主义能自我诚实的唯一落脚处</em>。把它当"漏洞"修补，只会滑回一元；把它当真起点承认下来，自由主义才不至于自欺。</p>
+      <p class="meta">XRAY · LIU QING · 2018 · POLITICAL THEORY · TANSUO YU ZHENGMING</p>
+      <h1 class="title">Against False <span class="glow">Choices</span></h1>
+      <p class="subtitle">《超越全球化与民族主义的对立》</p>
+      <p class="stance">这篇文章最有力之处，不在于替全球主义唱赞歌，而在于拆穿一种更偷懒的政治修辞：把国家内部的断裂，伪装成整个民族天然一致的怒气。</p>
     </div>
+  </header>
 
-    <div class="hero-chrome">
-      <div class="left">
-        <span class="bar"></span>
-        <span>Five chapters · 28 minute read</span>
-      </div>
-      <div class="right">
-        <span class="bar"></span>
-        <span>Scroll to enter</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════ DECK · 三张速读卡 ═══════════════════════════════ -->
-  <main class="main">
-
-    <div class="deck">
-      <article class="card">
-        <div class="n">01</div>
-        <div class="card-label">Question</div>
-        <p class="card-title">不可通约是否等于相对主义</p>
-        <p class="card-body">价值彼此不可通约，是伯林终生不退让的那一步。但这一步，会不会把自由主义推进"怎么选都行"的相对主义泥潭？这是刘擎想直面的那根芒刺。</p>
-      </article>
-      <article class="card">
-        <div class="n">02</div>
-        <div class="card-label">Evidence</div>
-        <p class="card-title">Berlin × Crowder × Galston</p>
-        <p class="card-body">文本细读 Four Essays on Liberty 与 The Crooked Timber of Humanity，参照 Crowder 的"较优自由主义"辩护与 Galston 的 value-pluralism 修正尝试，三家对读。</p>
-      </article>
-      <article class="card">
-        <div class="n">03</div>
-        <div class="card-label">Shift</div>
-        <p class="card-title">困境是起点，不是缺陷</p>
-        <p class="card-body">与其把多元论的内在紧张当作需要修补的破绽，不如承认它是伯林式自由主义赖以诚实的前提。修补即滑回一元。</p>
-      </article>
-    </div>
-
-    <!-- ═══════════════════════════════ CHAPTER ONE ═══════════════════════════════ -->
-    <section class="chapter">
-      <div class="chapter-head">
-        <div class="chapter-n">01</div>
-        <div class="chapter-titles">
-          <p class="kicker">Chapter One</p>
-          <h2>论文说了什么</h2>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">问题意识</div>
-        <div class="sub-body">
-          <p class="prose">刘擎要顶的不是某一位对手，而是一种<strong>广泛流传的"伯林已经说清楚了"的安稳感</strong>。在中文学界，伯林常被收编为"消极自由好、积极自由危险"的口号化读物；而他最难啃的那一部分——价值之间真的彼此不可通约——被默默绕开。刘擎追问的就是那一根绕不开的刺：如果不可通约成立，自由主义还能为自己的选择提出"非一元的"理由吗？</p>
-          <p class="prose">这不是伯林研究内部的小问题。一旦承认有真正不可通约的价值冲突，自由的优先性就不能再从"自由是唯一正确的价值"推出。自由主义要么承认自己也是诸多价值中的一个，要么偷偷重回一元。刘擎不愿意放过这个选择。</p>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">史料依据</div>
-        <div class="sub-body">
-          <p class="prose">核心文本是伯林的 <em>Four Essays on Liberty</em>（尤其 Two Concepts of Liberty 与 Historical Inevitability）与 <em>The Crooked Timber of Humanity</em>；对读材料是 George Crowder 的 <em>Liberalism and Value Pluralism</em>、William Galston 的 <em>Liberal Pluralism</em>、以及 John Gray 的伯林传记所提供的传思语境。</p>
-          <p class="prose">关键不在谁被引用，而在<strong>史料被当作什么在读</strong>：刘擎把这些文本当作"媒介"——同一个难题在不同作者手中的不同落点——而不是当作互相攻讦的"证据"。这让他有空间指出：Crowder 的"较优自由主义"其实把多元论重新一元化了，而 Galston 的处理虽然诚实，却付出了自由主义标志性承诺变模糊的代价。</p>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">论证结构</div>
-        <div class="sub-body">
-          <p class="prose">三段式走法：先<strong>展示困境</strong>——不可通约一旦成立，自由的优先性从何而来？再<strong>检验两种流行解法</strong>——Crowder 用"尊重多元本身就是一种高阶价值"补救，Galston 用"可容忍的多元 vs 不可容忍的多元"划界——两种尝试分别以什么代价失败？最后<strong>提出自己的读法</strong>——把未被证明的那一圈不当作漏洞，而当作自由主义诚实的前提。</p>
-          <p class="prose">读者被请求让渡的关键一步，是接受"一种无法用更高原则证明自己的政治立场，在智识上仍然可以是立得住的"。这是全文的哲学杠杆。</p>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">结论</div>
-        <div class="sub-body">
-          <p class="prose">以作者原话的轮廓说：多元论的困境不是多元论的失败，而是它的真起点；自由主义如果还想对自己诚实，就要承认自身是"一种选择"——不是从价值秩序顶端自明地降临的绝对，而是在未证之处勇敢落脚的那一步。能说出这一步的自由主义，比号称"证明了自由"的自由主义，反而更经得起挑战。</p>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">核心机制图</div>
-        <div class="sub-body" style="max-width: none;">
-          <div class="mechanism">
-            <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#9A9690" />
-                </marker>
-              </defs>
-              <g font-family="IBM Plex Mono, monospace" font-size="12" fill="#9A9690" letter-spacing="0.1em">
-                <!-- 左：不可通约 -->
-                <rect x="40" y="120" width="180" height="80" fill="none" stroke="#605C56" stroke-width="0.8"/>
-                <text x="130" y="150" text-anchor="middle" fill="#E0DCD6" font-size="14">INCOMMENSURABILITY</text>
-                <text x="130" y="172" text-anchor="middle" font-size="11">价值不可通约</text>
-                <text x="130" y="190" text-anchor="middle" font-size="10" fill="#605C56">Berlin 的那一步</text>
-
-                <!-- 中上：一元主义回路 -->
-                <rect x="340" y="30" width="220" height="90" fill="none" stroke="#605C56" stroke-width="0.8"/>
-                <text x="450" y="60" text-anchor="middle" fill="#9A9690" font-size="12">MONIST REPAIR</text>
-                <text x="450" y="80" text-anchor="middle" font-size="11">Crowder 路线</text>
-                <text x="450" y="102" text-anchor="middle" font-size="10" fill="#605C56">把"多元"升格为高阶一元</text>
-
-                <!-- 中下：灰度化 -->
-                <rect x="340" y="200" width="220" height="90" fill="none" stroke="#605C56" stroke-width="0.8"/>
-                <text x="450" y="230" text-anchor="middle" fill="#9A9690" font-size="12">BLURRED LIBERALISM</text>
-                <text x="450" y="250" text-anchor="middle" font-size="11">Galston 路线</text>
-                <text x="450" y="272" text-anchor="middle" font-size="10" fill="#605C56">牺牲自由主义的清晰承诺</text>
-
-                <!-- 右：真起点 -->
-                <rect x="680" y="120" width="180" height="80" fill="none" stroke="#F0EDE6" stroke-width="1.2"/>
-                <text x="770" y="148" text-anchor="middle" fill="#F0EDE6" font-size="14" font-weight="500">UNPROVEN RING</text>
-                <text x="770" y="170" text-anchor="middle" font-size="11" fill="#E0DCD6">未证之环</text>
-                <text x="770" y="188" text-anchor="middle" font-size="10" fill="#9A9690">承认即起点</text>
-
-                <!-- 连线 -->
-                <path d="M 220 160 L 330 75"   stroke="#605C56" stroke-width="0.8" fill="none" marker-end="url(#arr)"/>
-                <path d="M 220 160 L 330 245"  stroke="#605C56" stroke-width="0.8" fill="none" marker-end="url(#arr)"/>
-                <path d="M 220 160 L 670 160"  stroke="#F0EDE6" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
-
-                <!-- 失败标记 -->
-                <text x="450" y="150" text-anchor="middle" font-size="10" fill="#605C56" font-style="italic">× 滑回一元</text>
-                <text x="450" y="310" text-anchor="middle" font-size="10" fill="#605C56" font-style="italic">× 丢失标志</text>
-              </g>
-            </svg>
-          </div>
-        </div>
-      </div>
+  <main>
+    <section>
+      <p class="kicker">I. Thesis</p>
+      <h2>刘擎真正拒绝的，不只是民族主义，而是“非此即彼”的思维偷懒</h2>
+      <p class="prose">文章的起点并不抽象。它从西雅图之后的反全球化脉络谈起，先把一个常见误判拆开：最近几年西方社会里抬头的反全球化情绪，并不等于民族国家整体利益受损后的自然自卫。刘擎的判断更锋利一些：全球化制造的主要争端，首先发生在国家内部，而不是国家之间。米兰诺维奇的“不平等”诊断在这里被当作支点使用，它让“全球化的受益者与受挫者共存于同一社会”成为整篇文章的第一条断层线。</p>
+      <p class="prose">从这个断层线出发，文章往前推进一步：民族主义之所以能够暂时借壳为反全球化的政治力量，不是因为它天然与反全球化同义，而是因为经济失落、安全恐慌与文化不满被重新缝合成了一个可动员的“人民”。这一点很重要。刘擎不是把民族主义处理为永恒本质，而是把它理解为一种能被调用、能被放大、也能被误认的政治组织形式。也正因为如此，这篇文章并不满足于诊断“民族主义复兴”，它真正要问的是：我们是不是把一套条件性的政治策略，错认成了一种不可避免的历史宿命。</p>
     </section>
 
-    <!-- ═══════════════════════════════ CHAPTER TWO ═══════════════════════════════ -->
-    <section class="chapter">
-      <div class="chapter-head">
-        <div class="chapter-n">02</div>
-        <div class="chapter-titles">
-          <p class="kicker">Chapter Two</p>
-          <h2>论文在谱系中的位置</h2>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">学派谱系</div>
-        <div class="sub-body">
-          <p class="prose">英美政治哲学 × 剑桥思想史方法。刘擎一贯在"伯林研究—施特劳斯—新共和主义"这条轴线上移动，这篇论文继续在这条轴上，但比他更早的<em>《悬而未决的时刻》</em>走得更靠近哲学论证本身，而非学派地图。与<strong>钱永祥、周濂</strong>同属大陆自由主义反思一脉，但更克制于工具式借用，更愿意咬住哲学上的难题不放。</p>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">对话对象</div>
-        <div class="sub-body">
-          <p class="prose">明引：伯林、Crowder、Galston、John Gray、Raz。暗线：Leo Strauss 的一元主义幽灵——虽然没被直接点名，却是整篇论文的阴面。对施特劳斯的沉默，比对伯林的援引更说明他在为自由主义选立场。对 Habermas 的几乎缺席也是刻意的：对话伦理在刘擎看来已经预设了一元。</p>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">史观取向</div>
-        <div class="sub-body">
-          <p class="prose">诠释取向为主 · 轻度批判。他不做"伯林到底想说什么"的注疏式辩护，也不做"伯林错在哪里"的整体清算；他把伯林的困境看作现代自由主义的缩影，一个无法被第三方语言解散的困境。</p>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">时段与空间</div>
-        <div class="sub-body">
-          <p class="prose">思想事件史为主：冷战后半程到 2000 年代前后，Berlin、Rawls 之后的自由主义重新自我审视的那二十年。空间集中于英美-德国思想对话，中文学界是接受端，但这篇已开始从接受端反问。</p>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">理论借用</div>
-        <div class="sub-body">
-          <p class="prose">Crowder 与 Galston 被<strong>消化而非装饰</strong>——两人的具体论证被拆开用来显示"伯林的困境不可用他们的方式解决"。Raz 的<em>The Morality of Freedom</em> 只点到即止，被留作外援证人。这种拿来主义很干净：借一句话的时候很明白借它做什么，不借第二句。</p>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">史料新发现</div>
-        <div class="sub-body">
-          <p class="prose">类别 (b)：旧材料的新读法。没有动用未刊档案，也没有引入新框架；贡献在于把 Four Essays 第一篇与 Crooked Timber 中间的"未证之环"主题重新显像出来，而此前大多数读法把这两本书当作两本书而非同一问题的两个落点。</p>
-        </div>
-      </div>
-
-      <div class="sub">
-        <div class="sub-label">位置图</div>
-        <div class="sub-body" style="max-width: none;">
-          <div class="positioning">
-            <svg viewBox="0 0 620 420" xmlns="http://www.w3.org/2000/svg">
-              <g font-family="IBM Plex Mono, monospace" font-size="11" fill="#605C56" letter-spacing="0.08em">
-                <!-- 坐标系 -->
-                <line x1="60" y1="60" x2="60" y2="360" stroke="#605C56" stroke-width="0.8"/>
-                <line x1="60" y1="360" x2="560" y2="360" stroke="#605C56" stroke-width="0.8"/>
-                <!-- 刻度 -->
-                <line x1="55" y1="80"  x2="65" y2="80"  stroke="#605C56" stroke-width="0.6"/>
-                <line x1="55" y1="360" x2="65" y2="360" stroke="#605C56" stroke-width="0.6"/>
-                <line x1="60" y1="355" x2="60" y2="365" stroke="#605C56" stroke-width="0.6"/>
-                <line x1="560" y1="355" x2="560" y2="365" stroke="#605C56" stroke-width="0.6"/>
-                <!-- 轴标 -->
-                <text x="60" y="45" text-anchor="middle" fill="#9A9690">INTERPRETIVE</text>
-                <text x="60" y="385" text-anchor="middle" fill="#9A9690">EVIDENTIAL</text>
-                <text x="40" y="215" text-anchor="end" fill="#605C56" transform="rotate(-90 40 215)">史观</text>
-                <text x="60" y="405" text-anchor="middle" fill="#605C56">← 诠释 / 证据 →</text>
-                <text x="560" y="385" text-anchor="end" fill="#9A9690">DEEP TIME</text>
-                <text x="60" y="385" text-anchor="start" fill="#9A9690">—</text>
-                <text x="560" y="405" text-anchor="middle" fill="#605C56">共时 ← 时段 → 长时段</text>
-
-                <!-- 点 -->
-                <circle cx="170" cy="230" r="3" fill="#605C56"/>
-                <text x="178" y="234" fill="#9A9690">Rawls</text>
-
-                <circle cx="300" cy="120" r="3" fill="#605C56"/>
-                <text x="308" y="124" fill="#9A9690">Galston</text>
-
-                <circle cx="410" cy="180" r="3" fill="#605C56"/>
-                <text x="418" y="184" fill="#9A9690">Crowder</text>
-
-                <circle cx="210" cy="320" r="3" fill="#605C56"/>
-                <text x="218" y="324" fill="#9A9690">Strauss</text>
-
-                <!-- 本文位置 · 发光 -->
-                <circle cx="335" cy="170" r="7" fill="none" stroke="#F0EDE6" stroke-width="0.8" opacity="0.5"/>
-                <circle cx="335" cy="170" r="4" fill="#F0EDE6"/>
-                <text x="345" y="164" fill="#F0EDE6" font-size="12" font-weight="500">Liu · 2007</text>
-                <text x="345" y="180" fill="#E0DCD6" font-size="10">本文在此</text>
-
-                <!-- 向 Berlin 的牵引线 -->
-                <circle cx="280" cy="240" r="3" fill="#9A9690"/>
-                <text x="288" y="244" fill="#E0DCD6">Berlin</text>
-                <line x1="335" y1="170" x2="280" y2="240" stroke="#F0EDE6" stroke-width="0.5" stroke-dasharray="2 3" opacity="0.6"/>
-              </g>
-            </svg>
-          </div>
-        </div>
-      </div>
+    <section class="deck">
+      <article class="card">
+        <p class="n">01</p>
+        <h3>Fault Line</h3>
+        <p>全球化首先撕开的，不是国家对国家，而是国家内部不同阶层与生活方式之间的断层。</p>
+      </article>
+      <article class="card">
+        <p class="n">02</p>
+        <h3>Borrowed Nationalism</h3>
+        <p>民族主义并非天然的反全球化本能，它是被民粹政治借来组织不满的可变资源。</p>
+      </article>
+      <article class="card">
+        <p class="n">03</p>
+        <h3>Constructed Identity</h3>
+        <p>既然民族身份本身就是做成的，那么全球身份在逻辑上也不必永远被判为虚妄。</p>
+      </article>
     </section>
+
+    <section>
+      <p class="kicker">II. Argument Figure</p>
+      <h2>这篇文章的推进方式，是从裂缝诊断走向制度想象</h2>
+      <div class="figure">
+        <p class="figure-label">FIG · 01 · ARGUMENT ORBIT</p>
+        <svg viewBox="0 0 920 340" width="100%" aria-label="Argument orbit diagram">
+          <path d="M70 260C176 104 344 64 474 126C612 194 720 118 848 76" stroke="rgba(255,255,255,0.12)" fill="none"/>
+          <circle cx="110" cy="250" r="12" fill="#F0EDE6"/><text x="110" y="282" text-anchor="middle" fill="#E0DCD6" font-size="13">国内断层线</text>
+          <circle cx="302" cy="128" r="10" fill="#9A9690"/><text x="302" y="98" text-anchor="middle" fill="#E0DCD6" font-size="13">民族主义被借用</text>
+          <circle cx="474" cy="158" r="10" fill="#9A9690"/><text x="474" y="194" text-anchor="middle" fill="#E0DCD6" font-size="13">身份不是天成</text>
+          <circle cx="674" cy="126" r="10" fill="#9A9690"/><text x="674" y="98" text-anchor="middle" fill="#E0DCD6" font-size="13">全球身份可被建构</text>
+          <circle cx="836" cy="78" r="12" fill="#F0EDE6"/><text x="836" y="48" text-anchor="middle" fill="#E0DCD6" font-size="13">世界社会的前提</text>
+        </svg>
+      </div>
+      <p class="prose">这条轨迹里最值得注意的，是文章后半段的理论转身。前半段仍然是政治现实的冷分析：不平等、移民、恐怖主义、安全与文化焦虑如何汇流，并被政客包装为整体民族利益。后半段则引入建构论、再一路走向摩根索关于“世界社会”先于“世界国家”的想象。也就是说，刘擎不是从全球主义的价值理想直接起跳，而是先证明民族身份本身并不天然，再为全球身份争取逻辑地位，最后才把制度想象慢慢推出来。</p>
+    </section>
+
+    <section class="grid-2">
+      <article class="panel">
+        <p class="kicker">III. Where It Persuades</p>
+        <h3>它最准确地抓住了“整体民族利益”这句话里的伪装</h3>
+        <p>文章最有穿透力的地方，是把反全球化的情绪重新拆回社会内部。这样一来，民族主义就不再是原生实体，而是一个把异质不满重新压平的代表性机器。这个判断非常重要，因为它迫使读者承认：所谓“人民的共同意志”，很多时候并不是被发现的，而是被建构出来的。</p>
+      </article>
+      <article class="panel">
+        <p class="kicker">IV. Where It Thins</p>
+        <h3>它从诊断走向希望时，速度略快于论证本身</h3>
+        <p>当文章借摩根索转向“世界社会”的制度前提时，论证明显进入更愿景性的地带。必要性被说得足够清楚了，但可行性仍主要停留在规范想象。全球身份为什么不会像民族身份那样再次被少数人垄断、操演或工具化？这一层，文章没有充分展开。</p>
+      </article>
+    </section>
+
+    <section>
+      <p class="kicker">V. Reader Response</p>
+      <h2>我读到的，不是一篇抽象的全球主义论文，而是一种试图保住复杂性的自由主义写法</h2>
+      <p class="prose">如果把这篇文章仅仅读成“为全球化辩护”，会低估它。刘擎真正想守住的，是一种更困难的政治伦理：承认身份认同的重要，却拒绝把它神圣化；承认全球主义的必要，却拒绝把它浪漫化。他不是要取消民族身份，而是要阻止民族身份成为最后的、唯一的、不可再反思的归属。</p>
+      <p class="prose">这也是我觉得它有意思的地方。它并不天真。文章非常清楚民族主义为什么有效，也很清楚全球主义在现实中的支持基础分布不均。可它仍然不肯退回“现实就是如此”的犬儒。它在现实主义与规范理想之间维持着一种很窄的桥：既不把冲突抹平，也不把冲突神话。就这个意义上说，这篇文章其实靠近一种价值多元的训练。它知道不同归属会冲突，知道没有终极和解的捷径，但仍坚持政治的任务不是替冲突选出唯一真理，而是为共存创造较好的制度条件。</p>
+      <p class="prose">我对它的保留也恰恰在这里。文章足够有说服力地证明了“民族主义 versus 全球主义”是个伪对立，却还没有同样有力地说明：一旦我们承认多重身份并存，靠什么维持它们之间的政治黏合，而不再次落入新的排斥与动员。这不是它的失败，更像是它把问题留在了真正困难的地方。</p>
+    </section>
+
+    <section>
+      <p class="finale">这篇文章最珍贵的地方，是它拒绝在民族主义与全球主义之间二选一，而坚持把政治想象留给那条更难走、却更诚实的<span class="glow">中间地带</span>。</p>
+    </section>
+
+    <footer class="foot">
+      <span>GPT-5.4 for Alice · X-Ray · 2026-04-20</span>
+      <span><a href="https://chinese-thought.ecnu.edu.cn/ca/89/c22333a379529/page.htm">Source text</a> · 刘擎</span>
+    </footer>
   </main>
-
-  <!-- ═══════════════════════════════ CHAPTER THREE · CHRONICLE 舞台 ═══════════════════════════════ -->
-  <section class="chronicle-stage">
-    <div class="main" style="padding-left: 0; padding-right: 0; padding-bottom: 0;">
-      <div class="chapter-head">
-        <div class="chapter-n">03</div>
-        <div class="chapter-titles">
-          <p class="kicker">Chapter Three</p>
-          <h2>年代纪</h2>
-        </div>
-      </div>
-    </div>
-
-    <svg class="chronicle-svg" viewBox="0 0 1080 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#F0EDE6" stop-opacity="1"/>
-          <stop offset="50%" stop-color="#F0EDE6" stop-opacity="0.2"/>
-          <stop offset="100%" stop-color="#F0EDE6" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-
-      <!-- 主时间轴 -->
-      <line x1="60" y1="160" x2="1020" y2="160" stroke="#605C56" stroke-width="0.6"/>
-
-      <!-- 刻度 -->
-      <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#605C56" letter-spacing="0.18em">
-        <g>
-          <line x1="120" y1="155" x2="120" y2="165" stroke="#605C56" stroke-width="0.8"/>
-          <text x="120" y="185" text-anchor="middle">1958</text>
-        </g>
-        <g>
-          <line x1="300" y1="155" x2="300" y2="165" stroke="#605C56" stroke-width="0.8"/>
-          <text x="300" y="185" text-anchor="middle">1969</text>
-        </g>
-        <g>
-          <line x1="460" y1="155" x2="460" y2="165" stroke="#605C56" stroke-width="0.8"/>
-          <text x="460" y="185" text-anchor="middle">1990</text>
-        </g>
-        <g>
-          <line x1="620" y1="155" x2="620" y2="165" stroke="#605C56" stroke-width="0.8"/>
-          <text x="620" y="185" text-anchor="middle">2002</text>
-        </g>
-        <g>
-          <line x1="780" y1="155" x2="780" y2="165" stroke="#605C56" stroke-width="0.8"/>
-          <text x="780" y="185" text-anchor="middle">2005</text>
-        </g>
-        <g>
-          <line x1="940" y1="155" x2="940" y2="165" stroke="#605C56" stroke-width="0.8"/>
-          <text x="940" y="185" text-anchor="middle">2007</text>
-        </g>
-      </g>
-
-      <!-- 节点 · 上下交替 -->
-      <g font-family="Cormorant Garamond, serif" font-size="14" fill="#E0DCD6">
-        <!-- 1958 Berlin lectures -->
-        <line x1="120" y1="160" x2="120" y2="80" stroke="#605C56" stroke-width="0.5" stroke-dasharray="2 3"/>
-        <circle cx="120" cy="160" r="10" fill="url(#nodeGlow)"/>
-        <circle cx="120" cy="160" r="3" fill="#E0DCD6"/>
-        <text x="120" y="70" text-anchor="middle">Two Concepts</text>
-        <text x="120" y="54" text-anchor="middle" font-size="10" fill="#9A9690" font-family="IBM Plex Mono">牛津就职演讲</text>
-
-        <!-- 1969 Four Essays -->
-        <line x1="300" y1="160" x2="300" y2="240" stroke="#605C56" stroke-width="0.5" stroke-dasharray="2 3"/>
-        <circle cx="300" cy="160" r="8" fill="url(#nodeGlow)"/>
-        <circle cx="300" cy="160" r="2.5" fill="#E0DCD6"/>
-        <text x="300" y="260" text-anchor="middle">Four Essays on Liberty</text>
-        <text x="300" y="276" text-anchor="middle" font-size="10" fill="#9A9690" font-family="IBM Plex Mono">不可通约被定型</text>
-
-        <!-- 1990 Crooked Timber -->
-        <line x1="460" y1="160" x2="460" y2="80" stroke="#605C56" stroke-width="0.5" stroke-dasharray="2 3"/>
-        <circle cx="460" cy="160" r="8" fill="url(#nodeGlow)"/>
-        <circle cx="460" cy="160" r="2.5" fill="#E0DCD6"/>
-        <text x="460" y="70" text-anchor="middle">The Crooked Timber</text>
-        <text x="460" y="54" text-anchor="middle" font-size="10" fill="#9A9690" font-family="IBM Plex Mono">困境被重述</text>
-
-        <!-- 2002 Crowder -->
-        <line x1="620" y1="160" x2="620" y2="240" stroke="#605C56" stroke-width="0.5" stroke-dasharray="2 3"/>
-        <circle cx="620" cy="160" r="7" fill="url(#nodeGlow)"/>
-        <circle cx="620" cy="160" r="2" fill="#E0DCD6"/>
-        <text x="620" y="260" text-anchor="middle">Liberalism &amp; Value Pluralism</text>
-        <text x="620" y="276" text-anchor="middle" font-size="10" fill="#9A9690" font-family="IBM Plex Mono">Crowder 第一种修补</text>
-
-        <!-- 2005 Galston -->
-        <line x1="780" y1="160" x2="780" y2="100" stroke="#605C56" stroke-width="0.5" stroke-dasharray="2 3"/>
-        <circle cx="780" cy="160" r="7" fill="url(#nodeGlow)"/>
-        <circle cx="780" cy="160" r="2" fill="#E0DCD6"/>
-        <text x="780" y="90" text-anchor="middle">Liberal Pluralism</text>
-        <text x="780" y="74" text-anchor="middle" font-size="10" fill="#9A9690" font-family="IBM Plex Mono">Galston 第二种修补</text>
-
-        <!-- 2007 Liu · signal -->
-        <line x1="940" y1="160" x2="940" y2="240" stroke="#F0EDE6" stroke-width="0.8"/>
-        <circle cx="940" cy="160" r="18" fill="url(#nodeGlow)"/>
-        <circle cx="940" cy="160" r="14" fill="none" stroke="#F0EDE6" stroke-width="0.6" opacity="0.5"/>
-        <circle cx="940" cy="160" r="4" fill="#F0EDE6"/>
-        <text x="940" y="260" text-anchor="middle" fill="#F0EDE6" font-size="16" font-weight="500">刘擎 · 本文</text>
-        <text x="940" y="278" text-anchor="middle" font-size="10" fill="#E0DCD6" font-family="IBM Plex Mono">困境即起点</text>
-      </g>
-
-      <!-- 左侧 'B' 轨 · 背景注释 -->
-      <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#3A3834" letter-spacing="0.22em">
-        <text x="30" y="92">TEXT · A</text>
-        <text x="30" y="228">RESPONSE · B</text>
-      </g>
-    </svg>
-
-    <div class="chronicle-legend">
-      <div class="item">
-        <p class="year">1958 → 1969</p>
-        <p class="caption">伯林把"不可通约"从演讲中的一个表述，固化为政治哲学术语。Two Concepts 是声明，Four Essays 是落锚。</p>
-      </div>
-      <div class="item">
-        <p class="year">1990</p>
-        <p class="caption">Crooked Timber 不再只是"自由主义的宣言"，而是一本反复回到 "人类无法一次把所有好东西都拥有" 这个主题的回声集。困境显影。</p>
-      </div>
-      <div class="item">
-        <p class="year">2002–2005</p>
-        <p class="caption">Crowder 与 Galston 两次修补尝试。前者把多元重新一元化，后者把自由主义的清晰承诺换成模糊的容忍阈值。两种代价，并列摆出。</p>
-      </div>
-      <div class="item">
-        <p class="year">2007</p>
-        <p class="caption">刘擎进入。不修补，承认未证之环；把伯林的困境重命名为"真起点"。这是中文政治哲学里对价值多元论最干净的一次落脚。</p>
-      </div>
-    </div>
-
-    <p class="chronicle-coda">这条时间线照亮的不是"观点的进化"，而是一个<em>被拖延了半世纪的承认</em> —— 不是直到 2007 才出现新证据，而是直到此刻才有人愿意不再把困境当作有待修补的破绽。</p>
-  </section>
-
-  <!-- ═══════════════════════════════ CHAPTER FOUR · CARDS ═══════════════════════════════ -->
-  <main class="main">
-    <section class="chapter">
-      <div class="chapter-head">
-        <div class="chapter-n">04</div>
-        <div class="chapter-titles">
-          <p class="kicker">Chapter Four</p>
-          <h2>认知卡片</h2>
-        </div>
-      </div>
-
-      <article class="cog-card" data-fig="CARD · 01 · 阈限">
-        <p class="cog-kicker">Threshold</p>
-        <h3 class="cog-title">修补即越过的那道门</h3>
-<pre class="ascii">     <span class="lo">困境</span>
-       │
-       ├─<span class="lo">修补</span>─────┐
-       │           │  ×  <span class="lo">滑回一元</span>
-       │           └─────────→
-       │
-       └─<span class="hi">承认</span>─────┐
-                   │  ○  <span class="hi">真起点</span>
-                   └─────────→</pre>
-        <p class="cog-takeaway">所有"解决伯林困境"的尝试，其实都是越过了一道门 —— 越过的那一刻，自由主义就已经偷偷一元化了。不越门，才是伯林本意所在。</p>
-      </article>
-
-      <article class="cog-card" data-fig="CARD · 02 · 递归">
-        <p class="cog-kicker">Recursion</p>
-        <h3 class="cog-title">自由优先性的自证陷阱</h3>
-<pre class="ascii">  <span class="lo">"自由优先"</span>
-       ⇣
-  <span class="lo">需要理由</span>
-       ⇣
-  <span class="lo">"因为自由能容纳多元"</span>
-       ⇣
-  <span class="lo">"多元为什么值得被容纳？"</span>
-       ⇣
-  <span class="hi">—— 没有非循环的答案 ——</span>
-       ⇡
-       │  承认这圈未证，
-       └── 就是伯林的起点本身</pre>
-        <p class="cog-takeaway">自由主义试图为"自由"给出不循环的证明，注定失败。能承认这个循环的自由主义，反而站得比"证明过自由"的自由主义更稳。</p>
-      </article>
-
-      <article class="cog-card" data-fig="CARD · 03 · 反转">
-        <p class="cog-kicker">Inversion</p>
-        <h3 class="cog-title">困境换面</h3>
-<pre class="ascii">  <span class="lo">旧读法</span>: 多元论 → <span class="lo">漏洞</span> → 需要修补
-  <span class="lo">旧读法</span>: 漏洞若补 → <span class="lo">自由主义完成</span>
-
-  <span class="hi">刘擎读法</span>: 多元论 → <span class="hi">真起点</span> → 无需修补
-  <span class="hi">刘擎读法</span>: 起点若认 → <span class="hi">自由主义诚实</span></pre>
-        <p class="cog-takeaway">同一个事实 —— 多元论的内部张力 —— 在两种读法里扮演相反角色。前者把它当作自由主义的债，后者把它当作自由主义唯一诚实的本钱。这是对伯林的一次哲学定性翻转。</p>
-      </article>
-
-      <div class="open-questions">
-        <p class="label">Open questions</p>
-        <ol>
-          <li><span class="q">如果自由主义公开承认自己是"在未证之处落脚"，在公共生活中如何与一元主义立场竞争？承认诚实会不会让它政治上失去话语权？</span></li>
-          <li><span class="q">刘擎的"真起点"解读，会不会把伯林变成一种存在论立场（"人的处境本如此"），而抽空了原初文本中更丰富的政治经验成分？</span></li>
-          <li><span class="q">这一读法能否平移到中文语境？中文自由主义是否有资本直接站上"未证之环"——还是要先经过一轮更基础的、伯林之前的历史功课？</span></li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- ═══════════════════════════════ CHAPTER FIVE · FINALE ═══════════════════════════════ -->
-  </main>
-
-  <section class="finale">
-    <div class="finale-inner">
-      <p class="finale-label">One sentence · Chapter Five</p>
-      <p class="finale-text">刘擎这篇论文的全部分量，是告诉你：自由主义最诚实的一步，不是证明它的起点，<span class="glow">而是承认那个起点从来就是未证的。</span></p>
-    </div>
-  </section>
-
-  <div class="footer">
-    <span>Claude Opus 4.7<span class="dot">·</span>for Alice</span>
-    <span>X-ray<span class="dot">·</span>Liu 2007<span class="dot">·</span>2026-04-20</span>
-  </div>
-
 </body>
 </html>
