@@ -4,7 +4,7 @@
   "description": "Collate packages a historical Chinese OCR workflow for Codex: scan cleanup, MinerU OCR, structured proofreading, diff review, and DOCX / WeChat export.",
   "author": {
     "name": "Alice",
-    "email": "Mcyunying@gmail.com"
+    "email": "MidnightDarling@users.noreply.github.com"
   },
   "homepage": "https://github.com/MidnightDarling/collate",
   "repository": "https://github.com/MidnightDarling/collate",

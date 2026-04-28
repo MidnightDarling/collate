@@ -8,7 +8,7 @@
 
 ## 核心作者
 
-### Alice ([Mcyunying@gmail.com](mailto:Mcyunying@gmail.com))
+### Alice
 
 中国社科院历史学研究者。本项目的**原始需求方与学术顾问**：
 
@@ -110,7 +110,7 @@ PR 规范：
 
   ```
   Authored-by: <你的名字> <邮箱>
-  Co-Authored-By: Alice <Mcyunying@gmail.com>
+  Co-Authored-By: Alice <MidnightDarling@users.noreply.github.com>
   ```
 
 ### 扩展 reference
@@ -131,9 +131,9 @@ PR 规范：
 
 ## 联系方式
 
-- 学术与需求相关：Alice <[Mcyunying@gmail.com](mailto:Mcyunying@gmail.com)>
+- 学术与需求相关：通过 [GitHub Issues](https://github.com/MidnightDarling/collate/issues) 与 Alice 沟通
 - 技术实现与 PR 讨论：GitHub Issues / PR
-- 安全问题（含 API key 泄露）：先私下联系 Alice，24 小时内修复后再公开
+- 安全问题（含 API key 泄露）：先在 GitHub 上发起 private security advisory，24 小时内修复后再公开
 
 ---
 

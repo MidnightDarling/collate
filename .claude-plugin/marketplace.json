@@ -2,7 +2,7 @@
   "name": "collate",
   "owner": {
     "name": "Alice",
-    "email": "Mcyunying@gmail.com"
+    "email": "MidnightDarling@users.noreply.github.com"
   },
   "metadata": {
     "description": "点校 · Collate — Read, think, and write history with your agents. 历史文本 OCR 校对 + 公众号排版 + 学术场研究的 agent 工作流。"
@@ -15,7 +15,7 @@
       "version": "0.1.0",
       "author": {
         "name": "Alice",
-        "email": "Mcyunying@gmail.com"
+        "email": "MidnightDarling@users.noreply.github.com"
       },
       "homepage": "https://github.com/MidnightDarling/collate",
       "repository": "https://github.com/MidnightDarling/collate",

@@ -58,4 +58,4 @@ The following are outside the CC BY 4.0 scope above and remain governed by their
 
 ## Contact
 
-Questions about scope or attribution may be directed to Alice <Mcyunying@gmail.com>.
+Questions about scope or attribution may be raised via [GitHub Issues](https://github.com/MidnightDarling/collate/issues).

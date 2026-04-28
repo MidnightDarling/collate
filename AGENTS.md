@@ -532,19 +532,19 @@ files_preserved: [<paths that remain for inspection>]
 
 - Git author 必须是 `GPT-5.4 <codex@openai.com>`
 - commit message 末尾必须带：
-  `Co-Authored-By: Alice <mcyunying@gmail.com>`
+  `Co-Authored-By: Alice <MidnightDarling@users.noreply.github.com>`
 - 不要使用 `noreply@openai.com`
 - `~/.codex/config.toml` 里的 `command_attribution` 必须保持 `false`
 
 推荐命令：
 
 ```bash
-GIT_COMMITTER_NAME="Alice" GIT_COMMITTER_EMAIL="mcyunying@gmail.com" \
+GIT_COMMITTER_NAME="Alice" GIT_COMMITTER_EMAIL="MidnightDarling@users.noreply.github.com" \
 git commit --author="GPT-5.4 <codex@openai.com>" -m "<subject>
 
 <body>
 
-Co-Authored-By: Alice <mcyunying@gmail.com>"
+Co-Authored-By: Alice <MidnightDarling@users.noreply.github.com>"
 ```
 
 目的：

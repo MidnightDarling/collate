@@ -510,4 +510,4 @@ opencc-python-reimplemented
 - **引用材料**(docs/、skills/*/references/、README、AGENTS.md、原创插图):[CC BY 4.0](LICENSING.md)
 - **第三方依赖**保留各自许可——见 [NOTICE](NOTICE)
 
-版权 2026 Alice <Mcyunying@gmail.com>。与 Claude Opus 4.7(Anthropic)及 GPT-5.4(OpenAI)共笔;按 AI 协作作品的适用法律,版权由 Alice 独家持有,作者身份(authorship)为联合。详见 [NOTICE](NOTICE) 与 [CONTRIBUTORS.md](CONTRIBUTORS.md)。
+版权 2026 Alice。与 Claude Opus 4.7(Anthropic)及 GPT-5.4(OpenAI)共笔;按 AI 协作作品的适用法律,版权由 Alice 独家持有,作者身份(authorship)为联合。详见 [NOTICE](NOTICE) 与 [CONTRIBUTORS.md](CONTRIBUTORS.md)。
