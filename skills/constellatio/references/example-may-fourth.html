@@ -1,0 +1,1127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Constellatio Quarti Maii · 五四在八十与九十年代 · constellatio framework</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;1,6..96,400;1,6..96,500;1,6..96,600&family=IBM+Plex+Mono:wght@300;400&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #050812;
+      --bg-mid: #0A1228;
+      --bg-glow: #1A2547;
+
+      --ink-1: #F4EDE0;
+      --ink-2: #C9C2B4;
+      --ink-3: #807A6E;
+      --ink-4: #4A4636;
+
+      --gold: #E8C685;
+      --gold-soft: #C9A56A;
+      --silver: #B8C8E8;
+      --silver-soft: #8FA3C9;
+
+      --line-1: rgba(244,237,224,0.06);
+      --line-2: rgba(244,237,224,0.14);
+
+      --hero: "Cinzel", "Trajan Pro", serif;
+      --display: "Bodoni Moda", "Didot", "Noto Serif SC", "Songti SC", serif;
+      --hanzi: "Noto Serif SC", "Songti SC", serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg-deep);
+      color: var(--ink-2);
+      min-height: 100vh;
+    }
+
+    body {
+      font: 300 14px/1.78 var(--mono);
+      -webkit-font-smoothing: antialiased;
+      background:
+        radial-gradient(ellipse 70% 55% at 50% 0%, rgba(26,37,71,0.45) 0%, transparent 60%),
+        radial-gradient(ellipse 55% 40% at 18% 100%, rgba(26,37,71,0.28) 0%, transparent 55%),
+        linear-gradient(180deg, var(--bg-mid) 0%, var(--bg-deep) 70%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        radial-gradient(1px 1px at 11% 23%, rgba(244,237,224,0.7), transparent 60%),
+        radial-gradient(1px 1px at 31% 67%, rgba(244,237,224,0.5), transparent 60%),
+        radial-gradient(1px 1px at 73% 18%, rgba(244,237,224,0.6), transparent 60%),
+        radial-gradient(1px 1px at 88% 81%, rgba(244,237,224,0.45), transparent 60%),
+        radial-gradient(1px 1px at 51% 91%, rgba(244,237,224,0.5), transparent 60%),
+        radial-gradient(1px 1px at 5% 53%, rgba(244,237,224,0.6), transparent 60%),
+        radial-gradient(1px 1px at 95% 41%, rgba(244,237,224,0.5), transparent 60%),
+        radial-gradient(1px 1px at 60% 9%, rgba(244,237,224,0.55), transparent 60%),
+        radial-gradient(1px 1px at 24% 5%, rgba(244,237,224,0.4), transparent 60%),
+        radial-gradient(1px 1px at 78% 53%, rgba(244,237,224,0.5), transparent 60%),
+        radial-gradient(1px 1px at 16% 88%, rgba(244,237,224,0.45), transparent 60%),
+        radial-gradient(1px 1px at 41% 32%, rgba(244,237,224,0.4), transparent 60%),
+        radial-gradient(1px 1px at 67% 74%, rgba(244,237,224,0.55), transparent 60%);
+    }
+
+    /* ───────── HERO ───────── */
+    .hero {
+      position: relative; z-index: 1;
+      padding: 11vh 7vw 7vh;
+      max-width: 1320px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--line-2);
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 64px;
+      align-items: end;
+    }
+
+    .meta {
+      font: 300 10px/1.6 var(--mono);
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+
+    .latin {
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--ink-1);
+    }
+
+    .title {
+      margin: 18px 0 22px;
+      color: var(--ink-1);
+      font: 500 clamp(50px, 8.4vw, 116px)/1.04 var(--hero);
+      letter-spacing: 0.05em;
+    }
+
+    .title .glow {
+      color: var(--gold);
+      text-shadow:
+        0 0 18px rgba(232,198,133,0.36),
+        0 0 64px rgba(232,198,133,0.14),
+        0 0 120px rgba(232,198,133,0.06);
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      max-width: 720px;
+      color: var(--ink-1);
+      font: 400 clamp(20px, 2.4vw, 32px)/1.34 var(--display);
+      font-style: italic;
+    }
+
+    .stance {
+      max-width: 600px;
+      color: var(--ink-2);
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.92;
+    }
+
+    .hero-right {
+      padding-left: 32px;
+      border-left: 1px solid var(--line-2);
+      align-self: end;
+    }
+
+    .coords-label {
+      font: 300 10px/1.6 var(--mono);
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 16px;
+    }
+
+    .coords-prose {
+      max-width: 380px;
+      color: var(--ink-2);
+      font-size: 13.5px;
+      line-height: 1.86;
+      margin: 0 0 36px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .stat-label {
+      font-size: 9.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+
+    .stat-value {
+      color: var(--ink-1);
+      font: 400 32px/1 var(--display);
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    /* ───────── CHART (single) ───────── */
+    .chart-wrap {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 84px 6vw 60px;
+      position: relative; z-index: 1;
+    }
+
+    .chart-frame {
+      position: relative;
+      border: 1px solid var(--line-1);
+      background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(26,37,71,0.32) 0%, rgba(5,8,18,0.85) 70%);
+      padding: 32px 40px 40px;
+    }
+
+    .chart-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line-1);
+      flex-wrap: wrap;
+    }
+
+    .chart-meta .seq { color: var(--ink-3); }
+    .chart-meta .nm { color: var(--ink-1); font-family: var(--display); font-style: italic; font-size: 22px; }
+    .chart-meta .lat { color: var(--ink-3); font-family: var(--hanzi); font-size: 11px; letter-spacing: 0.16em; }
+
+    .star-svg { width: 100%; height: auto; display: block; }
+
+    /* ───────── DUO PANES ───────── */
+    .duo-wrap {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 0 6vw 80px;
+      position: relative; z-index: 1;
+    }
+
+    .duo-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      margin: 0 4px 22px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line-1);
+      flex-wrap: wrap;
+    }
+    .duo-meta .seq { color: var(--ink-3); }
+    .duo-meta .nm { color: var(--ink-1); font-family: var(--display); font-style: italic; font-size: 22px; }
+    .duo-meta .lat { color: var(--ink-3); font-family: var(--hanzi); font-size: 11px; letter-spacing: 0.16em; }
+
+    .duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    .pane {
+      border: 1px solid var(--line-1);
+      padding: 28px 30px 32px;
+      background: rgba(10,18,40,0.42);
+    }
+
+    .pane.warm {
+      border-top: 1px solid rgba(232,198,133,0.32);
+      background: linear-gradient(180deg, rgba(232,198,133,0.05) 0%, rgba(10,18,40,0.42) 45%, rgba(10,18,40,0.62) 100%);
+    }
+
+    .pane.cool {
+      border-top: 1px solid rgba(184,200,232,0.32);
+      background: linear-gradient(180deg, rgba(184,200,232,0.05) 0%, rgba(10,18,40,0.42) 45%, rgba(10,18,40,0.62) 100%);
+    }
+
+    .pane-head {
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line-1);
+    }
+
+    .pane-seq {
+      display: block;
+      font: 300 10px/1.6 var(--mono);
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 4px;
+    }
+
+    .pane-nm {
+      font-family: var(--display);
+      font-style: italic;
+      font-size: 32px;
+      letter-spacing: 0.02em;
+    }
+
+    .pane.warm .pane-nm { color: var(--gold); }
+    .pane.cool .pane-nm { color: var(--silver); }
+
+    .pane-lat {
+      display: block;
+      margin-top: 6px;
+      color: var(--ink-3);
+      font-family: var(--hanzi);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .pane-svg { width: 100%; height: auto; display: block; margin: 6px 0 18px; }
+
+    .pane-stance {
+      margin: 0 0 12px;
+      font-size: 13px;
+      line-height: 1.78;
+      color: var(--ink-2);
+    }
+
+    .pane-stance strong {
+      display: inline-block;
+      min-width: 110px;
+      color: var(--ink-1);
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 500;
+      font-size: 13.5px;
+      letter-spacing: 0.02em;
+    }
+
+    .pane.warm .pane-stance strong { color: var(--gold); }
+    .pane.cool .pane-stance strong { color: var(--silver); }
+
+    /* ───────── OVERLAY (FIG III) ───────── */
+    .overlay-wrap {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 0 6vw 80px;
+      position: relative; z-index: 1;
+    }
+
+    .overlay-frame {
+      border: 1px solid var(--line-1);
+      background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(26,37,71,0.32) 0%, rgba(5,8,18,0.85) 70%);
+      padding: 32px 40px 40px;
+    }
+
+    .grav-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      margin-top: 36px;
+      padding-top: 26px;
+      border-top: 1px solid var(--line-1);
+    }
+
+    .grav {
+      padding: 22px 22px 22px 26px;
+      border-left: 1px solid var(--line-2);
+    }
+
+    .grav-num {
+      display: block;
+      font-family: var(--hero);
+      font-size: 44px;
+      color: var(--ink-4);
+      line-height: 1;
+      margin-bottom: 16px;
+      letter-spacing: 0.04em;
+    }
+
+    .grav h3 {
+      margin: 0 0 8px;
+      color: var(--ink-1);
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 500;
+      font-size: 26px;
+      letter-spacing: 0.02em;
+    }
+
+    .grav .grav-zh {
+      display: block;
+      margin-bottom: 14px;
+      color: var(--ink-3);
+      font-family: var(--hanzi);
+      font-size: 11.5px;
+      letter-spacing: 0.16em;
+    }
+
+    .grav p {
+      margin: 0;
+      color: var(--ink-2);
+      font-size: 13px;
+      line-height: 1.84;
+    }
+
+    /* ───────── READING ───────── */
+    .reading {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 6vw 72px;
+      position: relative; z-index: 1;
+    }
+
+    .reading h2 {
+      font: 500 clamp(28px, 3.4vw, 44px)/1.12 var(--hero);
+      color: var(--ink-1);
+      margin: 0 0 8px;
+      letter-spacing: 0.05em;
+    }
+
+    .reading-zh {
+      display: block;
+      margin: 0 0 24px;
+      color: var(--ink-3);
+      font-family: var(--hanzi);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+    }
+
+    .reading-lede {
+      max-width: 760px;
+      font-size: 15.5px;
+      line-height: 1.94;
+      color: var(--ink-2);
+      margin: 0 0 32px;
+    }
+
+    .reading-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 32px 48px;
+      align-items: baseline;
+      padding: 24px 0;
+      border-top: 1px solid var(--line-1);
+    }
+
+    .reading-grid:last-of-type {
+      border-bottom: 1px solid var(--line-1);
+    }
+
+    .reading-label {
+      font: 300 10px/1.5 var(--mono);
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+
+    .reading-label .lat {
+      display: block;
+      margin-top: 6px;
+      font-style: italic;
+      color: var(--ink-4);
+      letter-spacing: 0.04em;
+      text-transform: none;
+      font-size: 13px;
+      font-family: var(--display);
+    }
+
+    .reading-body {
+      font-size: 14.5px;
+      line-height: 1.88;
+      color: var(--ink-2);
+    }
+
+    /* ───────── FOOTER ───────── */
+    footer {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 6vw 64px;
+      border-top: 1px solid var(--line-1);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      position: relative; z-index: 1;
+      flex-wrap: wrap;
+    }
+
+    a { color: var(--ink-1); text-decoration-color: rgba(244,237,224,0.28); }
+
+    /* ───────── POLARIS CAVEAT ───────── */
+    .caveat-band {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 6vw 48px;
+      position: relative; z-index: 1;
+    }
+    .caveat-inner {
+      border-top: 1px solid var(--line-2);
+      padding-top: 32px;
+      max-width: 780px;
+    }
+    .caveat-label {
+      font: 300 10px/1.5 var(--mono);
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--silver-soft);
+      margin: 0 0 6px;
+    }
+    .caveat-latin {
+      font-family: var(--display);
+      font-style: italic;
+      font-size: 28px;
+      letter-spacing: 0.02em;
+      color: var(--silver);
+      margin: 0 0 4px;
+    }
+    .caveat-zh {
+      font-family: var(--hanzi);
+      font-size: 12.5px;
+      letter-spacing: 0.16em;
+      color: var(--ink-3);
+      margin: 0 0 22px;
+    }
+    .caveat-body {
+      font-size: 14px;
+      line-height: 1.94;
+      color: var(--ink-2);
+      margin: 0 0 16px;
+    }
+    .caveat-body:last-child { margin-bottom: 0; }
+    .caveat-body em {
+      font-family: var(--display);
+      font-style: italic;
+      color: var(--silver);
+      letter-spacing: 0.02em;
+    }
+
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; gap: 36px; }
+      .hero-right { padding-left: 0; border-left: 0; }
+      .duo { grid-template-columns: 1fr; }
+      .grav-grid { grid-template-columns: 1fr; }
+      .reading-grid { grid-template-columns: 1fr; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═════════════════ HERO ═════════════════ -->
+  <header class="hero">
+    <div>
+      <p class="meta">FIELD SKETCH · CONSTELLATIO FRAMEWORK · MMXXVI · COLLATE</p>
+      <h1 class="title">May Fourth, <span class="glow">Reread</span></h1>
+      <p class="subtitle"><span class="latin">Constellatio Quarti Maii</span> — 同一组星点,八十年代与九十年代画出两幅截然不同的星座</p>
+      <p class="stance">五四作为思想史的符号是一组固定的星点。每个时代选择哪些星连起来、怎么连、把哪颗当作 Polaris,会形成完全不同的星座。研究"对五四态度的变迁"=研究"星座连法的几何变迁"。而真正不变的,是把所有时代都拉回来重画图的引力源——那个让每代人都不得不自己再画一次五四的东西。</p>
+    </div>
+    <aside class="hero-right">
+      <p class="coords-label">Coordinates</p>
+      <p class="coords-prose">这不是一张关于五四"是什么"的图。这是一张关于八十年代和九十年代各自需要五四"是什么"的图。两个时代选了不同的星连成不同的形状——表面在评五四,实质在确认自己。</p>
+      <div class="stats">
+        <div><div class="stat-label">Stellae Fixae</div><div class="stat-value">9</div></div>
+        <div><div class="stat-label">Constellationes</div><div class="stat-value">2</div></div>
+        <div><div class="stat-label">Gravitas</div><div class="stat-value">3</div></div>
+      </div>
+    </aside>
+  </header>
+
+  <!-- ═════════════════ FIG I — STELLAE FIXAE ═════════════════ -->
+  <section class="chart-wrap">
+    <div class="chart-frame">
+      <div class="chart-meta">
+        <span class="seq">FIG · I</span>
+        <span class="nm">Stellae Fixae</span>
+        <span class="lat">不变的事实层 · 五四身上九颗共有的星点</span>
+      </div>
+
+      <svg class="star-svg" viewBox="0 0 1200 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nine fixed stars of the May Fourth symbol">
+        <defs>
+          <radialGradient id="nebula" cx="50%" cy="48%" r="62%">
+            <stop offset="0%" stop-color="#1A2547" stop-opacity="0.34"/>
+            <stop offset="60%" stop-color="#0A1228" stop-opacity="0.05"/>
+            <stop offset="100%" stop-color="#050812" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="star-warm" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#F4EDE0" stop-opacity="1"/>
+            <stop offset="36%" stop-color="#F4EDE0" stop-opacity="0.55"/>
+            <stop offset="100%" stop-color="#F4EDE0" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="milky" x1="8%" y1="100%" x2="92%" y2="0%">
+            <stop offset="0%" stop-color="#F4EDE0" stop-opacity="0"/>
+            <stop offset="50%" stop-color="#F4EDE0" stop-opacity="0.04"/>
+            <stop offset="100%" stop-color="#F4EDE0" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+
+        <rect x="0" y="0" width="1200" height="720" fill="url(#nebula)"/>
+        <path d="M -50 720 Q 380 540 660 360 T 1260 -10" stroke="url(#milky)" stroke-width="200" fill="none" opacity="0.55"/>
+
+        <!-- ornamental ring -->
+        <g fill="none" stroke="#F4EDE0" stroke-opacity="0.06">
+          <circle cx="600" cy="360" r="334"/>
+        </g>
+        <g fill="none" stroke="#F4EDE0" stroke-opacity="0.18" stroke-width="0.5">
+          <line x1="934" y1="360" x2="926" y2="360"/>
+          <line x1="600" y1="26" x2="600" y2="34"/>
+          <line x1="266" y1="360" x2="274" y2="360"/>
+          <line x1="600" y1="694" x2="600" y2="686"/>
+        </g>
+
+        <!-- 9 STELLAE FIXAE -->
+        <!-- LUMEN MENTIS -->
+        <circle cx="600" cy="110" r="14" fill="url(#star-warm)" opacity="0.78"/>
+        <circle cx="600" cy="110" r="3" fill="#F4EDE0"/>
+        <text x="612" y="100" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="15" fill="#F4EDE0">Lumen Mentis</text>
+        <text x="612" y="116" font-family="'Noto Serif SC',serif" font-size="10" fill="#A09A8C">启蒙之光</text>
+
+        <!-- OCCIDENS -->
+        <circle cx="200" cy="220" r="11" fill="url(#star-warm)" opacity="0.7"/>
+        <circle cx="200" cy="220" r="2.6" fill="#F4EDE0"/>
+        <text x="212" y="214" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="14" fill="#F4EDE0">Occidens Adveniens</text>
+        <text x="212" y="230" font-family="'Noto Serif SC',serif" font-size="10" fill="#A09A8C">西学东渐</text>
+
+        <!-- DEMOCRATIA -->
+        <circle cx="940" cy="220" r="13" fill="url(#star-warm)" opacity="0.74"/>
+        <circle cx="940" cy="220" r="3" fill="#F4EDE0"/>
+        <text x="928" y="214" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="14.5" fill="#F4EDE0" text-anchor="end">Mr. Democratia</text>
+        <text x="928" y="230" font-family="'Noto Serif SC',serif" font-size="10" fill="#A09A8C" text-anchor="end">德先生</text>
+
+        <!-- INTELLIGENTSIA -->
+        <circle cx="600" cy="370" r="12" fill="url(#star-warm)" opacity="0.7"/>
+        <circle cx="600" cy="370" r="2.8" fill="#F4EDE0"/>
+        <text x="612" y="364" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="14" fill="#F4EDE0">Intelligentsia</text>
+        <text x="612" y="380" font-family="'Noto Serif SC',serif" font-size="10" fill="#A09A8C">知识阶层</text>
+
+        <!-- SCIENTIA -->
+        <circle cx="1010" cy="380" r="11" fill="url(#star-warm)" opacity="0.66"/>
+        <circle cx="1010" cy="380" r="2.6" fill="#F4EDE0"/>
+        <text x="998" y="374" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="14" fill="#F4EDE0" text-anchor="end">Mr. Scientia</text>
+        <text x="998" y="390" font-family="'Noto Serif SC',serif" font-size="10" fill="#A09A8C" text-anchor="end">赛先生</text>
+
+        <!-- TRADITIO DAMNATA -->
+        <circle cx="160" cy="400" r="11" fill="url(#star-warm)" opacity="0.66"/>
+        <circle cx="160" cy="400" r="2.6" fill="#F4EDE0"/>
+        <text x="172" y="394" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="14" fill="#F4EDE0">Traditio Damnata</text>
+        <text x="172" y="410" font-family="'Noto Serif SC',serif" font-size="10" fill="#A09A8C">反传统</text>
+
+        <!-- LINGUA VULGARIS -->
+        <circle cx="460" cy="510" r="11" fill="url(#star-warm)" opacity="0.66"/>
+        <circle cx="460" cy="510" r="2.6" fill="#F4EDE0"/>
+        <text x="472" y="504" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="14" fill="#F4EDE0">Lingua Vulgaris</text>
+        <text x="472" y="520" font-family="'Noto Serif SC',serif" font-size="10" fill="#A09A8C">白话文</text>
+
+        <!-- PATRIA PERICLITANS -->
+        <circle cx="280" cy="590" r="12" fill="url(#star-warm)" opacity="0.7"/>
+        <circle cx="280" cy="590" r="2.8" fill="#F4EDE0"/>
+        <text x="292" y="584" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="14" fill="#F4EDE0">Patria Periclitans</text>
+        <text x="292" y="600" font-family="'Noto Serif SC',serif" font-size="10" fill="#A09A8C">救亡爱国</text>
+
+        <!-- MOTUS QUARTUS MAII (event hub, brightest of the nine) -->
+        <circle cx="760" cy="580" r="17" fill="url(#star-warm)" opacity="0.88"/>
+        <circle cx="760" cy="580" r="4" fill="#F4EDE0"/>
+        <text x="772" y="574" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="15" fill="#F4EDE0">Motus Quartus Maii</text>
+        <text x="772" y="592" font-family="'Noto Serif SC',serif" font-size="10" fill="#A09A8C">五四游行 · 1919</text>
+
+        <!-- frame caption -->
+        <g font-family="'Bodoni Moda',serif" font-weight="500" fill="#807A6E" letter-spacing="0.22em">
+          <text x="600" y="32" font-size="11.5" text-anchor="middle">NOVEM PUNCTA INVARIANTIA · NINE FIXED STARS</text>
+          <text x="600" y="706" font-size="11.5" text-anchor="middle">CONSTELLATIO IV MAII · MCMXIX · COLLATE</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ═════════════════ FIG II — TWO CONSTELLATIONS ═════════════════ -->
+  <section class="duo-wrap">
+    <div class="duo-meta">
+      <span class="seq">FIG · II</span>
+      <span class="nm">Constellationes Temporum</span>
+      <span class="lat">同一组星点 · 两个时代的不同连法 · 八十 / 九十</span>
+    </div>
+
+    <div class="duo">
+
+      <!-- ─── PANE LEFT: 80s APERTIO ─── -->
+      <article class="pane warm">
+        <div class="pane-head">
+          <span class="pane-seq">MCMLXXX · APERTURA</span>
+          <span class="pane-nm">Apertio</span>
+          <span class="pane-lat">改革开放的曙光 · 80 年代肯定的星座</span>
+        </div>
+
+        <svg class="pane-svg" viewBox="0 0 600 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Eighties constellation: Apertio">
+          <defs>
+            <radialGradient id="nebula-warm" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stop-color="#3A2D18" stop-opacity="0.18"/>
+              <stop offset="60%" stop-color="#0A1228" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="#050812" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="apertio-glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FFFAEC" stop-opacity="1"/>
+              <stop offset="14%" stop-color="#F4EDE0" stop-opacity="0.85"/>
+              <stop offset="40%" stop-color="#E8C685" stop-opacity="0.42"/>
+              <stop offset="74%" stop-color="#C9A56A" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#E8C685" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="warm-star" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#F4EDE0" stop-opacity="1"/>
+              <stop offset="38%" stop-color="#F4EDE0" stop-opacity="0.55"/>
+              <stop offset="100%" stop-color="#F4EDE0" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="dim-star" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#605C56" stop-opacity="0.5"/>
+              <stop offset="60%" stop-color="#605C56" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#605C56" stop-opacity="0"/>
+            </radialGradient>
+            <pattern id="terra-warm" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="#E8C685" stroke-width="0.4" stroke-opacity="0.10"/>
+            </pattern>
+          </defs>
+
+          <rect x="0" y="0" width="600" height="540" fill="url(#nebula-warm)"/>
+
+          <!-- Terra Incognita (lower-left: 反传统 + 救亡 被边缘化) -->
+          <g>
+            <path d="M 18 240 L 220 240 L 220 520 L 18 520 Z" fill="url(#terra-warm)" stroke="#E8C685" stroke-width="0.4" stroke-opacity="0.18" stroke-dasharray="2 6"/>
+            <text x="119" y="496" fill="#A99668" font-family="'Bodoni Moda',serif" font-weight="500" font-size="11" text-anchor="middle" letter-spacing="0.22em">TERRA INCOGNITA</text>
+            <text x="119" y="512" fill="#807A6E" font-family="'Noto Serif SC',serif" font-size="9.5" text-anchor="middle">暴力 · 西化代价</text>
+          </g>
+
+          <!-- POLARIS APERTIO (top, golden — 80s 真正想锚定的) -->
+          <g>
+            <circle cx="300" cy="20" r="50" fill="url(#apertio-glow)" opacity="0.6"/>
+            <circle cx="300" cy="20" r="22" fill="url(#apertio-glow)" opacity="0.92"/>
+            <g stroke="#F4EDE0" stroke-width="0.6" stroke-opacity="0.7">
+              <line x1="300" y1="-6" x2="300" y2="46"/>
+              <line x1="274" y1="20" x2="326" y2="20"/>
+              <line x1="282" y1="2" x2="318" y2="38"/>
+              <line x1="318" y1="2" x2="282" y2="38"/>
+            </g>
+            <circle cx="300" cy="20" r="3.5" fill="#FFFAEC"/>
+            <text x="320" y="14" font-family="'Bodoni Moda',serif" font-weight="500" font-size="12" fill="#E8C685" letter-spacing="0.22em">APERTIO</text>
+            <text x="320" y="28" font-family="'Noto Serif SC',serif" font-size="9.5" fill="#C9A56A">改革开放的曙光</text>
+          </g>
+
+          <!-- 80s connections (gold lines, thicker for main lines) -->
+          <g fill="none">
+            <!-- Main: MAII → LUMEN -->
+            <path d="M 410 440 Q 350 280 300 80" stroke="#E8C685" stroke-width="1.4" stroke-opacity="0.7"/>
+            <!-- Main: LUMEN → DEMOCRATIA -->
+            <line x1="300" y1="80" x2="470" y2="170" stroke="#E8C685" stroke-width="1.4" stroke-opacity="0.7"/>
+            <!-- Main: LUMEN → SCIENTIA -->
+            <line x1="300" y1="80" x2="520" y2="290" stroke="#E8C685" stroke-width="1.4" stroke-opacity="0.7"/>
+            <!-- Sub: OCCIDENS → LUMEN -->
+            <line x1="100" y1="170" x2="300" y2="80" stroke="#E8C685" stroke-width="0.8" stroke-opacity="0.45"/>
+            <!-- Sub: INTELLIGENTSIA → VULGARIS -->
+            <line x1="300" y1="280" x2="270" y2="420" stroke="#E8C685" stroke-width="0.8" stroke-opacity="0.45"/>
+            <!-- Sub: VULGARIS → MAII -->
+            <line x1="270" y1="420" x2="410" y2="440" stroke="#E8C685" stroke-width="0.8" stroke-opacity="0.45"/>
+            <!-- Sub: INTELLIGENTSIA → DEMOCRATIA -->
+            <line x1="300" y1="280" x2="470" y2="170" stroke="#E8C685" stroke-width="0.6" stroke-opacity="0.32"/>
+          </g>
+
+          <!-- Stars -->
+          <!-- LUMEN (active, bright) -->
+          <circle cx="300" cy="80" r="13" fill="url(#warm-star)" opacity="0.85"/>
+          <circle cx="300" cy="80" r="3" fill="#F4EDE0"/>
+          <text x="312" y="74" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="13" fill="#F4EDE0">Lumen</text>
+          <text x="312" y="88" font-family="'Noto Serif SC',serif" font-size="9.5" fill="#A09A8C">启蒙</text>
+
+          <!-- OCCIDENS (active, medium) -->
+          <circle cx="100" cy="170" r="9" fill="url(#warm-star)" opacity="0.62"/>
+          <circle cx="100" cy="170" r="2.4" fill="#F4EDE0"/>
+          <text x="110" y="166" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="11.5" fill="#F4EDE0">Occidens</text>
+          <text x="110" y="180" font-family="'Noto Serif SC',serif" font-size="9" fill="#A09A8C">西学</text>
+
+          <!-- DEMOCRATIA (active, bright) -->
+          <circle cx="470" cy="170" r="12" fill="url(#warm-star)" opacity="0.78"/>
+          <circle cx="470" cy="170" r="2.8" fill="#F4EDE0"/>
+          <text x="460" y="164" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="12" fill="#F4EDE0" text-anchor="end">Democratia</text>
+          <text x="460" y="180" font-family="'Noto Serif SC',serif" font-size="9.5" fill="#A09A8C" text-anchor="end">德先生</text>
+
+          <!-- TRADITIO (DIM — marginalized in 80s) -->
+          <circle cx="70" cy="290" r="6" fill="url(#dim-star)" opacity="0.6"/>
+          <circle cx="70" cy="290" r="1.5" fill="#605C56"/>
+          <text x="80" y="286" font-family="'Bodoni Moda',serif" font-style="italic" font-size="10" fill="#605C56">Traditio</text>
+          <text x="80" y="298" font-family="'Noto Serif SC',serif" font-size="8.5" fill="#4A4636">反传统</text>
+
+          <!-- INTELLIGENTSIA (active) -->
+          <circle cx="300" cy="280" r="11" fill="url(#warm-star)" opacity="0.74"/>
+          <circle cx="300" cy="280" r="2.6" fill="#F4EDE0"/>
+          <text x="312" y="274" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="11.5" fill="#F4EDE0">Intelligentsia</text>
+          <text x="312" y="288" font-family="'Noto Serif SC',serif" font-size="9" fill="#A09A8C">知识阶层</text>
+
+          <!-- SCIENTIA (active) -->
+          <circle cx="520" cy="290" r="10" fill="url(#warm-star)" opacity="0.66"/>
+          <circle cx="520" cy="290" r="2.4" fill="#F4EDE0"/>
+          <text x="510" y="286" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="11.5" fill="#F4EDE0" text-anchor="end">Scientia</text>
+          <text x="510" y="300" font-family="'Noto Serif SC',serif" font-size="9" fill="#A09A8C" text-anchor="end">赛先生</text>
+
+          <!-- VULGARIS (active, medium) -->
+          <circle cx="270" cy="420" r="9" fill="url(#warm-star)" opacity="0.6"/>
+          <circle cx="270" cy="420" r="2.2" fill="#F4EDE0"/>
+          <text x="280" y="416" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="11" fill="#F4EDE0">Vulgaris</text>
+          <text x="280" y="429" font-family="'Noto Serif SC',serif" font-size="9" fill="#A09A8C">白话</text>
+
+          <!-- PATRIA (DIM — marginalized in 80s) -->
+          <circle cx="130" cy="450" r="6" fill="url(#dim-star)" opacity="0.6"/>
+          <circle cx="130" cy="450" r="1.5" fill="#605C56"/>
+          <text x="140" y="446" font-family="'Bodoni Moda',serif" font-style="italic" font-size="10" fill="#605C56">Patria</text>
+          <text x="140" y="458" font-family="'Noto Serif SC',serif" font-size="8.5" fill="#4A4636">救亡</text>
+
+          <!-- MAII (active, brightest after Polaris) -->
+          <circle cx="410" cy="440" r="14" fill="url(#warm-star)" opacity="0.85"/>
+          <circle cx="410" cy="440" r="3.4" fill="#F4EDE0"/>
+          <text x="422" y="434" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="13" fill="#F4EDE0">Motus IV Maii</text>
+          <text x="422" y="450" font-family="'Noto Serif SC',serif" font-size="9.5" fill="#A09A8C">五四</text>
+
+          <!-- frame caption -->
+          <text x="300" y="528" font-family="'Bodoni Moda',serif" font-weight="500" font-size="9.5" fill="#807A6E" text-anchor="middle" letter-spacing="0.32em">EIGHTIES · MR. DEMOCRACY ASCENDS</text>
+        </svg>
+
+        <p class="pane-stance"><strong>Polaris Aetatis:</strong> 改革开放的精神合法性。要给"否定"找一根历史的绳索——五四是最近、最顺手、最结实的。</p>
+        <p class="pane-stance"><strong>Constellatio:</strong> 启蒙轴贯穿——五四 → 启蒙 → 民主 / 科学;副线是文学革命与知识阶层。OCCIDENS 是"光的来路",被亮起。</p>
+        <p class="pane-stance"><strong>Terra Incognita:</strong> 反传统的暴力性 / 全盘西化的代价 / 民主到底是什么——80 年代不肯连这几颗星。</p>
+      </article>
+
+      <!-- ─── PANE RIGHT: 90s REVOCATIO ─── -->
+      <article class="pane cool">
+        <div class="pane-head">
+          <span class="pane-seq">MCMXC · REVOCATIO</span>
+          <span class="pane-nm">Revocatio</span>
+          <span class="pane-lat">传统的召回 · 90 年代否定的星座</span>
+        </div>
+
+        <svg class="pane-svg" viewBox="0 0 600 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nineties constellation: Revocatio">
+          <defs>
+            <radialGradient id="nebula-cool" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stop-color="#1C2640" stop-opacity="0.20"/>
+              <stop offset="60%" stop-color="#0A1228" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="#050812" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="revocatio-glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#F0F4FA" stop-opacity="1"/>
+              <stop offset="14%" stop-color="#DDEAFF" stop-opacity="0.85"/>
+              <stop offset="40%" stop-color="#B8C8E8" stop-opacity="0.42"/>
+              <stop offset="74%" stop-color="#8FA3C9" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#B8C8E8" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="cool-star" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#DDEAFF" stop-opacity="1"/>
+              <stop offset="38%" stop-color="#B8C8E8" stop-opacity="0.55"/>
+              <stop offset="100%" stop-color="#B8C8E8" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="dim-star-c" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#605C56" stop-opacity="0.5"/>
+              <stop offset="60%" stop-color="#605C56" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#605C56" stop-opacity="0"/>
+            </radialGradient>
+            <pattern id="terra-cool" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="#B8C8E8" stroke-width="0.4" stroke-opacity="0.10"/>
+            </pattern>
+          </defs>
+
+          <rect x="0" y="0" width="600" height="540" fill="url(#nebula-cool)"/>
+
+          <!-- Terra Incognita (right-mid: 白话 / 科学 / 启蒙的解放面 被边缘化) -->
+          <g>
+            <path d="M 220 230 L 580 230 L 580 480 L 220 480 Z" fill="url(#terra-cool)" stroke="#B8C8E8" stroke-width="0.4" stroke-opacity="0.18" stroke-dasharray="2 6"/>
+            <text x="400" y="456" fill="#8FA3C9" font-family="'Bodoni Moda',serif" font-weight="500" font-size="11" text-anchor="middle" letter-spacing="0.22em">TERRA INCOGNITA</text>
+            <text x="400" y="472" fill="#807A6E" font-family="'Noto Serif SC',serif" font-size="9.5" text-anchor="middle">白话与科学的真实成就</text>
+          </g>
+
+          <!-- POLARIS REVOCATIO (bottom, silver — 90s 真正想锚定的) -->
+          <g>
+            <circle cx="300" cy="520" r="50" fill="url(#revocatio-glow)" opacity="0.6"/>
+            <circle cx="300" cy="520" r="22" fill="url(#revocatio-glow)" opacity="0.92"/>
+            <g stroke="#DDEAFF" stroke-width="0.6" stroke-opacity="0.7">
+              <line x1="300" y1="494" x2="300" y2="546"/>
+              <line x1="274" y1="520" x2="326" y2="520"/>
+              <line x1="282" y1="502" x2="318" y2="538"/>
+              <line x1="318" y1="502" x2="282" y2="538"/>
+            </g>
+            <circle cx="300" cy="520" r="3.5" fill="#F0F4FA"/>
+            <text x="320" y="514" font-family="'Bodoni Moda',serif" font-weight="500" font-size="12" fill="#B8C8E8" letter-spacing="0.22em">REVOCATIO</text>
+            <text x="320" y="528" font-family="'Noto Serif SC',serif" font-size="9.5" fill="#8FA3C9">传统的召回</text>
+          </g>
+
+          <!-- 90s connections (silver lines, dashed for "criticism" feel) -->
+          <g fill="none">
+            <!-- Main: LUMEN → TRADITIO (光摧毁了传统) -->
+            <line x1="300" y1="80" x2="70" y2="290" stroke="#B8C8E8" stroke-width="1.4" stroke-opacity="0.7" stroke-dasharray="2 4"/>
+            <!-- Main: MAII → TRADITIO (五四造成断裂) -->
+            <line x1="410" y1="440" x2="70" y2="290" stroke="#B8C8E8" stroke-width="1.4" stroke-opacity="0.7" stroke-dasharray="2 4"/>
+            <!-- Sub: OCCIDENS → DEMOCRATIA (对西方民主的肤浅理解) -->
+            <line x1="100" y1="170" x2="470" y2="170" stroke="#B8C8E8" stroke-width="0.8" stroke-opacity="0.45" stroke-dasharray="1 3"/>
+            <!-- Sub: DEMOCRATIA → INTELLIGENTSIA -->
+            <line x1="470" y1="170" x2="300" y2="280" stroke="#B8C8E8" stroke-width="0.8" stroke-opacity="0.4" stroke-dasharray="1 3"/>
+            <!-- Sub: TRADITIO → PATRIA (传统 + 救亡 = 90s 想守的) -->
+            <line x1="70" y1="290" x2="130" y2="450" stroke="#B8C8E8" stroke-width="1" stroke-opacity="0.55"/>
+          </g>
+
+          <!-- Stars -->
+          <!-- LUMEN (still active but cool, 90s 把启蒙看作"摧毁"的源头) -->
+          <circle cx="300" cy="80" r="12" fill="url(#cool-star)" opacity="0.74"/>
+          <circle cx="300" cy="80" r="2.8" fill="#DDEAFF"/>
+          <text x="312" y="74" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="13" fill="#DDEAFF">Lumen</text>
+          <text x="312" y="88" font-family="'Noto Serif SC',serif" font-size="9.5" fill="#A0B4D8">启蒙</text>
+
+          <!-- OCCIDENS (active, accusatory) -->
+          <circle cx="100" cy="170" r="10" fill="url(#cool-star)" opacity="0.65"/>
+          <circle cx="100" cy="170" r="2.6" fill="#DDEAFF"/>
+          <text x="110" y="166" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="11.5" fill="#DDEAFF">Occidens</text>
+          <text x="110" y="180" font-family="'Noto Serif SC',serif" font-size="9" fill="#A0B4D8">西学</text>
+
+          <!-- DEMOCRATIA (active, but reframed) -->
+          <circle cx="470" cy="170" r="11" fill="url(#cool-star)" opacity="0.7"/>
+          <circle cx="470" cy="170" r="2.8" fill="#DDEAFF"/>
+          <text x="460" y="164" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="12" fill="#DDEAFF" text-anchor="end">Democratia</text>
+          <text x="460" y="180" font-family="'Noto Serif SC',serif" font-size="9.5" fill="#A0B4D8" text-anchor="end">德先生</text>
+
+          <!-- TRADITIO (BRIGHT — 90s lifts it up) -->
+          <circle cx="70" cy="290" r="14" fill="url(#cool-star)" opacity="0.86"/>
+          <circle cx="70" cy="290" r="3.4" fill="#DDEAFF"/>
+          <text x="82" y="286" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="13" fill="#DDEAFF">Traditio</text>
+          <text x="82" y="300" font-family="'Noto Serif SC',serif" font-size="9.5" fill="#A0B4D8">传统</text>
+
+          <!-- INTELLIGENTSIA (active, criticized) -->
+          <circle cx="300" cy="280" r="10" fill="url(#cool-star)" opacity="0.66"/>
+          <circle cx="300" cy="280" r="2.4" fill="#DDEAFF"/>
+          <text x="312" y="274" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="11.5" fill="#DDEAFF">Intelligentsia</text>
+          <text x="312" y="288" font-family="'Noto Serif SC',serif" font-size="9" fill="#A0B4D8">知识阶层</text>
+
+          <!-- SCIENTIA (DIM — 90s 不关心) -->
+          <circle cx="520" cy="290" r="6" fill="url(#dim-star-c)" opacity="0.6"/>
+          <circle cx="520" cy="290" r="1.5" fill="#605C56"/>
+          <text x="510" y="286" font-family="'Bodoni Moda',serif" font-style="italic" font-size="10" fill="#605C56" text-anchor="end">Scientia</text>
+          <text x="510" y="298" font-family="'Noto Serif SC',serif" font-size="8.5" fill="#4A4636" text-anchor="end">赛先生</text>
+
+          <!-- VULGARIS (DIM — 90s 淡化白话文成就) -->
+          <circle cx="270" cy="420" r="6" fill="url(#dim-star-c)" opacity="0.6"/>
+          <circle cx="270" cy="420" r="1.5" fill="#605C56"/>
+          <text x="280" y="416" font-family="'Bodoni Moda',serif" font-style="italic" font-size="10" fill="#605C56">Vulgaris</text>
+          <text x="280" y="429" font-family="'Noto Serif SC',serif" font-size="8.5" fill="#4A4636">白话</text>
+
+          <!-- PATRIA (BRIGHT — 90s 守的一面) -->
+          <circle cx="130" cy="450" r="12" fill="url(#cool-star)" opacity="0.78"/>
+          <circle cx="130" cy="450" r="2.8" fill="#DDEAFF"/>
+          <text x="142" y="446" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="12" fill="#DDEAFF">Patria</text>
+          <text x="142" y="460" font-family="'Noto Serif SC',serif" font-size="9" fill="#A0B4D8">救亡</text>
+
+          <!-- MAII (active, but newly framed as 'rupture') -->
+          <circle cx="410" cy="440" r="13" fill="url(#cool-star)" opacity="0.78"/>
+          <circle cx="410" cy="440" r="3" fill="#DDEAFF"/>
+          <text x="422" y="434" font-family="'Bodoni Moda',serif" font-style="italic" font-weight="500" font-size="13" fill="#DDEAFF">Motus IV Maii</text>
+          <text x="422" y="450" font-family="'Noto Serif SC',serif" font-size="9.5" fill="#A0B4D8">五四</text>
+
+          <!-- frame caption -->
+          <text x="300" y="20" font-family="'Bodoni Moda',serif" font-weight="500" font-size="9.5" fill="#807A6E" text-anchor="middle" letter-spacing="0.32em">NINETIES · TRADITION RECOVERED</text>
+        </svg>
+
+        <p class="pane-stance"><strong>Polaris Aetatis:</strong> 89 之后的精神拨乱反正。表面回归钱穆、余英时,实质是给"我们不再激进"找文化论证。</p>
+        <p class="pane-stance"><strong>Constellatio:</strong> 断裂轴贯穿——启蒙 / 五四 → 摧毁 → 反传统;副线是对西方民主的"肤浅理解",连到知识阶层的反省。传统与救亡被亮起。</p>
+        <p class="pane-stance"><strong>Terra Incognita:</strong> 启蒙的真实解放面 / 白话文的成就 / 1919 古老传统真的为何站不住——90 年代不肯连这几颗星。</p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ═════════════════ FIG III — CARTOGRAPHIA COMPARATA ═════════════════ -->
+  <section class="overlay-wrap">
+    <div class="overlay-frame">
+      <div class="chart-meta">
+        <span class="seq">FIG · III</span>
+        <span class="nm">Cartographia Comparata</span>
+        <span class="lat">叠图 · 三条不变的引力源 · 让所有时代都重画图的东西</span>
+      </div>
+
+      <svg class="star-svg" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparative cartography: three invariant gravitational centers">
+        <defs>
+          <radialGradient id="nebula3" cx="50%" cy="50%" r="62%">
+            <stop offset="0%" stop-color="#1A2547" stop-opacity="0.34"/>
+            <stop offset="60%" stop-color="#0A1228" stop-opacity="0.05"/>
+            <stop offset="100%" stop-color="#050812" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="grav-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#FFFAEC" stop-opacity="0.92"/>
+            <stop offset="18%" stop-color="#F4EDE0" stop-opacity="0.55"/>
+            <stop offset="46%" stop-color="#E8C685" stop-opacity="0.18"/>
+            <stop offset="80%" stop-color="#C9A56A" stop-opacity="0.06"/>
+            <stop offset="100%" stop-color="#E8C685" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="bg-star" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#807A6E" stop-opacity="0.7"/>
+            <stop offset="50%" stop-color="#807A6E" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#807A6E" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <rect x="0" y="0" width="1200" height="600" fill="url(#nebula3)"/>
+
+        <!-- 80s connections (gold dashed, very faint) -->
+        <g fill="none" stroke="#E8C685" stroke-opacity="0.22" stroke-dasharray="2 5">
+          <path d="M 820 470 Q 720 280 600 80"/>
+          <line x1="600" y1="80" x2="1000" y2="180"/>
+          <line x1="600" y1="80" x2="1060" y2="320"/>
+          <line x1="200" y1="180" x2="600" y2="80"/>
+          <line x1="600" y1="290" x2="540" y2="450"/>
+        </g>
+
+        <!-- 90s connections (silver dashed, very faint) -->
+        <g fill="none" stroke="#B8C8E8" stroke-opacity="0.22" stroke-dasharray="2 5">
+          <line x1="600" y1="80" x2="130" y2="320"/>
+          <line x1="820" y1="470" x2="130" y2="320"/>
+          <line x1="200" y1="180" x2="1000" y2="180"/>
+          <line x1="130" y1="320" x2="280" y2="490"/>
+        </g>
+
+        <!-- 9 background stars (dim) -->
+        <g>
+          <circle cx="600" cy="80" r="9" fill="url(#bg-star)" opacity="0.7"/><circle cx="600" cy="80" r="1.8" fill="#A09A8C"/>
+          <circle cx="200" cy="180" r="7" fill="url(#bg-star)" opacity="0.6"/><circle cx="200" cy="180" r="1.5" fill="#A09A8C"/>
+          <circle cx="1000" cy="180" r="8" fill="url(#bg-star)" opacity="0.62"/><circle cx="1000" cy="180" r="1.6" fill="#A09A8C"/>
+          <circle cx="600" cy="290" r="7" fill="url(#bg-star)" opacity="0.58"/><circle cx="600" cy="290" r="1.5" fill="#A09A8C"/>
+          <circle cx="1060" cy="320" r="7" fill="url(#bg-star)" opacity="0.58"/><circle cx="1060" cy="320" r="1.5" fill="#A09A8C"/>
+          <circle cx="130" cy="320" r="9" fill="url(#bg-star)" opacity="0.7"/><circle cx="130" cy="320" r="1.8" fill="#A09A8C"/>
+          <circle cx="540" cy="450" r="7" fill="url(#bg-star)" opacity="0.58"/><circle cx="540" cy="450" r="1.5" fill="#A09A8C"/>
+          <circle cx="280" cy="490" r="7" fill="url(#bg-star)" opacity="0.58"/><circle cx="280" cy="490" r="1.5" fill="#A09A8C"/>
+          <circle cx="820" cy="470" r="10" fill="url(#bg-star)" opacity="0.74"/><circle cx="820" cy="470" r="2" fill="#A09A8C"/>
+        </g>
+
+        <!-- tiny labels for the 9 background stars -->
+        <g font-family="'Bodoni Moda',serif" font-style="italic" font-size="9.5" fill="#605C56">
+          <text x="610" y="76">Lumen</text>
+          <text x="210" y="176">Occidens</text>
+          <text x="990" y="176" text-anchor="end">Democratia</text>
+          <text x="610" y="288">Intelligentsia</text>
+          <text x="1050" y="318" text-anchor="end">Scientia</text>
+          <text x="140" y="316">Traditio</text>
+          <text x="550" y="448">Vulgaris</text>
+          <text x="290" y="488">Patria</text>
+          <text x="830" y="468">Motus IV Maii</text>
+        </g>
+
+        <!-- ── 3 GRAVITAS CONSTANS — large invariant gravity wells ── -->
+
+        <!-- I. JANUS — between LUMEN and TRADITIO (启蒙与摧毁同源) -->
+        <g>
+          <circle cx="380" cy="220" r="84" fill="url(#grav-glow)" opacity="0.5"/>
+          <circle cx="380" cy="220" r="44" fill="url(#grav-glow)" opacity="0.85"/>
+          <circle cx="380" cy="220" r="6" fill="#FFFAEC"/>
+          <text x="380" y="158" font-family="'Cinzel',serif" font-weight="500" font-size="22" fill="#F4EDE0" text-anchor="middle" letter-spacing="0.22em">JANUS</text>
+          <text x="380" y="294" font-family="'Bodoni Moda',serif" font-style="italic" font-size="11.5" fill="#E8C685" text-anchor="middle">duae facies</text>
+          <text x="380" y="310" font-family="'Noto Serif SC',serif" font-size="10.5" fill="#C9A56A" text-anchor="middle">两面性</text>
+        </g>
+
+        <!-- II. ANGUSTIA OCCIDENTIS — between East and West (跨文明焦虑) -->
+        <g>
+          <circle cx="640" cy="380" r="92" fill="url(#grav-glow)" opacity="0.48"/>
+          <circle cx="640" cy="380" r="46" fill="url(#grav-glow)" opacity="0.82"/>
+          <circle cx="640" cy="380" r="6" fill="#FFFAEC"/>
+          <text x="640" y="312" font-family="'Cinzel',serif" font-weight="500" font-size="20" fill="#F4EDE0" text-anchor="middle" letter-spacing="0.22em">ANGVSTIA OCCIDENTIS</text>
+          <text x="640" y="458" font-family="'Bodoni Moda',serif" font-style="italic" font-size="11.5" fill="#E8C685" text-anchor="middle">anxietas perennis</text>
+          <text x="640" y="474" font-family="'Noto Serif SC',serif" font-size="10.5" fill="#C9A56A" text-anchor="middle">西方与传统的永恒焦虑</text>
+        </g>
+
+        <!-- III. NECESSITAS PRAESENTIS — at MAII region (用历史确证当下) -->
+        <g>
+          <circle cx="930" cy="390" r="86" fill="url(#grav-glow)" opacity="0.5"/>
+          <circle cx="930" cy="390" r="44" fill="url(#grav-glow)" opacity="0.85"/>
+          <circle cx="930" cy="390" r="6" fill="#FFFAEC"/>
+          <text x="930" y="326" font-family="'Cinzel',serif" font-weight="500" font-size="20" fill="#F4EDE0" text-anchor="middle" letter-spacing="0.22em">NECESSITAS</text>
+          <text x="930" y="350" font-family="'Cinzel',serif" font-weight="500" font-size="20" fill="#F4EDE0" text-anchor="middle" letter-spacing="0.22em">PRAESENTIS</text>
+          <text x="930" y="466" font-family="'Bodoni Moda',serif" font-style="italic" font-size="11.5" fill="#E8C685" text-anchor="middle">historia ad praesens</text>
+          <text x="930" y="482" font-family="'Noto Serif SC',serif" font-size="10.5" fill="#C9A56A" text-anchor="middle">当下对历史的征用</text>
+        </g>
+
+        <!-- frame caption -->
+        <g font-family="'Bodoni Moda',serif" font-weight="500" fill="#807A6E" letter-spacing="0.22em">
+          <text x="600" y="32" font-size="11" text-anchor="middle">TRES GRAVITATES CONSTANTES · INVARIANT BENEATH ALL ERAS</text>
+          <text x="600" y="586" font-size="11" text-anchor="middle">CARTOGRAPHIA COMPARATA · MCMLXXX × MCMXC</text>
+        </g>
+      </svg>
+
+      <div class="grav-grid">
+        <article class="grav">
+          <span class="grav-num">I</span>
+          <h3>Janus</h3>
+          <span class="grav-zh">两面性 · 摧毁与启蒙同源</span>
+          <p>五四的内核是一张双面神之脸——把"古老的"烧掉与"新的"立起来,从来是同一只手做的。所以每代人都被迫选一面来站,而站任何一面都会让另一面发光。每一代人对五四的"再判断",都是在重新选择把哪只眼睛看作正脸。</p>
+        </article>
+        <article class="grav">
+          <span class="grav-num">II</span>
+          <h3>Angustia Occidentis</h3>
+          <span class="grav-zh">西方与传统的永恒焦虑</span>
+          <p>从晚清开始,中国知识分子就再没离开过这道焦虑——西方是要拿来的,传统是要守住的,但两者有时候相通,更多时候撕裂。每代人重画五四,本质上是在重画自己与这道焦虑的关系。八十年代以为西方足够好,九十年代发现传统还在动。焦虑从未离场。</p>
+        </article>
+        <article class="grav">
+          <span class="grav-num">III</span>
+          <h3>Necessitas Praesentis</h3>
+          <span class="grav-zh">用历史确证当下的需要</span>
+          <p>这是真正最不变的引力源。每代人都需要五四,因为每代人都需要在历史里抓住一根绳索来支撑自己当下的判断。八十年代抓"否定的合法性",九十年代抓"拨乱反正的合法性"——抓的方向不同,但伸手的动作完全相同。这不是关于五四的,是关于"现在"的。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════════ READING — 5 STEPS ═════════════════ -->
+  <main class="reading">
+    <h2>Constellatio Framework</h2>
+    <span class="reading-zh">五步法 · 把任何一个反复被征用的文化符号放进去,会拆出五个层次</span>
+    <p class="reading-lede">这是一种思想史的看法,也是 collate 的一个 skill。它不研究"五四是什么",研究"五四在每个时代被画成什么样,以及那个让所有时代都不得不重画的东西"。它适用于任何被反复征用的符号——五四、文革、启蒙、儒家复兴、改革开放本身——只要这个符号在不同时代有不同的"被使用方式"。</p>
+
+    <div class="reading-grid">
+      <div class="reading-label">I. 定星点<span class="lat">Stellae Fixae</span></div>
+      <div class="reading-body">列出符号身上不变的"事实小点"——具体事件、人物、文本、口号、行动。这一层属于客观历史,位置不应被时代修饰。本案九颗:<em>Motus Quartus Maii</em>(1919 游行)/ <em>Mr. Democratia</em>(德先生)/ <em>Mr. Scientia</em>(赛先生)/ <em>Lingua Vulgaris</em>(白话文)/ <em>Traditio Damnata</em>(反传统)/ <em>Occidens Adveniens</em>(西学东渐)/ <em>Lumen Mentis</em>(启蒙姿态)/ <em>Patria Periclitans</em>(救亡爱国)/ <em>Intelligentsia</em>(知识阶层)。这九颗是底图,后面所有时代的图都基于它。</div>
+    </div>
+
+    <div class="reading-grid">
+      <div class="reading-label">II. 看时代连法<span class="lat">Constellatio Temporis</span></div>
+      <div class="reading-body">一个时代选哪些星连起来,连成什么形状,哪些线粗,哪些线细。八十年代连"启蒙轴"——五四 → 启蒙 → 民主 / 科学 / 白话文,西学是光的来路;九十年代连"断裂轴"——启蒙 / 五四 → 摧毁 → 反传统,加上对西方民主的"肤浅理解"之线。同一组九颗星,连出完全不同的几何。这一步必须诚实地画出每个时代真正在乎的连线,而不是它声称在乎的。</div>
+    </div>
+
+    <div class="reading-grid">
+      <div class="reading-label">III. 找时代 Polaris<span class="lat">Stella Polaris Aetatis</span></div>
+      <div class="reading-body">这个连法实际上为了指认哪颗"北极星"= 这个时代真正想锚定的当下立场。Polaris 通常不是九颗星之一——它是这个时代自己生成的引力中心,是连法在天上指向的那个"真正的目的地"。八十年代的 Polaris 是 <em>Apertio</em>(改革开放的精神合法性);九十年代的 Polaris 是 <em>Revocatio</em>(89 后拨乱反正的文化论证)。表面上在评五四,实质上在确认自己。Polaris 是这个 framework 最有解构力的一步——它把"对一个符号的态度"翻译成"这个时代对自己的判断"。</div>
+    </div>
+
+    <div class="reading-grid">
+      <div class="reading-label">IV. 画 Terra Incognita<span class="lat">Silentium</span></div>
+      <div class="reading-body">这个时代选择不连的星是什么。沉默之处,往往是禁区或盲点。八十年代不愿说"反传统的暴力性",因为说了就会动摇"否定的正当性";九十年代不愿说"白话文的真实成就"和"1919 那时古老传统站不住的具体原因",因为说了就会动摇"召回传统"的姿态。沉默和发声同样是态度——这一格是 framework 最容易被忽略的层次,也是揭露最深的层次。</div>
+    </div>
+
+    <div class="reading-grid">
+      <div class="reading-label">V. 叠图比较<span class="lat">Cartographia Comparata</span></div>
+      <div class="reading-body">把两个或多个时代的星图叠起来,看背后不变的引力源——那个让所有时代都不得不重画图的东西。这一格不是"找共识",而是找"为什么这个符号一直被需要"。本案三条:<em>Janus</em>(五四的两面性结构) / <em>Angustia Occidentis</em>(西方-传统的永恒焦虑) / <em>Necessitas Praesentis</em>(用历史确证当下的需要)。这才是"不变的脉络"——不是某个具体的内容延续,而是一个让每代人都伸手抓住这个符号的引力中心。</div>
+    </div>
+  </main>
+
+  <!-- ═════════════════ POLARIS CAVEAT ═════════════════ -->
+  <section class="caveat-band" aria-label="Polaris caveat — warning against the era's reach for synthesis">
+    <div class="caveat-inner">
+      <p class="caveat-label">Polaris Caveat</p>
+      <p class="caveat-latin">Synthesis ipsa lectio</p>
+      <p class="caveat-zh">本时代对自身"成熟综合"的警觉</p>
+      <p class="caveat-body">读到这里很容易抵达一个看似平衡的当代综合——"八十年代过分理想化、九十年代过分保守,我们终于学会两面都看了"。但这本身仍是一种 <em>Constellatio Aetatis</em>,只是新一代为自己生成的一颗 Polaris,不是引力源。</p>
+      <p class="caveat-body">每一代都觉得自己读懂了五四,而那种"读懂"的感觉本身,正是 <em>Necessitas Praesentis</em> 在工作。我们把"反对走极端"当作判断,实质是当下需要用历史确证"温和的合法性"——它和八十年代抓"否定的合法性"、九十年代抓"拨乱反正的合法性"是同一个动作。</p>
+      <p class="caveat-body">这张图不是为了终结判断。它只让人意识到判断从哪里来。每代人头顶的 Polaris 都看起来像永恒的真相;只有把图叠起来,才看到那其实只是这一代的引力锚。</p>
+    </div>
+  </section>
+
+  <!-- ═════════════════ FOOTER ═════════════════ -->
+  <footer>
+    <span>COLLATE · CONSTELLATIO FRAMEWORK · FIELD SKETCH</span>
+    <span>CLAUDE OPUS 4.7 FOR ALICE · 2026-04-28</span>
+    <span>SUBJECT · 五四在八十与九十年代的态度变迁</span>
+  </footer>
+
+</body>
+</html>
