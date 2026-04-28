@@ -136,25 +136,24 @@ A constellation is drawn on a coordinate field, not a free canvas.
 | Gravity-well name | Cinzel 500 | 20–22px | 0.22em | UPPER |
 | Gravity-well Latin gloss | Bodoni Moda italic 500 | 11.5px | 0.02em | Sentence |
 | Body prose Chinese | Noto Serif SC 400 | 13–14.5px | 0 | n/a |
-| Polaris caveat label | IBM Plex Mono 300 | 10px | 0.34em | UPPER |
 
-The hierarchy matters because the lens itself is hierarchical: layer
-above era above star.
+The hierarchy reflects the visual reading order: layer-frame, then
+era-frame, then individual marks.
 
 ## What this aesthetic is not
 
 - Not an infographic. There is no "data viz" affordance — no axes, no
   legends, no tooltips. The reader is meant to *read* the chart, not
   hover over it.
-- Not symmetric. The chart is laid out by gravity, not by composition.
-  An off-center gravity well is more honest than a centered one.
+- Not symmetric. Asymmetry is honest in the chart because the readings
+  genuinely cluster off-center; do not pull marks toward the middle for
+  visual balance.
 - Not warm-toned. The ground is near-black (#050812) and the cream ink
   reads as starlight. Warm gold and cool silver appear *only* as
   semantic encoding, never as mood.
 - Not animated. A constellation is a still image. Era-by-era layer
   toggling is acceptable for an interactive viewer; transitions and
   hover effects are not.
-- Not minimalist. Three layers with full SVG line work, three named
-  gravity wells, multiple Terra Incognita zones, full Polaris caveat
-  band — the chart earns its space by being thoroughly drawn, not by
-  withholding marks.
+- Not minimalist. Three figures with full SVG line work, multiple named
+  recurring-concern halos, and per-pane omitted-zone markers — the chart
+  earns its space by being thoroughly drawn, not by withholding marks.
