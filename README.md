@@ -41,19 +41,19 @@ Every intermediate, every annotation, every edit lives in the workspace. The too
 
 ## A glimpse
 
-Three figures from the reading skills, each rendered by the skill itself. The prose audit lives next to the figures, not inside them.
+Three figures from the reading skills, each rendered by the skill itself.
 
 ![Argument-orbit figure: five labeled points on a curving line — 国内断层线, 民族主义被借用, 身份不是天成, 全球身份可被建构, 世界社会的前提 — plotted as the path one paper's argument actually walks.](assets/showcase/xray-paper-argument-orbit.png)
 
-> `/collate:xray-paper <paper.md>` — diagram one paper's argument as the curve its claims actually take, not the order the prose presents them in. The viewer's first figure; the prose audit and companion charts sit below it.
+> `/collate:xray-paper <paper.md>` — diagram a paper's argument as the curve its claims actually take, not the order the prose presents them in.
 
 ![1980s reading of May Fourth as a constellation: Apertio at Polaris with a golden halo, Lumen / Democratia / Scientia / Intelligentsia / Vulgaris / Motus IV Maii lit and connected, Occidens / Traditio / Patria left dim, a striped Terra Incognita marking the violence the decade refuses to chart, header reading EIGHTIES · MR. DEMOCRACY ASCENDS.](assets/showcase/constellatio-eighties.png)
 
-> `/collate:constellatio 五四` — read one phenomenon through one decade. The 1980s pane: which stars the era lights up, which Polaris it chooses to anchor by, which zone it leaves marked Terra Incognita.
+> `/collate:constellatio 五四` — render an era's reading of a contested phenomenon as a constellation over the fixed historical events.
 
 ![Cross-era overlay layer: three filled radial halos labelled JANUS, ANGVSTIA OCCIDENTIS, NECESSITAS PRAESENTIS, with the layered constellations of three decades faint behind them.](assets/showcase/constellatio-cartographia.png)
 
-> The cross-era overlay from the same report. JANUS · ANGVSTIA OCCIDENTIS · NECESSITAS PRAESENTIS — the three regions that stay visible across the decades' disagreement. The figure names them; the prose section below the figure does the explaining.
+> `/collate:constellatio` cross-era overlay — the concerns that survive every era's reading.
 
 ---
 
