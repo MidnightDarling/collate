@@ -159,6 +159,33 @@ The visual is downstream. The lens is the work.
 - "Cannot resolve" is sometimes the correct conclusion. Do not collapse a
   legitimate aporia into a tidy synthesis.
 
+## Vocabulary discipline · the chart names; the prose explains
+
+The chart can use star-chart vocabulary because it is literally a star chart.
+The prose audit cannot, because its job is intellectual history. Three failure
+modes produce sentences that look like analysis and reduce to nothing:
+
+- **Renaming as analysis.** Replacing a substantive concept with a star-chart
+  term and treating the rename as the explanation. "五四 = a fixed set of
+  stars" does not explain May Fourth; it just relabels. "Polaris = 引力中心
+  = 真正的目的地" piles metaphors on top of each other instead of saying what
+  the era is actually doing.
+- **Geometric reduction.** Treating interpretive variation as if it were
+  geometric variation. Stars on a page are geometric; what each star *means
+  to the era reading it* is not. "对五四态度的变迁 = 星座几何的变迁" reads as
+  insight and is in fact a category error.
+- **Tautology.** Saying the same thing twice in two metaphors. "The gravity
+  that pulls every era back to redraw the chart — the thing that makes every
+  generation redraw it again" is one claim wearing two costumes. If you can
+  delete one half without losing content, you must.
+
+The operational rule. Inside chart labels (chart-meta, pane-meta, FIG
+breadcrumbs), visual vocabulary tags what the figure literally shows and is
+welcome. Inside the stance, the reading bodies (II–V), the gravity-well
+bodies, and the caveat band, every star-chart noun must be replaceable by
+the substantive concept it stands for. If you cannot replace it without loss
+of meaning, the sentence has not yet been written.
+
 ## Guardrails
 
 - Never overwrite the source.
