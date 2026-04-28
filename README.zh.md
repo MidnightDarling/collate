@@ -39,6 +39,24 @@
 
 ---
 
+## 一瞥
+
+阅读类 skills 自己产出的三张图。审议留在图旁的正文里,不塞进图本身。
+
+![论证轨道图:一条曲线穿过五个命名节点 —— 国内断层线、民族主义被借用、身份不是天成、全球身份可被建构、世界社会的前提 —— 把一篇文章的论点实际走出来的路径画了出来。](assets/showcase/xray-paper-argument-orbit.png)
+
+> `/collate:xray-paper <paper.md>` —— 把一篇文章的论证画成它的论点实际走出来的曲线,而不是行文呈现的顺序。viewer 的第一张图,审计与配套图表都跟在它后面。
+
+![1980 年代对五四的读法,呈现为一组星座:Apertio 在 Polaris 位置外罩金色光晕;Lumen / Democratia / Scientia / Intelligentsia / Vulgaris / Motus IV Maii 被点亮并连成线;Occidens / Traditio / Patria 三颗星偏暗;一片标着 TERRA INCOGNITA 的斜线区域,标记这一代不愿进入的暴力区;页脚字样为 EIGHTIES · MR. DEMOCRACY ASCENDS。](assets/showcase/constellatio-eighties.png)
+
+> `/collate:constellatio 五四` —— 用一个时代去读一个有争议的现象。图为 1980 年代那一格:这一代点亮哪些星,选哪颗当作 Polaris 锚定,哪片留作 Terra Incognita。
+
+![跨时代叠图层:三处带色光晕分别标注 JANUS、ANGVSTIA OCCIDENTIS、NECESSITAS PRAESENTIS,三代星座被压暗,作为底图叠在它们后面。](assets/showcase/constellatio-cartographia.png)
+
+> 同一份报告的跨时代叠图。JANUS · ANGVSTIA OCCIDENTIS · NECESSITAS PRAESENTIS 这三处命名区域,是各代读法分歧之间反复出现的部分。图把它们标了出来,真正的解释在图下方的正文段落里。
+
+---
+
 ## 快速开始
 
 ### 1 · 安装
