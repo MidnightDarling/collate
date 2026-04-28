@@ -1,78 +1,89 @@
 # constellatio · visual handoff
 
-This is the bridge from the Markdown report to the three-figure star-chart
-HTML. It is for use when a constellation merits a visual delivery — typically
-because the gravity is genuinely structural, and the chart will say something
-the prose cannot.
+This document is the bridge between the prose deliverable
+(`<workspace>/analysis/{stem}_constellatio.md`) and its sibling visual
+representation (`<workspace>/analysis/{stem}_constellatio.html`).
 
-## When to deliver visually
+The chart and the prose are **siblings**, not parent-and-child. The prose
+carries the lens's analytical work — diagnosis of each era's reading,
+identification of the screen-property, naming what the variation tracks.
+The chart shows the readings as visual constellations so the eye can
+compare what the prose has already analyzed. Visualization is optional
+and never required.
 
-Deliver visually when:
+## When a chart adds something the prose cannot
 
-- The phenomenon has 3+ rival readings worth charting (or 2 rival readings
-  whose disagreement is patterned enough to triangulate gravity).
-- The gravity is structural (an absent third position, a shared denial,
-  an axis of rotation under transformation) rather than rhetorical (which
-  side is louder, which side has more recent backing).
-- The reader has time to sit with the chart. A constellation does not
-  work as a thumbnail or a slide-deck embed.
+Deliver a chart sibling when:
 
-Do not deliver visually when:
+- The phenomenon has 3+ rival readings whose disagreement is visually
+  comparable: same items, different selections of which to emphasize, dim,
+  or omit.
+- The visual layering itself reveals something — three eras' selections
+  overlaid show patterns of shared silence or shared emphasis that prose
+  has to circle around to describe.
+- The reader has time to sit with the chart. A constellation does not work
+  as a thumbnail or slide-deck embed.
 
-- Only two readings exist and they merely contradict (no constellation
-  exists; the prose report is the work).
-- The report's core finding is "cannot resolve" without further structure.
-  A chart of an aporia just looks tidy and lies for you.
-- The visual would lend false definiteness to a hypothesis the prose
+Skip the chart when:
+
+- Only two readings exist and they merely contradict (the prose alone is
+  the work; there is no third reading for the eye to triangulate).
+- The lens's finding is "cannot reduce" — a chart of an aporia just looks
+  tidy and lies for you.
+- The chart would lend false definiteness to a hypothesis the prose
   rightly hedges.
+
+The prose alone is a complete deliverable. The chart on its own is not.
 
 ## The three figures
 
-The Markdown report's sections map to three figures, in order. The
-canonical worked example is `references/example-may-fourth.html`.
+The chart has three figures. They display, they do not analyze. The
+canonical worked example is `references/example-may-fourth.html`; its
+prose sibling is `references/example-may-fourth.md`.
 
-| Markdown section | Figure | Purpose |
-|------------------|--------|---------|
-| `Stellae fixae` | **FIG I — single chart** | Plot the stars every reading must include. One field, all stars at full luminosity. The substrate. |
-| `Constellationes temporum` | **FIG II — duo (or n-tuple) panes** | One pane per rival reading; same star coordinates, different connections, different brightness. Warm gold for affirmation panes, cool silver for critique panes. |
-| `Cartographia comparata` | **FIG III — overlay** | All constellation lines faintly atop one another; stars dimmed; gravity wells (named, plural) drawn as the only filled halos on the page. |
+| Figure | Purpose |
+|--------|---------|
+| **FIG I — single chart** | Plot the items every reading must include. One field, all marks at full luminosity. The substrate. |
+| **FIG II — duo (or n-tuple) panes** | One pane per rival reading; same coordinates, different connections, different brightness. Warm gold for affirmation panes, cool silver for critique panes. |
+| **FIG III — overlay** | All connection lines faintly atop one another; marks dimmed; the cross-era recurring concerns drawn as the only filled halos on the page. |
 
-Below the three figures sits a **Reading section** (the five-step prose
-unfolding), and below that the **Polaris caveat** band — a closing prose
-band that warns against treating the *current* era's reach for synthesis
-as an answer.
+Below FIG III sits a small grid of caption articles, one per recurring
+concern surfaced by the overlay. These captions are chart legend, not
+prose analysis — they describe what the figure shows.
 
-| Markdown section | HTML element |
-|------------------|--------------|
-| `Phenomenon` | `<header class="hero">` |
-| `Stellae fixae` | `<section class="chart-wrap">` (FIG I) |
-| `Constellationes temporum` | `<section class="duo-wrap">` (FIG II) |
-| `Cartographia comparata` | `<section class="overlay-wrap">` (FIG III) |
-| `Gravity` | gravity-well halos in FIG III + `.grav-grid` articles below |
-| `Polaris caveat` | `<section class="caveat-band">` |
+| Prose section | HTML region |
+|---------------|-------------|
+| Phenomenon | `<header class="hero">` |
+| 不可压缩面 | `<section class="chart-wrap">` (FIG I) |
+| 每代的读法即诊断 | `<section class="duo-wrap">` (FIG II) |
+| 屏幕属性 / 变迁追踪的是什么 | `<section class="overlay-wrap">` (FIG III) + `.grav-grid` captions below |
 
-## The plurality of gravity
+The chart side does not have a region for the *diagnostic* prose moves
+(reading-as-symptom, screen-property, what-variation-tracks). Those moves
+live exclusively in the prose sibling, where they belong.
 
-A constellatio chart usually surfaces **2–3 named gravity wells**, not a
-single plumb mark. A rich phenomenon's invariance is rarely one thing.
-For May Fourth: *Janus* (the two-faced structure) + *Angustia Occidentis*
-(the perennial East-West anxiety) + *Necessitas Praesentis* (the present's
-need to anchor itself in the past). Each is honest as a separate gravity
-source; collapsing them into one would lie.
+## How many cross-era halos to render
 
-If the analysis genuinely surfaces only one gravity, render one well.
-Never invent a second to balance the composition. Asymmetry is honest.
+A constellatio chart usually surfaces **2–3 named recurring concerns**, not
+a single plumb mark. A rich phenomenon's recurrences are rarely one thing.
+For May Fourth: *Janus* (two-faced structure) + *Angustia Occidentis*
+(the perennial East-West anxiety) + *Necessitas Praesentis* (each era's
+reach for the past as legitimacy for its present). Each is honest as a
+separate halo; collapsing them into one would lie.
+
+If the prose genuinely surfaces only one recurring concern, render one
+halo. Never invent a second to balance the composition.
 
 ## Implementation notes
 
-- **SVG for stars, lines, gravity wells.** HTML/CSS for narration and
-  section headers. No D3, no Canvas, no chart library — the chart is
-  small enough to be hand-laid, and hand-laying enforces editorial care
-  about every star's position.
-- **Star coordinates are fixed across the document.** A given star is at
-  the same `(x, y)` in FIG I, FIG II, and FIG III. That consistency is
-  what makes the three-figure progression legible. If you reposition a
-  star to "make this layer look better", you have broken the chart.
+- **SVG for marks, lines, halos.** HTML/CSS for narration and section
+  headers. No D3, no Canvas, no chart library — the chart is small enough
+  to be hand-laid, and hand-laying enforces editorial care about every
+  mark's position.
+- **Coordinates are fixed across the document.** A given mark is at the
+  same `(x, y)` in FIG I, FIG II, and FIG III. That consistency is what
+  makes the three-figure progression legible. If you reposition a mark to
+  "make this layer look better", you have broken the chart.
 - **Gradient defs reuse.** Define `<radialGradient>` for `star-warm`,
   `cool-star`, `dim-star`, `dim-star-c`, `nebula`, `grav-glow`,
   `revocatio-glow` once per figure. The naming convention preserves
@@ -80,50 +91,50 @@ Never invent a second to balance the composition. Asymmetry is honest.
 - **Connection lines.** 0.5–1.4px strokes. Solid for the warm gold set,
   dashed (`stroke-dasharray="2 4"` or `"2 5"`) for the cool silver set.
   Pattern + color together carry the signal — never color alone.
-- **Terra Incognita.** Each pane in FIG II should mark the zone its era
-  refuses to chart. Diagonal-stripe `<pattern>` overlay at low opacity,
-  captioned in Cinzel UPPER 11px in the era's tinted-soft variant.
+- **Each pane's omitted zone.** Each pane in FIG II should mark the zone
+  the era refuses to engage. Diagonal-stripe `<pattern>` overlay at low
+  opacity, captioned in Cinzel UPPER 11px in the era's tinted-soft variant.
 - **Layer transitions.** A 60–84px vertical gap between figures is enough.
   Do not over-animate. This is a chart of judgment, not a hero section.
 
-## From Markdown to HTML — workflow
+## From prose to chart — workflow
 
-1. **Copy the canonical example.** `cp skills/constellatio/references/
-   example-may-fourth.html <new-location>.html` is the safest starting
-   point. The HTML scaffolding, SVG defs, and CSS already encode every
-   discipline this document specifies.
+1. **Start from the canonical example.** `cp skills/constellatio/
+   references/example-may-fourth.html <new-location>.html` is the safest
+   starting point. The HTML scaffolding, SVG defs, and CSS already encode
+   every discipline this document specifies.
 2. **Replace the phenomenon name** in `<header class="hero">` (`.title`,
    `.subtitle`, `.coords-prose`, `.stats`).
-3. **Re-mark the stars** in FIG I. Position by *what they are*, not
-   *what they say*. Aim for 7–12 fixed stars. Keep coordinates sensible
-   so the eye can group related stars naturally.
+3. **Mark the irreducible items** in FIG I. Position by what they are, not
+   by what they say. Aim for 7–12 marks. Keep coordinates sensible so the
+   eye can group related items naturally.
 4. **Replace each pane** in FIG II. One pane per reading. Set the
-   appropriate `.warm` or `.cool` class. Update Polaris Aetatis,
-   Constellatio narration, and Terra Incognita per pane.
-5. **Update FIG III overlay** with the inferred gravity wells. Use the
-   reading's actual stars as faint background; place each gravity well
-   at the center of mass of the cluster of stars whose pull it captures.
-6. **Replace the .grav-grid** articles below FIG III with one `<article>`
-   per gravity well. Roman numeral, Latin name, Chinese gloss, prose.
-7. **Rewrite the Reading section** as the five-step methodology applied
-   to the current phenomenon. Keep the discipline: the five steps are
-   non-negotiable; the content varies.
-8. **Rewrite the Polaris caveat band.** Identify the *current era's*
-   reach for synthesis on this phenomenon. Name it. Show that it is
-   itself a Constellatio Aetatis, not a verdict.
-9. **Test.** Render at 1280px (laptop) and 768px (tablet). The chart
+   appropriate `.warm` or `.cool` class. Update the era label, the
+   connection set, and the omitted-zone caption per pane. Each pane's
+   `.pane-stance` is single-sentence chart caption — never a paragraph
+   of analysis. Analysis lives in the prose sibling.
+5. **Render FIG III overlay** with the recurring-concern halos identified
+   in the prose. Use the readings' actual marks as faint background;
+   place each halo at the center of mass of the cluster of marks whose
+   recurrence it captures.
+6. **Replace the `.grav-grid` captions** below FIG III with one
+   `<article>` per recurring concern. Roman numeral, Latin name, Chinese
+   gloss, one short caption sentence. These are chart legend, not prose
+   analysis — keep them short.
+7. **Test.** Render at 1280px (laptop) and 768px (tablet). The chart
    should be legible at both. The `@media (max-width: 980px)` block
-   collapses the duo, the grav-grid, and the reading-grid to single
-   columns.
+   collapses the duo and the grav-grid to single columns.
 
-## What the visual is not
+## What the chart is and is not
 
-- **Not a poster.** The chart is a quiet instrument, not a campaign
-  image. It does not need a tagline. It does not need decoration.
-- **Not a substitute for the Markdown report.** The prose carries
-  nuance the chart cannot. The visual is delivered *with* the report,
-  never instead of it.
-- **Not a final answer.** Like the lens itself, the chart shows the
-  *shape* of the gravity, not the resolution of the dispute. The
-  Polaris caveat band exists to enforce this — it is the chart's way
-  of refusing to become an oracle.
+- **Not a poster.** The chart is a quiet instrument, not a campaign image.
+  It does not need a tagline. It does not need decoration.
+- **Not a substitute for the prose.** The prose sibling carries the lens's
+  diagnostic work. The chart is delivered with the prose, never instead
+  of it. The chart shows readings as constellations; the thinking lives
+  in the prose.
+- **Not the lens applied.** Applying the lens is a thinking act, performed
+  in the prose. The chart is a visualization of the readings the prose
+  has already diagnosed. If you find yourself "applying the lens" inside
+  the chart's caption space, you have leaked thinking work into label
+  space — push it back to the prose.
