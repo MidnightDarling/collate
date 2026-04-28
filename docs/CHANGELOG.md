@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-04-29
+
+### Constellatio sibling architecture
+
+The `constellatio` skill is decoupled into two equal-rank deliverables: a
+prose analysis and an optional chart sibling. The previous version let
+chart vocabulary (Polaris, fixed star, gravity well, constellation) leak
+into the cognitive method itself, which downstream agents would read as a
+prompt and reproduce as meta-narration of their own chart-construction
+process. The lens now teaches one mode of attention; the chart shows what
+the prose has already diagnosed.
+
+#### Changed
+
+- `skills/constellatio/SKILL.md` rewritten as a thinking lens whose
+  vocabulary is intellectual-history substantive, not star-chart costume.
+  Four cognitive moves named in substantive terms (锁定不可压缩面,
+  读法即诊断, 追踪变迁追踪的是什么, 辨识屏幕属性).
+- `skills/constellatio/references/example-may-fourth.html` slimmed to
+  chart-only; the embedded five-step prose unfolding and Polaris caveat
+  band are removed.
+- `skills/constellatio/references/visual-handoff.md` repositioned: chart
+  and prose are sibling deliverables, not parent-child. Workflow steps
+  that instructed the chart to perform analysis are removed.
+- `skills/constellatio/references/design-tokens.md` strips
+  cognitive-method claims from the visual rationale.
+- README captions describe what the skill does (diagnose, identify), not
+  what the chart shows.
+
+#### Added
+
+- `skills/constellatio/references/example-may-fourth.md` — canonical
+  prose deliverable for the May Fourth case, parallel to the chart
+  sibling.
+- 屏幕属性 (screen-property) — the structural-ambiguity move that
+  separates this lens from generic 接受史 / comparative reading.
+
+#### Notes
+
+- Pre-decouple HTML preserved locally outside the repository (does not
+  ship to users).
+- This release does not touch the OCR pipeline or any other skill.
+
 ## 2026-04-20
 
 ### Interface convergence: skill-first surface

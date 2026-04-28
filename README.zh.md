@@ -49,11 +49,11 @@
 
 ![1980 年代对五四的读法,呈现为一组星座:Apertio 在 Polaris 位置外罩金色光晕;Lumen / Democratia / Scientia / Intelligentsia / Vulgaris / Motus IV Maii 被点亮并连成线;Occidens / Traditio / Patria 三颗星偏暗;一片标着 TERRA INCOGNITA 的斜线区域,标记这一代不愿进入的暴力区;页脚字样为 EIGHTIES · MR. DEMOCRACY ASCENDS。](assets/showcase/constellatio-eighties.png)
 
-> `/collate:constellatio 五四` —— 把一个时代对争议现象的读法,画成铺在固定事件之上的星座。
+> `/collate:constellatio 五四` —— 诊断每个时代对争议现象的读法究竟在追问什么,识别这个对象上让每代投射都贴得上的那道结构性裂缝。可选的同级图把这些读法画成星座。
 
 ![跨时代叠图层:三处带色光晕分别标注 JANUS、ANGVSTIA OCCIDENTIS、NECESSITAS PRAESENTIS,三代星座被压暗,作为底图叠在它们后面。](assets/showcase/constellatio-cartographia.png)
 
-> `/collate:constellatio` 跨时代叠图层 —— 跨越所有时代反复出现的关切。
+> `/collate:constellatio` 跨时代散文输出 —— 反复浮出的关切,以及让任何时代都无法定夺它的那道结构属性。
 
 ---
 

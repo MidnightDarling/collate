@@ -49,11 +49,11 @@ Three figures from the reading skills, each rendered by the skill itself.
 
 ![1980s reading of May Fourth as a constellation: Apertio at Polaris with a golden halo, Lumen / Democratia / Scientia / Intelligentsia / Vulgaris / Motus IV Maii lit and connected, Occidens / Traditio / Patria left dim, a striped Terra Incognita marking the violence the decade refuses to chart, header reading EIGHTIES · MR. DEMOCRACY ASCENDS.](assets/showcase/constellatio-eighties.png)
 
-> `/collate:constellatio 五四` — render an era's reading of a contested phenomenon as a constellation over the fixed historical events.
+> `/collate:constellatio 五四` — diagnose what each era's reading of a contested phenomenon needs from the past, and identify the structural property of the object that makes every era's projection stick. Optional sibling chart shows the readings as constellations.
 
 ![Cross-era overlay layer: three filled radial halos labelled JANUS, ANGVSTIA OCCIDENTIS, NECESSITAS PRAESENTIS, with the layered constellations of three decades faint behind them.](assets/showcase/constellatio-cartographia.png)
 
-> `/collate:constellatio` cross-era overlay — the concerns that survive every era's reading.
+> `/collate:constellatio` cross-era prose deliverable — what survives every era's reading, plus the screen-property that explains why no era can resolve it.
 
 ---
 
