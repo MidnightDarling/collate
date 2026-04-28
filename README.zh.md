@@ -146,6 +146,30 @@ Human: final.docx + final.mp.html + 审计日志
 
 ---
 
+## 一瞥
+
+来自同一个 workspace 的三个瞬间,以 agent 在终端里呈现的样子直接渲染。
+
+<p align="center">
+  <img src="assets/showcase/pipeline-running.svg" alt="八步流水线跑在一份 188 页民国排印本 PDF 上:setup、prep-scan、visual-preview 已完成;ocr-run 进行至 188 页中的第 88 页;proofread、diff-review、to-docx、mp-format 待跑。" width="100%"/>
+</p>
+
+> `/collate:ocr 史料.pdf` —— 编排者一次跑完八步,每一步都把审计痕迹留在 `.ocr/` 里,任何一处状态快照都可以续跑。
+
+<p align="center">
+  <img src="assets/showcase/proofread-review.svg" alt="collate proofread 在民国排印本上产出的六行分级标注列表:A 类 OCR 错(曰/日、己/已)、B 类规范问题(标点、脚注还原)、C 类待考(干支历法转换、繁简夹用),共 42 条标注的汇总。" width="100%"/>
+</p>
+
+> `/collate:proofread raw.md` —— historical-proofreader 给出 page-grounded 的清单,而非直接改稿。**A** 是 OCR 错,**B** 是刊物规范,**C** 是必须翻原书才能下判断的学术存疑。
+
+<p align="center">
+  <img src="assets/showcase/prometheus-card.svg" alt="prometheus 渲染的「三司」概念卡:北宋 964 至 1080 年间的中央财政机构 —— 类属、年代、区分(盐铁、度支、户部三署合署)、要避免与之混淆的同名异指(唐代御史台三司会审)、一句哲学内核。" width="100%"/>
+</p>
+
+> `/collate:prometheus 三司` —— 挑一个词,渲染成定义卡。类属、区分、年代、应避免的同名异指、概念火花 —— 小到一眼看完。
+
+---
+
 ## 仓库结构
 
 一个 **Claude Code 插件**(同时也是 runtime 无关的 Python 工具箱)—— 直接安装,或手动复制组件。

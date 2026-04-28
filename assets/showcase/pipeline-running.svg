@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" role="img" aria-labelledby="title desc">
+  <title id="title">collate · pipeline running</title>
+  <desc id="desc">Terminal-style display of the eight-stage collate OCR pipeline running on a historical PDF, with progress on the active ocr-run stage.</desc>
+
+  <defs>
+    <style>
+      .frame  { fill: #0d1117; }
+      .border { stroke: #21262d; fill: none; }
+      .dot-r  { fill: #ff5f56; }
+      .dot-y  { fill: #ffbd2e; }
+      .dot-g  { fill: #27c93f; }
+      .meta   { font: 11px ui-monospace,'IBM Plex Mono','SF Mono',Menlo,Consolas,monospace; fill: #6e7681; letter-spacing: 0.06em; }
+      .mono   { font: 14px ui-monospace,'IBM Plex Mono','SF Mono',Menlo,Consolas,monospace; fill: #c9d1d9; }
+      .prompt { font: 600 14px ui-monospace,'IBM Plex Mono','SF Mono',Menlo,Consolas,monospace; fill: #a371f7; }
+      .cmd    { font: 14px ui-monospace,'IBM Plex Mono','SF Mono',Menlo,Consolas,monospace; fill: #c9d1d9; }
+      .accent { fill: #79c0ff; }
+      .done   { fill: #3fb950; }
+      .dim    { fill: #484f58; }
+      .label-done   { font: 13px ui-monospace,'IBM Plex Mono',Menlo,monospace; fill: #8b949e; }
+      .label-active { font: 600 13px ui-monospace,'IBM Plex Mono',Menlo,monospace; fill: #c9d1d9; }
+      .label-pend   { font: 13px ui-monospace,'IBM Plex Mono',Menlo,monospace; fill: #484f58; }
+      .ts     { font: 11px ui-monospace,'IBM Plex Mono',Menlo,monospace; fill: #484f58; letter-spacing: 0.04em; }
+      .pct    { font: 600 12px ui-monospace,'IBM Plex Mono',Menlo,monospace; fill: #79c0ff; }
+      .bar-bg { fill: #161b22; }
+      .bar-fg { fill: #79c0ff; }
+    </style>
+  </defs>
+
+  <rect class="frame" width="1200" height="480" rx="10"/>
+  <rect class="border" x="0.5" y="0.5" width="1199" height="479" rx="10"/>
+
+  <!-- title bar -->
+  <circle class="dot-r" cx="22" cy="24" r="6"/>
+  <circle class="dot-y" cx="42" cy="24" r="6"/>
+  <circle class="dot-g" cx="62" cy="24" r="6"/>
+  <text class="meta" x="600" y="28" text-anchor="middle">collate ⋅ ocr pipeline ⋅ workspace/.ocr</text>
+
+  <line x1="0" y1="48" x2="1200" y2="48" stroke="#21262d"/>
+
+  <!-- prompt + command -->
+  <text class="prompt" x="40" y="84">&gt;</text>
+  <text class="cmd"    x="60" y="84">/collate:ocr 史料.pdf</text>
+  <text class="meta"   x="40" y="106">workspace ready · 188 pages detected · MinerU local CLI</text>
+
+  <!-- pipeline rows -->
+  <!-- 1 setup -->
+  <text class="ts" x="40"  y="148">14:02:11</text>
+  <text class="done" x="120" y="148">✓</text>
+  <text class="label-done" x="148" y="148">setup</text>
+  <text class="meta" x="320" y="148">python 3.11 · poppler 24.02 · MinerU 1.3 OK</text>
+
+  <!-- 2 prep-scan -->
+  <text class="ts" x="40"  y="178">14:02:34</text>
+  <text class="done" x="120" y="178">✓</text>
+  <text class="label-done" x="148" y="178">prep-scan</text>
+  <text class="meta" x="320" y="178">188 pages · margins trimmed · stamps masked</text>
+
+  <!-- 3 visual-preview -->
+  <text class="ts" x="40"  y="208">14:03:12</text>
+  <text class="done" x="120" y="208">✓</text>
+  <text class="label-done" x="148" y="208">visual-preview</text>
+  <text class="meta" x="320" y="208">three-state HTML written → preview/index.html</text>
+
+  <!-- 4 ocr-run · ACTIVE -->
+  <text class="ts" x="40"  y="240">14:04:55</text>
+  <text class="accent" x="120" y="240">▸</text>
+  <text class="label-active" x="148" y="240">ocr-run</text>
+  <text class="meta" x="320" y="240">MinerU local CLI · page 88 / 188</text>
+
+  <!-- progress bar -->
+  <rect class="bar-bg" x="148" y="252" width="640" height="6" rx="3"/>
+  <rect class="bar-fg" x="148" y="252" width="0"   height="6" rx="3">
+    <animate attributeName="width" from="0" to="300" dur="6s" begin="0s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </rect>
+  <text class="pct" x="804" y="259">
+    <tspan>  0%</tspan>
+    <animate attributeName="textLength" begin="0s" dur="6s"/>
+  </text>
+  <!-- animate the percent text by swapping content -->
+  <text class="pct" x="804" y="259" opacity="0">
+    <tspan>47%</tspan>
+    <animate attributeName="opacity" values="0;1" dur="0.01s" begin="6s" fill="freeze"/>
+  </text>
+  <text class="pct" x="804" y="259">
+    <animate attributeName="opacity" values="1;0" dur="0.01s" begin="6s" fill="freeze"/>
+  </text>
+
+  <!-- 5 proofread · pending -->
+  <text class="ts" x="40"  y="288">--:--:--</text>
+  <text class="dim" x="120" y="288">·</text>
+  <text class="label-pend" x="148" y="288">proofread</text>
+  <text class="meta" x="320" y="288" fill="#484f58">awaiting raw.md · type: republican</text>
+
+  <!-- 6 diff-review · pending -->
+  <text class="ts" x="40"  y="318">--:--:--</text>
+  <text class="dim" x="120" y="318">·</text>
+  <text class="label-pend" x="148" y="318">diff-review</text>
+  <text class="meta" x="320" y="318" fill="#484f58">raw.md ↔ final.md against review-list</text>
+
+  <!-- 7 to-docx · pending -->
+  <text class="ts" x="40"  y="348">--:--:--</text>
+  <text class="dim" x="120" y="348">·</text>
+  <text class="label-pend" x="148" y="348">to-docx</text>
+  <text class="meta" x="320" y="348" fill="#484f58">academic spec · final.docx</text>
+
+  <!-- 8 mp-format · pending -->
+  <text class="ts" x="40"  y="378">--:--:--</text>
+  <text class="dim" x="120" y="378">·</text>
+  <text class="label-pend" x="148" y="378">mp-format</text>
+  <text class="meta" x="320" y="378" fill="#484f58">WeChat MP HTML · wechat.html</text>
+
+  <!-- footer hint -->
+  <line x1="0" y1="420" x2="1200" y2="420" stroke="#21262d"/>
+  <text class="meta" x="40"   y="448">/collate:status</text>
+  <text class="meta" x="180"  y="448">workspace/.ocr/_pipeline_status.json</text>
+  <text class="meta" x="1160" y="448" text-anchor="end">resumable · audit-trailed</text>
+
+  <!-- caret blink at command end -->
+  <rect x="284" y="72" width="9" height="16" fill="#a371f7">
+    <animate attributeName="opacity" values="1;1;0;0" dur="1.1s" repeatCount="indefinite" keyTimes="0;0.5;0.5;1"/>
+  </rect>
+</svg>

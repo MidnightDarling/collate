@@ -148,6 +148,30 @@ The proofreading layer ships with three calibrated knowledge bases. The agent in
 
 ---
 
+## A glimpse
+
+Three moments from a single workspace, rendered the way the agent surfaces them in your terminal.
+
+<p align="center">
+  <img src="assets/showcase/pipeline-running.svg" alt="The eight-stage pipeline running on a 188-page Republican-era PDF: setup, prep-scan, and visual-preview complete; ocr-run active at page 88 of 188; proofread, diff-review, to-docx, and mp-format pending." width="100%"/>
+</p>
+
+> `/collate:ocr 史料.pdf` — the conductor advances eight stages on one PDF; every stage leaves an audit trail in `.ocr/`, every status snapshot is resumable.
+
+<p align="center">
+  <img src="assets/showcase/proofread-review.svg" alt="A six-row severity-tagged review listing produced by collate proofread on a Republican-era text: A-class OCR errors (曰/日, 己/已), B-class normalization issues (punctuation, footnotes), C-class scholarly queries (calendar conversion, traditional/simplified mixing), with a 42-entry summary." width="100%"/>
+</p>
+
+> `/collate:proofread raw.md` — the historical-proofreader emits a page-grounded list, not a rewrite. **A** is OCR error, **B** is house-style, **C** is scholarly judgment that needs the original book.
+
+<p align="center">
+  <img src="assets/showcase/prometheus-card.svg" alt="A prometheus-rendered concept card for 三司, the Northern Song central fiscal apparatus active 964 to 1080: genus, years, differentia, the homonym to avoid (the Tang judicial three-bureau review), and a one-line philosophical core." width="100%"/>
+</p>
+
+> `/collate:prometheus 三司` — pick one term, render it as a definition card. Genus, differentia, era, the homonym to avoid, and the conceptual spark — small enough to hold in the mind.
+
+---
+
 ## What's Inside
 
 A **Claude Code plugin** (and a runtime-agnostic Python toolkit) — install it directly or copy components by hand.
