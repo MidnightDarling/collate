@@ -1,172 +1,90 @@
 ---
 name: constellatio
-description: Use when a historical phenomenon has irreconcilable era-readings; the lens diagnoses what each reading needs from the past and identifies the structural property of the object that makes it absorptive across time.
+description: 对有争议历史现象做接受史分析,找出对象内部让各代投射都能贴住的结构性裂缝,可选输出暗夜星图 viewer。
 argument-hint: "[phenomenon | workspace-or-markdown-path]"
 allowed-tools: Read, WebSearch, Write
 ---
 
 # constellatio
 
-## The work this lens is for
+## 这个 skill 做什么
 
-There are historical things you keep returning to and never quite resolve.
+输入一个在历史上被反复征用、各代读法互相矛盾的现象(李鸿章、王安石变法、
+鸦片战争、五四),输出两样东西:
 
-李鸿章 sits between three biographies that cannot all be true at once. 王安石
-变法 oscillates across a thousand years of judgment, sliding between salvation
-and catastrophe whenever the present needs the past to answer differently.
-陈寅恪 fascinates without quite letting you say why. 曹操 from 正史 / 演义 /
-翻案 is three different men. 鸦片战争 reads as 民族屈辱 from one side and
-现代化起点 from the other, and you cannot quite stop believing both.
+1. **一份接受史分析** — 每个时代怎么读的、为什么这么读、变迁追踪的是读者
+   还是对象
+2. **一个判断** — 对象内部的什么结构让所有时代的投射都能贴住(屏幕属性)
 
-`constellatio` is the lens for those phenomena. It does not pick a winning
-reading. It does two specific intellectual moves:
+第二点是这个 skill 在普通接受史之上唯一多做的事。普通接受史告诉你"各代
+怎么读了";这个 skill 多问一句:"对象身上什么东西让它能被这样反复读而不
+耗尽?"
 
-1. it diagnoses what each era's reading **needs from the past** in order to
-   underwrite that era's own present
-2. it identifies the **structural property of the object** that lets every era
-   project onto it without resistance — the reason no era can settle it
+可选地,分析可以搭配一张暗夜星图 viewer — 同一组事件固定不动,各代的连
+法在上面各画一层,让眼睛直接比较散文需要绕着弯说的东西。
 
-It is the lateral cousin of `real-thesis`. `real-thesis` digs vertically into
-one paper's buried claim. `constellatio` works laterally across many readings
-of one phenomenon to surface what the readings reveal about their own readers
-and what the object itself is doing that lets them all stick.
-
-## Four cognitive moves
-
-These are angles of attention. Hold them; do not run them as a recipe.
-
-**锁定不可压缩面.** What in the phenomenon cannot be removed from any honest
-account, regardless of who is reading. These are the items every reading must
-carry. They are not "the truth" of the phenomenon — they are its irreducible
-furniture. Without this floor, the rest of the lens has nothing to push
-against.
-
-**读法即诊断.** Each era-reading is a symptom of the era that produced it. Ask
-not "is this reading correct" but "what did this era need to find here". A
-reading is evidence about its reader before it is evidence about its subject.
-What a reading must emphasize, what it must avert its eyes from, what
-assumption it must protect — these are the era's pressures showing through.
-
-**追踪变迁追踪的是什么.** When the readings change across centuries, ask
-honestly what the variation tracks. It almost never tracks new findings about
-the phenomenon itself. Usually it tracks the reading communities' own shifting
-crises of legitimacy — what they need history to confirm in order to live with
-their own present. Naming this clearly is the central decoding move of the
-lens.
-
-**辨识屏幕属性.** The deepest move. A phenomenon that absorbs every era's
-projection without resisting must contain some structural ambiguity that
-allows the projection to land. The object is, in this sense, a *screen*.
-Identify the property that makes it so — usually an internal contradiction
-that genuinely exists inside the object (启蒙 + 救亡 同时在场;
-开明改革 + 帝国困局 同时在场). This screen-property is not the era's
-construction; it is what the era is reaching for. Without naming it, the lens
-collapses into mere reception history.
-
-## Input
+## 输入
 
 Target: `$ARGUMENTS`
 
-- a phenomenon name (`李鸿章`, `王安石变法`, `鸦片战争`) → constellate from
-  public material
-- a workspace directory → read `<ws>/final.md` and treat it as one of the
-  readings to be diagnosed against others
-- a `.md` file → same as workspace mode
-- empty → ask which phenomenon, and which readings the user already cannot
-  let go of
+- 一个现象名(`李鸿章`、`五四`、`鸦片战争`)→ 从公开材料做
+- 一个 workspace 目录 → 读 `<ws>/final.md`,当作待诊断的读法之一
+- 一个 `.md` 文件 → 同上
+- 空 → 问用户哪个现象,以及已经知道哪些互相矛盾的读法
 
-If readings are not yet identified, surface 3–5 mutually incompatible ones
-before continuing. Fewer than three usually means the phenomenon does not
-yet warrant this lens. More than seven usually means the field is being
-padded.
+至少三种互相矛盾的读法才值得动这个 skill。不到三种,普通的论证分析就够
+了。超过七种,通常是在凑数。
 
-## Method
+## 方法
 
-Five passes. Not steps; angles.
+三步。前两步是标准接受史工作,第三步才是这个 skill 的独有贡献。
 
-1. **Lock the irreducible.** State plainly what cannot be removed from any
-   honest account of the phenomenon — the events, persons, decisions, texts,
-   actions every reading must include. Do not interpret yet.
-2. **Read each reading as its era's diagnostic act.** For each rival reading,
-   name the era it speaks from, what that era was wrestling with on its own
-   terms, and what this reading therefore needed the phenomenon to be. Do not
-   evaluate the reading's accuracy yet. Diagnose its function.
-3. **Locate the screen-property.** Identify the structural ambiguity inside
-   the phenomenon itself that lets every era project onto it. Phrase it
-   substantively: which two things does the object genuinely contain at once
-   such that any era can foreground whichever one fits its own pressure.
-4. **Name what the variation tracks.** Across the readings, the variation is
-   tracking *something*. Almost never the phenomenon. Usually the readers'
-   shifting relationship to their own legitimacy crisis. State it directly.
-5. **Write the honest one-sentence shape.** If the lens has produced an
-   honest finding, it can be stated in one sentence: the phenomenon is X
-   because it contains Y, which lets each era make it carry Z. If it cannot
-   honestly be reduced, say so. "Cannot reduce" is sometimes the correct
-   conclusion.
+**第一步 · 底图。** 列出这个现象里不可压缩的事实 — 无论谁来读都必须处理
+的事件、人物、文本。不解读,只列。
 
-## Output
+**第二步 · 每代读法当作诊断。** 每一个时代的读法,问的不是"读得对不对",
+是"这个时代需要从历史里取走什么来支撑自己的当下"。亮了什么、压暗了什
+么、不愿看什么 — 这些是诊断材料。同时追踪:各代读法的变化到底在追踪什
+么?几乎从来不是关于对象本身的新发现,通常是读者群体自己的合法性危机在
+变。
 
-- workspace mode → `<workspace>/analysis/{stem}_constellatio.md`
-- single-file mode → `analysis/{stem}_constellatio.md`
-- pure phenomenon mode → ask for a target directory if none is obvious
+**第三步 · 屏幕属性。** 这是这个 skill 唯一真正多做的事。问:对象内部的
+什么结构让每一代的投射都能贴住?通常是一个真实存在于对象内部的矛盾(启
+蒙 + 救亡同时在场;开明改革 + 帝国困局同时在场)— 不是后人构造的复杂
+性,是对象本身的双重结构。找到这个,才能解释为什么这个现象被反复征用而
+不耗尽。找不到,就诚实说找不到。
 
-The deliverable is **prose**. Six sections:
+## 输出
 
-1. **Phenomenon** — the name at the centre, no embellishment
-2. **不可压缩面** — what every reading must include
-3. **每代的读法即诊断** — for each era-reading: what that era needed the
-   phenomenon to be, and why
-4. **变迁追踪的是什么** — the diagnosis of what the across-time variation
-   actually tracks
-5. **屏幕属性** — the structural property of the phenomenon that makes it
-   absorptive
-6. **当下读法的诚实** — the synthesis the present is reaching for, named
-   honestly as itself another era-reading rather than the verdict
+- workspace 模式 → `<workspace>/analysis/{stem}_constellatio.md`
+- 单文件模式 → `analysis/{stem}_constellatio.md`
+- 纯现象模式 → 问用户放哪
 
-## Optional · sibling visualization
+散文六段:
 
-When a phenomenon's readings are visually comparable — same items, different
-selections of which to emphasize, which to dim, which to omit — a chart
-sibling can stand alongside the prose. The chart is *never* the analysis; it
-displays the readings so the eye can compare what the prose has already
-diagnosed.
+1. **现象** — 名称,不装饰
+2. **不可压缩面** — 每个读法都必须包括的事实
+3. **每代读法的诊断** — 每个时代需要这个现象是什么,以及为什么
+4. **变迁追踪的是什么** — 跨时代变化到底在追踪什么
+5. **屏幕属性** — 对象内部让投射贴住的结构
+6. **当下读法的诚实** — 当代的综合本身也是一种时代读法,不是终审
 
-If you choose to deliver a chart, see `references/visual-handoff.md`. The
-chart and the prose are equal-rank deliverables. Prose alone is a complete
-output.
+## 可选 · 暗夜星图 viewer
 
-`references/example-may-fourth.md` is the canonical worked example of the
-prose deliverable. `references/example-may-fourth.html` is the same case as
-chart sibling. Read both to feel the relationship between them.
+当各代读法可以在同一组事件上做明暗对比时,一张星图可以让眼睛直接做散文
+需要绕着弯说的比较。
 
-## Honesty
+星图不是分析。它把各代的连法摆在视觉上,让读者自己看。诊断、屏幕属性、
+变迁追踪 — 这些只在散文里。
 
-- If only two readings exist and they merely contradict, this is not yet a
-  case for this lens. Do not pretend otherwise.
-- If the screen-property cannot be honestly named, say so. Do not invent a
-  contradiction the object does not actually contain.
-- A reading not yet formulated by anyone is not a reading. Do not invent
-  positions to round out the field.
-- "Cannot resolve" is sometimes the honest conclusion. Do not collapse a
-  legitimate aporia into a tidy synthesis.
-- The current era reaches for its own synthesis as readily as past eras did.
-  Name the synthesis when you reach it, do not enthrone it.
+做 viewer 时参考 `references/viewer-spec.md`(美学 + 技术规范)和
+`references/example-may-fourth.html`(canonical 例子)。散文例子见
+`references/example-may-fourth.md`。
 
-## Vocabulary discipline
+## 诚实
 
-Inside the prose deliverable, every chart-side noun (Polaris, fixed star,
-gravity well, constellation, Stellae fixae, Terra Incognita) must be
-replaceable by the substantive concept it stands for without loss of meaning.
-If you cannot replace it without loss, the sentence has not yet been written
-— the chart vocabulary was carrying meaning the prose has not yet earned.
-
-Chart-side labels in the optional HTML sibling are exempt from this rule.
-There the labels stand on top of figures that literally show the thing.
-
-## Guardrails
-
-- Never overwrite the source.
-- The screen-property is what the readings reveal about the object, not what
-  the operator imposes on it.
-- Do not steal the centre by writing a new reading and calling it the truth.
-- One phenomenon per invocation. The lens is precise; do not blur it.
+- 只有两种读法且只是互相矛盾 → 不值得用这个 skill
+- 屏幕属性找不到 → 说找不到,不要发明一个对象里不存在的矛盾
+- 没有人提出过的读法不是读法,不要为了凑数而发明立场
+- "无法归结"有时候就是诚实的结论
+- 当代的综合和过去各代一样,是时代读法,不是终审 — 说清楚这件事

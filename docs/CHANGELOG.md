@@ -2,6 +2,43 @@
 
 ## 2026-04-29
 
+### Constellatio honest repositioning
+
+The `constellatio` skill is repositioned as a reception-history analysis
+format with one genuinely novel contribution (screen-property
+identification), not a "thinking lens" with four claimed cognitive moves.
+The previous SKILL.md overclaimed: the first two steps (list irreducible
+facts, treat each era's reading as diagnostic) are standard reception
+history, not novel methods. Only the third step — identifying the
+structural crack inside the object that lets every era's projection
+stick — is the skill's distinctive contribution.
+
+Three reference files (`visual-handoff.md`, `design-tokens.md`,
+`latin-conventions.md`) are merged into a single `viewer-spec.md`.
+
+#### Changed
+
+- `skills/constellatio/SKILL.md` rewritten with honest three-step
+  framing. Steps 1-2 are explicitly marked as standard reception-history
+  work; step 3 (屏幕属性) is the skill's only novel contribution.
+  Description changed from "thinking lens" to "接受史分析".
+- README captions changed from "diagnose" framing to "reception-history
+  analysis" — honest about what the skill actually does.
+
+#### Added
+
+- `skills/constellatio/references/viewer-spec.md` — single reference
+  merging aesthetic stance, design tokens, and Latin conventions.
+
+#### Removed
+
+- `skills/constellatio/references/visual-handoff.md` — merged into
+  `viewer-spec.md`.
+- `skills/constellatio/references/design-tokens.md` — merged into
+  `viewer-spec.md`.
+- `skills/constellatio/references/latin-conventions.md` — merged into
+  `viewer-spec.md`.
+
 ### Constellatio sibling architecture
 
 The `constellatio` skill is decoupled into two equal-rank deliverables: a
@@ -9,25 +46,14 @@ prose analysis and an optional chart sibling. The previous version let
 chart vocabulary (Polaris, fixed star, gravity well, constellation) leak
 into the cognitive method itself, which downstream agents would read as a
 prompt and reproduce as meta-narration of their own chart-construction
-process. The lens now teaches one mode of attention; the chart shows what
-the prose has already diagnosed.
+process.
 
 #### Changed
 
-- `skills/constellatio/SKILL.md` rewritten as a thinking lens whose
-  vocabulary is intellectual-history substantive, not star-chart costume.
-  Four cognitive moves named in substantive terms (锁定不可压缩面,
-  读法即诊断, 追踪变迁追踪的是什么, 辨识屏幕属性).
 - `skills/constellatio/references/example-may-fourth.html` slimmed to
   chart-only; the embedded five-step prose unfolding and Polaris caveat
   band are removed.
-- `skills/constellatio/references/visual-handoff.md` repositioned: chart
-  and prose are sibling deliverables, not parent-child. Workflow steps
-  that instructed the chart to perform analysis are removed.
-- `skills/constellatio/references/design-tokens.md` strips
-  cognitive-method claims from the visual rationale.
-- README captions describe what the skill does (diagnose, identify), not
-  what the chart shows.
+- Chart and prose positioned as sibling deliverables, not parent-child.
 
 #### Added
 
@@ -35,7 +61,7 @@ the prose has already diagnosed.
   prose deliverable for the May Fourth case, parallel to the chart
   sibling.
 - 屏幕属性 (screen-property) — the structural-ambiguity move that
-  separates this lens from generic 接受史 / comparative reading.
+  separates this skill from generic 接受史 / comparative reading.
 
 #### Notes
 
