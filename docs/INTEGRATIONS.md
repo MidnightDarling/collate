@@ -1,7 +1,7 @@
 ---
 title: 跨运行时接入手册
 date: 2026-04-19
-author: [Alice, Claude Opus 4.6, GPT-5.4]
+author: [Alice, Claude Opus 4.7, GPT-5.4]
 status: stable
 ---
 

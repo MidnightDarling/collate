@@ -1,7 +1,7 @@
 ---
 title: Architecture
 description: collate 插件的内部架构、数据流、skill 职责边界、设计决策
-author: [Alice, Claude Opus 4.6, GPT-5.4]
+author: [Alice, Claude Opus 4.7, GPT-5.4]
 date: 2026-04-19
 status: v0.2.0
 ---

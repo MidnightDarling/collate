@@ -1,7 +1,7 @@
 ---
 title: Workspace Layout — 一份文献一个工作区
 date: 2026-04-19
-author: Claude Opus 4.6
+author: Claude Opus 4.7
 status: authoritative
 ---
 
