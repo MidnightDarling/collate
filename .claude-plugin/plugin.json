@@ -1,6 +1,6 @@
 {
   "name": "collate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "历史论文 OCR 校对工作流：PDF 预处理去水印去角标、MinerU OCR、三类文献（繁体古籍 / 民国排印 / 现代简体）校对、公众号排版导出",
   "author": {
     "name": "Alice",
@@ -8,7 +8,7 @@
   },
   "contributors": [
     {
-      "name": "Claude Opus 4.7",
+      "name": "Claude Opus 4.6",
       "email": "noreply@anthropic.com",
       "role": "co-author"
     },

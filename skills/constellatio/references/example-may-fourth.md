@@ -2,7 +2,7 @@
 phenomenon: 五四
 case: 八十年代读法 vs 九十年代后读法
 deliverable: prose（散文姊妹篇,可选 visual sibling 见 example-may-fourth.html)
-author: Claude Opus 4.7
+author: Claude Opus 4.6
 date: 2026-04-29
 ---
 

@@ -1,6 +1,27 @@
 # Changelog
 
-## 2026-04-29
+## 2026-04-29 · v0.2.0
+
+### Version bump & runtime honesty
+
+#### Changed
+
+- Version 0.1.0 → 0.2.0 across all plugin manifests
+  (`.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
+  `.claude-plugin/marketplace.json`, `docs/ARCHITECTURE.md`,
+  `docs/TROUBLESHOOTING.md`).
+- Model identity corrected: "Claude Opus 4.7" → "Claude Opus 4.6"
+  throughout the repository (README, CONTRIBUTORS, manifests, references,
+  commands, INTEGRATIONS, ARCHITECTURE, TROUBLESHOOTING).
+- Runtime compatibility claims made honest: only Claude Code and Codex CLI
+  have native plugin manifests. Removed unimplemented runtimes (OpenCode,
+  Hermes, OpenClaw, Kimi, MiniMax) from README compatibility matrix;
+  Cursor and Gemini CLI marked as untested.
+- INTEGRATIONS.md runtime matrix updated with explicit status column
+  (原生支持 / 未测试 / 未实现 / 路线图 / 概念架构).
+- Marketplace description stripped of unverified runtime claims.
+- Skill counts updated: 14 → 15 skills, 6 → 7 reading skills
+  (constellatio added to reading layer).
 
 ### Constellatio honest repositioning
 
