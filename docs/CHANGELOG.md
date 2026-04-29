@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-04-29 · Hermes agents native support
+
+### Changed
+
+- Hermes agents promoted from "未实现" to "原生支持" in INTEGRATIONS.md matrix, both READMEs, and compatibility tables.
+- `docs/INTEGRATIONS.md` section 10 (Hermes agents): rewritten from architecture reference to verified integration — documents `AGENTS.md` auto-discovery, `delegate_task` subagent dispatch, and `.cursor/rules/*.mdc` co-loading.
+- Compatibility matrix now lists five supported runtimes (was four): Claude Code, Codex, Gemini CLI, Cursor, Hermes agents.
+- README description updated: "native siblings for Codex, Gemini CLI, Cursor, and Hermes agents" (was "Codex, Gemini CLI, and Cursor").
+
+### Notes
+
+- No new file created. Hermes auto-discovers the existing `AGENTS.md` at project root — that IS the native integration.
+- Creating `.hermes.md` was deliberately avoided: Hermes loads only the first context file it finds (`.hermes.md` → `AGENTS.md` → `CLAUDE.md`), so a `.hermes.md` would replace `AGENTS.md` loading and create a maintenance fork.
+
+---
+
 ## 2026-04-29 · Gemini CLI & Cursor native support
 
 ### Added

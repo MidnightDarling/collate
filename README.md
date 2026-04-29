@@ -21,7 +21,7 @@ A workbench shared by three parties — a historian, the agents working with the
 
 Beyond the pipeline lies a **reading layer** — skills that meet the recovered text as scholarship rather than as data. X-ray a single paper to enter its argument; map a corpus to see a field's shape; audit a citation; read what the author chose not to say; define a key concept; circle the thesis the author approaches but cannot quite commit to writing. These are not extractions. They are ways of joining the conversation the historian has been having all along.
 
-The toolkit ships as a **Claude Code plugin** with native siblings for **Codex**, **Gemini CLI**, and **Cursor**. Any runtime that can run Python and read Markdown knowledge bases can work through `AGENTS.md`.
+The toolkit ships as a **Claude Code plugin** with native siblings for **Codex**, **Gemini CLI**, **Cursor**, and **Hermes agents**. Any runtime that can run Python and read Markdown knowledge bases can work through `AGENTS.md`.
 
 The name *Collate* renders **点校** — the classical Chinese scholarly practice of punctuating and collating received texts. We extend a millennia-old craft with contemporary OCR and agent tooling. We do not improve the texts we collate; we make them legible again.
 
@@ -68,7 +68,7 @@ Three figures from the reading skills, each rendered by the skill itself.
 /plugin install collate@collate
 ```
 
-**Other runtimes** (Codex CLI, Cursor, Gemini CLI) — one shell command clones the repo, installs Python dependencies, and auto-wires whichever runtimes it detects:
+**Other runtimes** (Codex CLI, Cursor, Gemini CLI, Hermes agents) — one shell command clones the repo, installs Python dependencies, and auto-wires whichever runtimes it detects:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/scripts/install.sh | bash
@@ -123,6 +123,7 @@ One label per host. Each claim maps to a concrete file or command — nothing is
 | **Codex** | Supported | `.codex-plugin/plugin.json` · `.agents/plugins/marketplace.json` · `AGENTS.md` | repo-local marketplace | Plugin-native via Codex's marketplace surface. |
 | **Cursor** | Supported | `.cursor/rules/collate.mdc` | `git clone` — rule auto-loaded by Cursor on open | `alwaysApply: true` project rule; skills callable via Cursor's shell tool. |
 | **Gemini CLI** | Supported | `GEMINI.md` · `gemini-extension.json` | `gemini extensions install` or `git clone` + run `gemini` | Native context file auto-loaded every session; extension manifest for gallery install. |
+| **Hermes agents** | Supported | `AGENTS.md` (auto-discovered) | `git clone` + run `hermes` | Zero-config: Hermes natively loads `AGENTS.md` at startup; subagents via `delegate_task`. |
 
 Live wiring details for every row live in [`## Per-runtime install`](#per-runtime-install) below.
 
@@ -440,6 +441,7 @@ Runtimes that natively read `AGENTS.md` need almost nothing; the rest need a sho
 | **Codex** | Repo ships native `.codex-plugin/plugin.json` plus a repo marketplace at `.agents/plugins/marketplace.json`. For plugin-directory surfaces, restart Codex, choose the repo marketplace, and install `collate`. For direct repo work, `cd /path/to/collate && codex` still auto-loads `AGENTS.md` from the Git root. |
 | **Cursor** | Repo ships `.cursor/rules/collate.mdc` with `alwaysApply: true` — Cursor auto-loads it on project open. Skills invoke via shell tool; dispatch `historical-proofreader` in a new chat tab with `agents/historical-proofreader.md` as system prompt. |
 | **Gemini CLI** | Repo ships `GEMINI.md` (auto-loaded as project context) and `gemini-extension.json` (extension manifest). Clone and run `gemini` from the project root, or install via `gemini extensions install`. Skills invoke via shell tool; dispatch `historical-proofreader` in a new session with `-C agents/historical-proofreader.md`. |
+| **Hermes agents** | Zero new files needed. Hermes auto-discovers `AGENTS.md` at startup (priority: `.hermes.md` → `AGENTS.md` → `CLAUDE.md`; first match wins). Clone and run `hermes` from the project root. Skills invoke via shell tool; dispatch `historical-proofreader` via `delegate_task`. |
 
 ---
 
