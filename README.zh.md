@@ -7,7 +7,7 @@
 
 ![注意力作为观察者的自画像](assets/readme-hero-v2.png)
 
-> 建立：2026-04-19 · Alice、Claude Opus 4.7 与 GPT-5.4 共笔 · 代码 Apache-2.0，引用材料 CC-BY-4.0
+> 建立：2026-04-19 · Alice、Claude Opus 4.7、Claude Opus 4.6 与 GPT-5.4 共笔 · 代码 Apache-2.0，引用材料 CC-BY-4.0
 
 [English](README.md) · [中文](README.zh.md)
 
@@ -21,7 +21,7 @@
 
 流水线之外还有一层**阅读层** —— 把恢复出来的文本作为学术而非数据来读的 skill 与命令。为单篇论文透视它的论证、为整片文献绘出场域的形状、核查一条引证、读出作者选择不说的部分、为某个关键概念定义、贴近作者反复趋近但不敢正面落笔的那个论题。这些不是抽取。这些是加入历史学者一直在进行的那场对话的不同方式。
 
-工具箱本身**与 runtime 无关**:任何能跑 Python 脚本、读结构化 Markdown 知识库的 agent 都可以接入。下面的兼容矩阵会诚实标注哪一处是经过验证的原生支持,哪一处仍需手动接线。
+工具箱以 **Claude Code 插件**形式分发,同时附带 **Codex 插件**。其他能跑 Python、读 Markdown 知识库的 runtime 可以通过 `AGENTS.md` 接入,但只有 Claude Code 和 Codex 经过端到端验证。
 
 *Collate* 对应中文的**点校** —— 中国古代学者断句、勘误、校异的传统工夫。我们以当代的 OCR 与 agent 工具,延伸这门有千年积淀的手艺。我们不擅自改良所点之文,我们只让它重新可读。
 
@@ -49,11 +49,11 @@
 
 ![1980 年代对五四的读法,呈现为一组星座:Apertio 在 Polaris 位置外罩金色光晕;Lumen / Democratia / Scientia / Intelligentsia / Vulgaris / Motus IV Maii 被点亮并连成线;Occidens / Traditio / Patria 三颗星偏暗;一片标着 TERRA INCOGNITA 的斜线区域,标记这一代不愿进入的暴力区;页脚字样为 EIGHTIES · MR. DEMOCRACY ASCENDS。](assets/showcase/constellatio-eighties.png)
 
-> `/collate:constellatio 五四` —— 把一个时代对争议现象的读法,画成铺在固定事件之上的星座。
+> `/collate:constellatio 五四` —— 对有争议现象做接受史分析:每个时代的读法需要从历史里取走什么,以及对象内部让每代投射都贴得上的那道结构性裂缝。可选的同级星图把这些读法画成星座。
 
 ![跨时代叠图层:三处带色光晕分别标注 JANUS、ANGVSTIA OCCIDENTIS、NECESSITAS PRAESENTIS,三代星座被压暗,作为底图叠在它们后面。](assets/showcase/constellatio-cartographia.png)
 
-> `/collate:constellatio` 跨时代叠图层 —— 跨越所有时代反复出现的关切。
+> `/collate:constellatio` 跨时代散文输出 —— 每代读法作为自身处境的诊断,以及让任何时代都无法定夺它的那道屏幕属性。
 
 ---
 
@@ -68,7 +68,7 @@
 /plugin install collate@collate
 ```
 
-**其他 runtime**(OpenCode / Hermes / Codex CLI / Cursor / Gemini CLI)—— 一条 shell 命令克隆仓库、装 Python 依赖,并自动接入检测到的 runtime:
+**其他 runtime**(Codex CLI / Cursor / Gemini CLI)—— 一条 shell 命令克隆仓库、装 Python 依赖,并自动接入检测到的 runtime:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/scripts/install.sh | bash
@@ -119,12 +119,8 @@ fresh clone + supported agent runtime + /collate:ocr <real-pdf> + no human inter
 |---------|------|---------|----------|------|
 | **Claude Code** | Supported | `.claude-plugin/plugin.json` · `.claude-plugin/marketplace.json` | `/plugin install collate@collate` | 原生插件;在 Claude Code marketplace 端到端验证。 |
 | **Codex** | Supported | `.codex-plugin/plugin.json` · `.agents/plugins/marketplace.json` · `AGENTS.md` | repo 级 marketplace | 通过 Codex 的 marketplace 入口原生支持。 |
-| **OpenCode** | Partial | `AGENTS.md`(自动加载) | `cd /path/to/collate && opencode` | 原生指令入口被识别;skill 通过 Claude Code 兼容层复用,或手抄到 `.opencode/skills/`。 |
-| **Hermes agents** | Partial | `AGENTS.md` · `.hermes.md` | `cd /path/to/collate && hermes` | 原生上下文加载;skill 复制到 `~/.hermes/skills/`。 |
-| **Cursor** | Adapter | `.cursor/rules/collate.mdc`(手写) | 手写规则文件指向 `AGENTS.md` | skill 通过 Cursor 的 shell 工具调起;尚无插件 manifest。 |
-| **Gemini CLI** | Adapter | `AGENTS.md` 作为会话上下文(手动) | 通过 shell 工具调用 `skills/*/scripts/*.py` | 原生 `gemini-extension.json` 包装在路线图上。 |
-| **OpenClaw** | Planned | — | 当前用 `hermes claw migrate` 迁到 Hermes | 原生 `openclaw.plugin.json` 在路线图上。 |
-| **Kimi / MiniMax** | Adapter | `agents/historical-proofreader.md` 作为 system prompt | 脚本在执行机上跑,中间产物回传对话 | 无原生插件路径;走该模型的通用 agent 协议。 |
+| **Cursor** | Untested | `AGENTS.md` 作为上下文(手动) | 手写 `.cursor/rules/collate.mdc` 指向 `AGENTS.md` | skill 通过 Cursor 的 shell 工具调起;仓库不附带集成文件。 |
+| **Gemini CLI** | Untested | `AGENTS.md` 作为会话上下文(手动) | 通过 shell 工具调用 `skills/*/scripts/*.py` | 仓库不附带 `gemini-extension.json`。 |
 
 每一行的具体接线步骤见下方 [`## 分 runtime 接入`](#分-runtime-接入)。
 
@@ -179,7 +175,7 @@ collate/
 ├── .agents/
 │   └── plugins/marketplace.json Codex 用的 repo 级 marketplace
 │
-├── skills/                      14 个 skill · 8 个流水线 + 6 个阅读层
+├── skills/                      15 个 skill · 8 个流水线 + 7 个阅读层
 │   ├── setup/                   环境诊断(Python、poppler、OCR 凭据)
 │   ├── prep-scan/               PDF → 清理后逐页 PNG(HSV 章法、形态学水印、裁边)
 │   ├── visual-preview/          逐页三态 HTML(原始 / 清理后 / 差异热图)
@@ -229,7 +225,7 @@ collate/
 
 ## Skills 详述
 
-每个 skill 是自包含目录:`SKILL.md`(agent 读取的操作指令)+ `scripts/`(Python 工具)+ `references/`(结构化知识库,如适用)。Collate 现在明确以 skill 为唯一能力本体: **8 个流水线 skill + 6 个阅读 skill**。如果某个 slash surface 有能力，那能力就应该写回 skill 本身。
+每个 skill 是自包含目录:`SKILL.md`(agent 读取的操作指令)+ `scripts/`(Python 工具)+ `references/`(结构化知识库,如适用)。Collate 现在明确以 skill 为唯一能力本体: **8 个流水线 skill + 7 个阅读 skill**。如果某个 slash surface 有能力，那能力就应该写回 skill 本身。
 
 ### 流水线 skill
 
@@ -322,7 +318,7 @@ collate/
 
 ### 阅读层 skill
 
-上面的流水线在 `final.md` 干净之后结束。阅读层从那里开始。文本可靠了,工具箱才把它当作学术来读 —— 不是为了概述,而是为了进入历史学家之间的那场对话。`xray-paper` 与 `paper-summary` 是大房间;另外四个 lens skill 是更锋利的单问题工具。
+上面的流水线在 `final.md` 干净之后结束。阅读层从那里开始。文本可靠了,工具箱才把它当作学术来读 —— 不是为了概述,而是为了进入历史学家之间的那场对话。`xray-paper` 与 `paper-summary` 是大房间;另外五个 lens skill 是更锋利的单问题工具。
 
 > **xray-paper**
 
@@ -384,6 +380,16 @@ collate/
 
 ---
 
+> **constellatio**
+
+对有争议历史现象做接受史分析。列出每种读法都必须包括的不可压缩事实,把每代读法当作那个时代自身处境的诊断,识别对象内部让每代投射都能贴住的结构性裂缝(屏幕属性)。可选暗夜星图 viewer 把各代读法作为视觉层叠加在共享的星点场上。
+
+产出:`analysis/{stem}_constellatio.md`,可选 `analysis/{stem}_constellatio.html`。
+
+*触发*:"接受史分析"、"为什么每个时代都读得不一样"、"constellatio"。
+
+---
+
 ## 独立 Commands
 
 现在只保留两个独立 command:
@@ -425,13 +431,9 @@ collate/
 | Runtime | 接入方式 |
 |---------|----------|
 | **Claude Code** | `/plugin install /path/to/collate`。原生 `.claude-plugin/plugin.json`;skills 注册为 `/collate:<skill>`，而独立 command 只保留 `ocr` 与 `status`。 |
-| **OpenCode** | `cd /path/to/collate && opencode`。原生读取 `AGENTS.md`(缺失时回落到 `CLAUDE.md`)。Skill 可放 `.opencode/skills/`,或走 Claude Code 兼容层直接复用 `~/.claude/skills/`。 |
-| **Hermes agents** | `cd /path/to/collate && hermes`。原生读取 `AGENTS.md` 与 `.hermes.md`;skill 落到 `~/.hermes/skills/`。已有 OpenClaw 配置的用户可用 `hermes claw migrate --workspace-target /path/to/collate` 迁过来。 |
 | **Codex** | 仓库随发原生 `.codex-plugin/plugin.json` 与 repo 级 `.agents/plugins/marketplace.json`。支持 plugin directory 的 Codex 端重启后可直接从该 marketplace 安装 `collate`;在仓库里直接工作时,`cd /path/to/collate && codex` 仍会从 git root 自动加载 `AGENTS.md`。 |
-| **Cursor** | 在 `.cursor/rules/collate.mdc` 写一条带 `alwaysApply: true` frontmatter 的规则,正文引用 `AGENTS.md`;用 Cursor 的 shell 工具调 `skills/*/scripts/*.py`。旧版 `.cursorrules` 也仍可用。 |
-| **Gemini CLI** | 克隆仓库,把 `AGENTS.md` 作为会话上下文载入,用 shell 工具调 `skills/*/scripts/*.py`。配套 `gemini-extension.json` 包装(走 `gemini extensions install /path/to/collate` 一键安装)在路线图上。 |
-| **OpenClaw** | 原生包装(`openclaw.plugin.json` + TypeScript entry,发布到 ClawHub 或 npm,`openclaw plugins install @collate/openclaw` 即装)在路线图上。当前 OpenClaw 用户可用 `hermes claw migrate` 迁到 Hermes,走上面 Hermes 的路径。 |
-| **Kimi / MiniMax agents** | 把 `agents/historical-proofreader.md` 作为 system prompt;Python 脚本在执行机(本地或 CI)上跑,中间产物回传对话。 |
+| **Cursor** | 在 `.cursor/rules/collate.mdc` 写一条带 `alwaysApply: true` frontmatter 的规则,正文引用 `AGENTS.md`;用 Cursor 的 shell 工具调 `skills/*/scripts/*.py`。仓库不附带集成文件;未经测试。 |
+| **Gemini CLI** | 克隆仓库,把 `AGENTS.md` 作为会话上下文载入,用 shell 工具调 `skills/*/scripts/*.py`。仓库不附带扩展包装;未经测试。 |
 
 ---
 
@@ -504,4 +506,4 @@ opencc-python-reimplemented
 - **引用材料**(docs/、skills/*/references/、README、AGENTS.md、原创插图):[CC BY 4.0](LICENSING.md)
 - **第三方依赖**保留各自许可——见 [NOTICE](NOTICE)
 
-版权 2026 Alice。与 Claude Opus 4.7(Anthropic)及 GPT-5.4(OpenAI)共笔;按 AI 协作作品的适用法律,版权由 Alice 独家持有,作者身份(authorship)为联合。详见 [NOTICE](NOTICE) 与 [CONTRIBUTORS.md](CONTRIBUTORS.md)。
+版权 2026 Alice。与 Claude Opus 4.7(Anthropic)、Claude Opus 4.6(Anthropic)及 GPT-5.4(OpenAI)共笔;按 AI 协作作品的适用法律,版权由 Alice 独家持有,作者身份(authorship)为联合。详见 [NOTICE](NOTICE) 与 [CONTRIBUTORS.md](CONTRIBUTORS.md)。

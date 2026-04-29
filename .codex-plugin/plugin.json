@@ -1,6 +1,6 @@
 {
   "name": "collate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Collate packages a historical Chinese OCR workflow for Codex: scan cleanup, MinerU OCR, structured proofreading, diff review, and DOCX / WeChat export.",
   "author": {
     "name": "Alice",

@@ -1,194 +1,90 @@
 ---
 name: constellatio
-description: Use when a historical figure, event, or institution has incompatible readings you cannot reconcile, and you want to triangulate the gravitational core all readings circle but none names directly.
+description: 对有争议历史现象做接受史分析,找出对象内部让各代投射都能贴住的结构性裂缝,可选输出暗夜星图 viewer。
 argument-hint: "[phenomenon | workspace-or-markdown-path]"
 allowed-tools: Read, WebSearch, Write
 ---
 
 # constellatio
 
-## The work this skill is for
+## 这个 skill 做什么
 
-There are historical things you keep returning to and never quite resolve.
+输入一个在历史上被反复征用、各代读法互相矛盾的现象(李鸿章、王安石变法、
+鸦片战争、五四),输出两样东西:
 
-李鸿章 sits between three biographies that cannot all be true at once. 王安石
-变法 oscillates across a thousand years of judgment, sliding between salvation
-and catastrophe whenever the present needs the past to answer differently.
-陈寅恪 fascinates without quite letting you say why. 曹操 issued from 正史 / 演义
-/ 翻案 is three different men. 鸦片战争 reads as 民族屈辱 from one side and
-现代化起点 from the other, and you cannot quite stop believing both.
+1. **一份接受史分析** — 每个时代怎么读的、为什么这么读、变迁追踪的是读者
+   还是对象
+2. **一个判断** — 对象内部的什么结构让所有时代的投射都能贴住(屏幕属性)
 
-`constellatio` is the lens for a phenomenon with too many incompatible
-readings to choose between, where the readings themselves start to look like
-evidence. Not evidence of which reading is right — evidence of where the
-gravitational core actually sits.
+第二点是这个 skill 在普通接受史之上唯一多做的事。普通接受史告诉你"各代
+怎么读了";这个 skill 多问一句:"对象身上什么东西让它能被这样反复读而不
+耗尽?"
 
-It is the lateral cousin of `real-thesis`. `real-thesis` digs vertically into
-one paper's buried claim. `constellatio` works laterally across many readings
-of one phenomenon to triangulate what they all circle.
+可选地,分析可以搭配一张暗夜星图 viewer — 同一组事件固定不动,各代的连
+法在上面各画一层,让眼睛直接比较散文需要绕着弯说的东西。
 
-## What this lens sees
-
-Eratosthenes did not measure the curvature of the Earth directly. He measured
-shadow angles in two cities and reverse-engineered the curve from the
-disagreement. The curvature was real even though no instrument touched it.
-
-A historical phenomenon that resists resolution often has the same shape. The
-truth — if there is one — does not live in any single reading. It lives in
-the *invariant under reading-transformation*: the thing that does not change
-as the readings change.
-
-This skill makes that invariant visible by treating each rival reading not as
-a candidate answer but as **a measurement instrument with its own bias**.
-
-## The lens, internally
-
-**What this lens is good at noticing.** The reading other readings keep having
-to argue against. The omission shared by every side. The verdict that survives
-translation between centuries. The figure who refuses to settle into any one
-shape.
-
-**What this lens wants.** Not synthesis. Not reconciliation. The honest
-*shape* of the gravity that bends every reading without ever appearing in any
-of them.
-
-**How this lens detects.** By overlaying readings as though they were star
-charts drawn from different latitudes. The fixed star is the one every chart
-includes. The moving star is the one whose position depends on who is looking.
-The missing star is the one no chart admits.
-
-**Value sequence.**
-- The shape under transformation outranks the loudest reading.
-- A shared omission outranks a contested presence.
-- A reading that *must* deny X is a witness to X.
-- Refusing to resolve is sometimes the resolution.
-
-## Cognitive instruments
-
-These are named lenses. Hold them up; do not run them as steps.
-
-**读法即症状.** Each reading is the symptom of the era that produced it: what
-it foregrounds is what its era could not afford to leave unaddressed. Read
-the reading as evidence about its reader, not only its subject.
-
-**沉默叠合.** Lay the readings on top of each other. The territory they all
-walk around but none enters is where the gravity sits.
-
-**否定证据.** What a reading must deny in order to hold together is what it
-cannot afford to be true. The denial is testimony.
-
-**Polaris 谬误.** Every era reaches for a synthesis and calls it the truth.
-The synthesis is itself a reading. Do not mistake the apparent pole star for
-the axis of rotation.
-
-## Input
+## 输入
 
 Target: `$ARGUMENTS`
 
-- a phenomenon name (`李鸿章`, `王安石变法`, `鸦片战争`) → constellate from public material
-- a workspace directory → read `<ws>/final.md` and treat it as one of the
-  readings to be triangulated against others
-- a `.md` file → same as workspace mode
-- empty → ask which phenomenon, and roughly which readings the user already
-  cannot let go of
+- 一个现象名(`李鸿章`、`五四`、`鸦片战争`)→ 从公开材料做
+- 一个 workspace 目录 → 读 `<ws>/final.md`,当作待诊断的读法之一
+- 一个 `.md` 文件 → 同上
+- 空 → 问用户哪个现象,以及已经知道哪些互相矛盾的读法
 
-If readings are not yet identified, surface 3–5 mutually incompatible ones
-before continuing. Fewer than three means there is no constellation; more
-than seven usually means the field is being padded.
+至少三种互相矛盾的读法才值得动这个 skill。不到三种,普通的论证分析就够
+了。超过七种,通常是在凑数。
 
-## Method
+## 方法
 
-Hold the lens through the following passes. They are not steps; they are
-angles of attention.
+三步。前两步是标准接受史工作,第三步才是这个 skill 的独有贡献。
 
-1. **Lock the phenomenon.** State plainly the figure / event / institution at
-   the centre. Do not describe it; only name it.
-2. **Mark the stars.** List the salient *items* the readings disagree about —
-   acts, decisions, attributes, omissions, sayings. Aim for 7–12. These are
-   the points around which constellations will be drawn.
-3. **Draw each constellation.** For each rival reading, trace which stars it
-   connects, which it dims, which it refuses to acknowledge. Name the era
-   the reading speaks from, and what that era needed from this phenomenon.
-4. **Overlay.** Lay the constellations atop one another. Mark the fixed
-   stars (in every reading), the moving stars (position-dependent), the
-   missing stars (omitted by all).
-5. **Locate the gravity.** From the overlay, name the source that is bending
-   every reading without itself appearing in any. State it in one sentence.
-   If it cannot honestly be reduced to one sentence, say so.
+**第一步 · 底图。** 列出这个现象里不可压缩的事实 — 无论谁来读都必须处理
+的事件、人物、文本。不解读,只列。
 
-## Output
+**第二步 · 每代读法当作诊断。** 每一个时代的读法,问的不是"读得对不对",
+是"这个时代需要从历史里取走什么来支撑自己的当下"。亮了什么、压暗了什
+么、不愿看什么 — 这些是诊断材料。同时追踪:各代读法的变化到底在追踪什
+么?几乎从来不是关于对象本身的新发现,通常是读者群体自己的合法性危机在
+变。
 
-- workspace mode → `<workspace>/analysis/{stem}_constellatio.md`
-- single-file mode → `analysis/{stem}_constellatio.md`
-- pure phenomenon mode → ask for a target directory if none is obvious
+**第三步 · 屏幕属性。** 这是这个 skill 唯一真正多做的事。问:对象内部的
+什么结构让每一代的投射都能贴住?通常是一个真实存在于对象内部的矛盾(启
+蒙 + 救亡同时在场;开明改革 + 帝国困局同时在场)— 不是后人构造的复杂
+性,是对象本身的双重结构。找到这个,才能解释为什么这个现象被反复征用而
+不耗尽。找不到,就诚实说找不到。
 
-Report structure:
+## 输出
 
-1. **Phenomenon** — the name at the centre, no embellishment
-2. **Stellae fixae** — the stars every reading must include
-3. **Constellationes temporum** — each rival reading drawn as a connection
-   pattern, with its era's pressure named
-4. **Cartographia comparata** — the overlay: fixed / moving / missing
-5. **Gravity** — the invariant under transformation, in one honest sentence
-6. **Polaris caveat** — the synthesis the era is currently reaching for, and
-   why it is itself a reading
+- workspace 模式 → `<workspace>/analysis/{stem}_constellatio.md`
+- 单文件模式 → `analysis/{stem}_constellatio.md`
+- 纯现象模式 → 问用户放哪
 
-## Optional · visual showcase
+散文六段:
 
-For phenomena worth a visual delivery, the `references/` directory carries the
-constellatio visual language:
+1. **现象** — 名称,不装饰
+2. **不可压缩面** — 每个读法都必须包括的事实
+3. **每代读法的诊断** — 每个时代需要这个现象是什么,以及为什么
+4. **变迁追踪的是什么** — 跨时代变化到底在追踪什么
+5. **屏幕属性** — 对象内部让投射贴住的结构
+6. **当下读法的诚实** — 当代的综合本身也是一种时代读法,不是终审
 
-- `references/design-tokens.md` — typography, palette, spacing
-- `references/latin-conventions.md` — how to name layers in Latin without
-  affectation
-- `references/visual-handoff.md` — bridging from the Markdown report to the
-  three-layer star-chart HTML
-- `references/example-may-fourth.html` — a worked example for `五四精神 in
-  the 80s vs the late-90s reread`
+## 可选 · 暗夜星图 viewer
 
-The visual is downstream. The lens is the work.
+当各代读法可以在同一组事件上做明暗对比时,一张星图可以让眼睛直接做散文
+需要绕着弯说的比较。
 
-## Honesty
+星图不是分析。它把各代的连法摆在视觉上,让读者自己看。诊断、屏幕属性、
+变迁追踪 — 这些只在散文里。
 
-- If only two readings exist and they merely contradict, this is not a
-  constellation; do not pretend otherwise.
-- If the gravity cannot be named in one sentence, the report should say so;
-  do not synthesize what the evidence does not support.
-- A reading that has not yet been formulated by anyone is not a star. Do not
-  invent positions to fill the chart.
-- "Cannot resolve" is sometimes the correct conclusion. Do not collapse a
-  legitimate aporia into a tidy synthesis.
+做 viewer 时参考 `references/viewer-spec.md`(美学 + 技术规范)和
+`references/example-may-fourth.html`(canonical 例子)。散文例子见
+`references/example-may-fourth.md`。
 
-## Vocabulary discipline · the chart names; the prose explains
+## 诚实
 
-The chart can use star-chart vocabulary because it is literally a star chart.
-The prose audit cannot, because its job is intellectual history. Three failure
-modes produce sentences that look like analysis and reduce to nothing:
-
-- **Renaming as analysis.** Replacing a substantive concept with a star-chart
-  term and treating the rename as the explanation. "五四 = a fixed set of
-  stars" does not explain May Fourth; it just relabels. "Polaris = 引力中心
-  = 真正的目的地" piles metaphors on top of each other instead of saying what
-  the era is actually doing.
-- **Geometric reduction.** Treating interpretive variation as if it were
-  geometric variation. Stars on a page are geometric; what each star *means
-  to the era reading it* is not. "对五四态度的变迁 = 星座几何的变迁" reads as
-  insight and is in fact a category error.
-- **Tautology.** Saying the same thing twice in two metaphors. "The gravity
-  that pulls every era back to redraw the chart — the thing that makes every
-  generation redraw it again" is one claim wearing two costumes. If you can
-  delete one half without losing content, you must.
-
-The operational rule. Inside chart labels (chart-meta, pane-meta, FIG
-breadcrumbs), visual vocabulary tags what the figure literally shows and is
-welcome. Inside the stance, the reading bodies (II–V), the gravity-well
-bodies, and the caveat band, every star-chart noun must be replaceable by
-the substantive concept it stands for. If you cannot replace it without loss
-of meaning, the sentence has not yet been written.
-
-## Guardrails
-
-- Never overwrite the source.
-- The invariant is what the chart reveals, not what the operator imposes.
-- Do not steal the centre by writing a new reading and calling it the truth.
-- One phenomenon per invocation. The lens is precise; do not blur it.
+- 只有两种读法且只是互相矛盾 → 不值得用这个 skill
+- 屏幕属性找不到 → 说找不到,不要发明一个对象里不存在的矛盾
+- 没有人提出过的读法不是读法,不要为了凑数而发明立场
+- "无法归结"有时候就是诚实的结论
+- 当代的综合和过去各代一样,是时代读法,不是终审 — 说清楚这件事

@@ -7,13 +7,13 @@ status: stable
 
 # 跨运行时接入手册
 
-> 本文档说明如何在不同 agent 运行时 (runtime) 中启用 `collate` 的八步工作流与六个阅读 skill。对工作流本身与 skill 契约的说明见 [AGENTS.md](../AGENTS.md)；本文档只谈 runtime 层面的差异——SKILL.md 如何被发现、subagent 如何被调度、环境变量怎么注入、失败如何上报。
+> 本文档说明如何在不同 agent 运行时 (runtime) 中启用 `collate` 的八步工作流与七个阅读 skill。对工作流本身与 skill 契约的说明见 [AGENTS.md](../AGENTS.md)；本文档只谈 runtime 层面的差异——SKILL.md 如何被发现、subagent 如何被调度、环境变量怎么注入、失败如何上报。
 
 ---
 
 ## 1. 总览
 
-本插件的十四个 skill 都是**纯 Python 脚本 + Markdown 契约**，不依赖特定 agent 框架；任何能做到以下三件事的 runtime 都能跑：
+本插件的十五个 skill 都是**纯 Python 脚本 + Markdown 契约**，不依赖特定 agent 框架；任何能做到以下三件事的 runtime 都能跑：
 
 1. **读文件**：读 `skills/<name>/SKILL.md` 与 `agents/<name>.md` 进入上下文
 2. **跑 shell**：用命令行调 `python skills/*/scripts/*.py`
@@ -26,19 +26,19 @@ status: stable
 
 运行时能力矩阵：
 
-| Runtime | SKILL.md 自动装载 | Subagent 原生机制 | 环境变量注入 | 插件分发 | 推荐用法 |
-|---------|----------------|----------------|-----------|--------|-------|
-| Claude Code | ✓（`${CLAUDE_PLUGIN_ROOT}`） | Task tool | `~/.env` via hooks | claude-code-marketplace | 原生，零额外配置 |
-| OpenCode | ✓（原生 `AGENTS.md` + `skills/`） | 内置 spawn | 项目 `.env` + shell | git clone | 零配置，推荐 |
-| Hermes agents | ✓（原生 `AGENTS.md` + `skills/`） | `/spawn <agent.md>` | `~/.env` + 仓库 `.env` | git clone | 零配置，推荐 |
-| Cursor | 手动 `Read` | 独立 chat tab | 项目 `.env` | git clone | 需要 agent 会主动读 SKILL.md |
-| Codex CLI | `AGENTS.md` 自动发现；插件目录可读 repo marketplace | 新会话 + `-f <agent.md>` | shell `export` | git clone / repo marketplace | 脚本可编排，也可走原生插件分发 |
-| Gemini CLI | 手动 `Read` | 新 chat session | shell `export` | git clone | 同 Cursor |
-| OpenClaw | 需 `openclaw.plugin.json`（路线图） | 插件 hook | `openclaw config` | `openclaw plugins install <path>` | 仅消息自动化场景 |
-| Kimi | 上传为 knowledge base | file-api + 子会话 | API 请求头 | 知识库文件集 | 主对话 + 知识库模式 |
-| MiniMax | 上传为 knowledge base | sub-session API | API 请求头 | 知识库文件集 | 同 Kimi |
+| Runtime | 状态 | SKILL.md 自动装载 | Subagent 原生机制 | 插件分发 |
+|---------|------|----------------|----------------|--------|
+| Claude Code | **原生支持** | ✓（`${CLAUDE_PLUGIN_ROOT}`） | Task tool | `.claude-plugin/` |
+| Codex CLI | **原生支持** | `AGENTS.md` 自动发现 | 新会话 + `-f <agent.md>` | `.codex-plugin/` |
+| Cursor | 未测试 | 手动 `Read` | 独立 chat tab | git clone |
+| Gemini CLI | 未测试 | 手动 `Read` | 新 chat session | git clone |
+| OpenCode | 未实现 | 理论可行 | 内置 spawn | 无集成文件 |
+| Hermes agents | 未实现 | 理论可行 | `/spawn <agent.md>` | 无集成文件 |
+| OpenClaw | 路线图 | 需 wrapper plugin | 插件 hook | 无集成文件 |
+| Kimi | 概念架构 | 上传为 knowledge base | file-api + 子会话 | 无 |
+| MiniMax | 概念架构 | 上传为 knowledge base | sub-session API | 无 |
 
-**核心差异**：**本地 agent**（Claude Code / OpenCode / Hermes agents / Cursor / Codex CLI / Gemini CLI / OpenClaw）可直接跑 Python 脚本；其中 Claude Code、OpenCode、Hermes agents 与 repo 内工作的 Codex 原生识别 `AGENTS.md`。Codex 的插件目录还可直接消费 `.codex-plugin/plugin.json` 与 repo marketplace。其余 runtime 仍需要手动把 `AGENTS.md` 放入 agent 上下文。**云端 agent**（Kimi / MiniMax）需要本地有一台「执行机」代跑 shell，云端 agent 只做决策和校对。
+**实际状态**：只有 **Claude Code** 和 **Codex CLI** 有原生插件清单（`.claude-plugin/`、`.codex-plugin/`）。Cursor 与 Gemini CLI 理论可行但未经测试。OpenCode、Hermes、OpenClaw 没有集成文件，下方的接入说明是**架构参考**，不是已验证的集成。Kimi / MiniMax 是云端概念架构，需要本地执行机代跑 shell。
 
 ---
 
@@ -46,7 +46,7 @@ status: stable
 
 ### 2.1 插件根定位
 
-十四个 skill 的 Python 脚本或参考文件都用相对路径引用资源（如 `skills/proofread/references/traditional-classics.md`）。运行时必须保证 agent 在工作时知道「插件根目录在哪」。
+十五个 skill 的 Python 脚本或参考文件都用相对路径引用资源（如 `skills/proofread/references/traditional-classics.md`）。运行时必须保证 agent 在工作时知道「插件根目录在哪」。
 
 接口也已收敛成 skill-first：
 

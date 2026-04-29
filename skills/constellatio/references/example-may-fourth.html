@@ -367,75 +367,6 @@
       line-height: 1.84;
     }
 
-    /* ───────── READING ───────── */
-    .reading {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 24px 6vw 72px;
-      position: relative; z-index: 1;
-    }
-
-    .reading h2 {
-      font: 500 clamp(28px, 3.4vw, 44px)/1.12 var(--hero);
-      color: var(--ink-1);
-      margin: 0 0 8px;
-      letter-spacing: 0.05em;
-    }
-
-    .reading-zh {
-      display: block;
-      margin: 0 0 24px;
-      color: var(--ink-3);
-      font-family: var(--hanzi);
-      font-size: 12px;
-      letter-spacing: 0.16em;
-    }
-
-    .reading-lede {
-      max-width: 760px;
-      font-size: 15.5px;
-      line-height: 1.94;
-      color: var(--ink-2);
-      margin: 0 0 32px;
-    }
-
-    .reading-grid {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 32px 48px;
-      align-items: baseline;
-      padding: 24px 0;
-      border-top: 1px solid var(--line-1);
-    }
-
-    .reading-grid:last-of-type {
-      border-bottom: 1px solid var(--line-1);
-    }
-
-    .reading-label {
-      font: 300 10px/1.5 var(--mono);
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: var(--ink-3);
-    }
-
-    .reading-label .lat {
-      display: block;
-      margin-top: 6px;
-      font-style: italic;
-      color: var(--ink-4);
-      letter-spacing: 0.04em;
-      text-transform: none;
-      font-size: 13px;
-      font-family: var(--display);
-    }
-
-    .reading-body {
-      font-size: 14.5px;
-      line-height: 1.88;
-      color: var(--ink-2);
-    }
-
     /* ───────── FOOTER ───────── */
     footer {
       max-width: 1120px;
@@ -455,60 +386,11 @@
 
     a { color: var(--ink-1); text-decoration-color: rgba(244,237,224,0.28); }
 
-    /* ───────── POLARIS CAVEAT ───────── */
-    .caveat-band {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 24px 6vw 48px;
-      position: relative; z-index: 1;
-    }
-    .caveat-inner {
-      border-top: 1px solid var(--line-2);
-      padding-top: 32px;
-      max-width: 780px;
-    }
-    .caveat-label {
-      font: 300 10px/1.5 var(--mono);
-      letter-spacing: 0.34em;
-      text-transform: uppercase;
-      color: var(--silver-soft);
-      margin: 0 0 6px;
-    }
-    .caveat-latin {
-      font-family: var(--display);
-      font-style: italic;
-      font-size: 28px;
-      letter-spacing: 0.02em;
-      color: var(--silver);
-      margin: 0 0 4px;
-    }
-    .caveat-zh {
-      font-family: var(--hanzi);
-      font-size: 12.5px;
-      letter-spacing: 0.16em;
-      color: var(--ink-3);
-      margin: 0 0 22px;
-    }
-    .caveat-body {
-      font-size: 14px;
-      line-height: 1.94;
-      color: var(--ink-2);
-      margin: 0 0 16px;
-    }
-    .caveat-body:last-child { margin-bottom: 0; }
-    .caveat-body em {
-      font-family: var(--display);
-      font-style: italic;
-      color: var(--silver);
-      letter-spacing: 0.02em;
-    }
-
     @media (max-width: 980px) {
       .hero { grid-template-columns: 1fr; gap: 36px; }
       .hero-right { padding-left: 0; border-left: 0; }
       .duo { grid-template-columns: 1fr; }
       .grav-grid { grid-template-columns: 1fr; }
-      .reading-grid { grid-template-columns: 1fr; gap: 12px; }
     }
   </style>
 </head>
@@ -520,11 +402,11 @@
       <p class="meta">FIELD SKETCH · CONSTELLATIO FRAMEWORK · MMXXVI · COLLATE</p>
       <h1 class="title">May Fourth, <span class="glow">Reread</span></h1>
       <p class="subtitle"><span class="latin">Constellatio Quarti Maii</span> — 同一组事件,八十年代与九十年代读出两套几乎相反的内容</p>
-      <p class="stance">同一组事件——白话文运动、德先生与赛先生、反传统姿态、救亡情绪——八十年代和九十年代读出几乎对立的两个五四。八十年代要在文革之后为"和过去断裂"赢得精神合法性,于是把五四读成启蒙的源头,把民主与科学放到中央。九十年代市场化展开、保守反思上升,需要为"温和"赢得论据,于是把五四读回去,看见它的暴力与肤浅。两次读法在内容上对立,在动作上完全相同——都在用同一段历史给当下的判断找一个支点。这就是这张图想看的东西:不是五四"是什么",而是中国知识分子"用五四确证当下身份"这个动作的反复发生。</p>
+      <p class="stance">这张图把两个时代对五四的读法画成两组星座:同一组九颗事件星点固定不动,八十年代与九十年代各自挑选哪些点亮、哪些不连、哪条线最粗,在第三层叠在一起。图本身不分析,只把读法摆在视觉上让眼睛比较。完整的思想史分析见同名 <em>example-may-fourth.md</em>(本目录散文姊妹篇)。</p>
     </div>
     <aside class="hero-right">
       <p class="coords-label">Coordinates</p>
-      <p class="coords-prose">这不是一张关于五四"是什么"的图。这是一张关于八十年代和九十年代各自需要五四"是什么"的图。两个时代选了不同的星连成不同的形状——表面在评五四,实质在确认自己。</p>
+      <p class="coords-prose">三层视觉:第一层 九颗固定星点(每个读法都必须承认的事实);第二层 两个时代各自的连法与各自不愿进入的区域;第三层 把两层叠起来后浮出的三处反复关切。读法的内容写在配套的散文姊妹篇里。</p>
       <div class="stats">
         <div><div class="stat-label">Stellae Fixae</div><div class="stat-value">9</div></div>
         <div><div class="stat-label">Constellationes</div><div class="stat-value">2</div></div>
@@ -787,9 +669,9 @@
           <text x="300" y="528" font-family="'Bodoni Moda',serif" font-weight="500" font-size="9.5" fill="#807A6E" text-anchor="middle" letter-spacing="0.32em">EIGHTIES · MR. DEMOCRACY ASCENDS</text>
         </svg>
 
-        <p class="pane-stance"><strong>Polaris Aetatis:</strong> 改革开放的精神合法性。要给"否定"找一根历史的绳索——五四是最近、最顺手、最结实的。</p>
-        <p class="pane-stance"><strong>Constellatio:</strong> 启蒙轴贯穿——五四 → 启蒙 → 民主 / 科学;副线是文学革命与知识阶层。OCCIDENS 是"光的来路",被亮起。</p>
-        <p class="pane-stance"><strong>Terra Incognita:</strong> 反传统的暴力性 / 全盘西化的代价 / 民主到底是什么——80 年代不肯连这几颗星。</p>
+        <p class="pane-stance"><strong>Polaris Aetatis:</strong> 改革开放的精神合法性。</p>
+        <p class="pane-stance"><strong>Constellatio:</strong> 启蒙轴贯穿——五四 → 启蒙 → 民主 / 科学;副线是文学革命与知识阶层。</p>
+        <p class="pane-stance"><strong>Terra Incognita:</strong> 反传统的暴力性 / 全盘西化的代价 / 民主到底是什么。</p>
       </article>
 
       <!-- ─── PANE RIGHT: 90s REVOCATIO ─── -->
@@ -926,9 +808,9 @@
           <text x="300" y="20" font-family="'Bodoni Moda',serif" font-weight="500" font-size="9.5" fill="#807A6E" text-anchor="middle" letter-spacing="0.32em">NINETIES · TRADITION RECOVERED</text>
         </svg>
 
-        <p class="pane-stance"><strong>Polaris Aetatis:</strong> 89 之后的精神拨乱反正。表面回归钱穆、余英时,实质是给"我们不再激进"找文化论证。</p>
-        <p class="pane-stance"><strong>Constellatio:</strong> 断裂轴贯穿——启蒙 / 五四 → 摧毁 → 反传统;副线是对西方民主的"肤浅理解",连到知识阶层的反省。传统与救亡被亮起。</p>
-        <p class="pane-stance"><strong>Terra Incognita:</strong> 启蒙的真实解放面 / 白话文的成就 / 1919 古老传统真的为何站不住——90 年代不肯连这几颗星。</p>
+        <p class="pane-stance"><strong>Polaris Aetatis:</strong> 89 后的文化拨乱反正。</p>
+        <p class="pane-stance"><strong>Constellatio:</strong> 断裂轴贯穿——启蒙 / 五四 → 摧毁 → 反传统;副线是对西方民主的肤浅理解;传统与救亡被亮起。</p>
+        <p class="pane-stance"><strong>Terra Incognita:</strong> 启蒙的真实解放面 / 白话文的成就 / 1919 古老传统的崩塌原因。</p>
       </article>
 
     </div>
@@ -1072,55 +954,11 @@
     </div>
   </section>
 
-  <!-- ═════════════════ READING — 5 STEPS ═════════════════ -->
-  <main class="reading">
-    <h2>Constellatio Framework</h2>
-    <span class="reading-zh">五步法 · 把任何一个反复被征用的文化符号放进去,会拆出五个层次</span>
-    <p class="reading-lede">这是一种思想史的看法,也是 collate 的一个 skill。它不研究"五四是什么",研究"五四在每个时代被读成什么样,以及为什么这个符号在每个时代都被反复征用"。它适用于任何被反复征用的符号——五四、文革、启蒙、儒家复兴、改革开放本身——只要这个符号在不同时代承担不同的当下功能。</p>
-
-    <div class="reading-grid">
-      <div class="reading-label">I. 定星点<span class="lat">Stellae Fixae</span></div>
-      <div class="reading-body">列出符号身上不变的"事实小点"——具体事件、人物、文本、口号、行动。这一层属于客观历史,位置不应被时代修饰。本案九颗:<em>Motus Quartus Maii</em>(1919 游行)/ <em>Mr. Democratia</em>(德先生)/ <em>Mr. Scientia</em>(赛先生)/ <em>Lingua Vulgaris</em>(白话文)/ <em>Traditio Damnata</em>(反传统)/ <em>Occidens Adveniens</em>(西学东渐)/ <em>Lumen Mentis</em>(启蒙姿态)/ <em>Patria Periclitans</em>(救亡爱国)/ <em>Intelligentsia</em>(知识阶层)。这九颗是底图,后面所有时代的图都基于它。</div>
-    </div>
-
-    <div class="reading-grid">
-      <div class="reading-label">II. 看时代连法<span class="lat">Constellatio Temporis</span></div>
-      <div class="reading-body">一个时代选哪些星连起来,连成什么形状,哪些线粗,哪些线细。八十年代连"启蒙轴"——五四 → 启蒙 → 民主 / 科学 / 白话文,西学是光的来路;九十年代连"断裂轴"——启蒙 / 五四 → 摧毁 → 反传统,加上对西方民主的"肤浅理解"之线。同一组九颗星,连出完全不同的几何。这一步必须诚实地画出每个时代真正在乎的连线,而不是它声称在乎的。</div>
-    </div>
-
-    <div class="reading-grid">
-      <div class="reading-label">III. 找时代 Polaris<span class="lat">Stella Polaris Aetatis</span></div>
-      <div class="reading-body">每个时代加在这组事件之上的"北极星",是这个时代真正想锚定的当下立场。Polaris 通常不在这九颗星本身的内容里,而是时代加进去的方向——读这段历史是为了确认"我们今天该往哪个方向走"。八十年代的 Polaris 是 <em>Apertio</em>(改革开放的精神合法性);九十年代的 Polaris 是 <em>Revocatio</em>(89 后拨乱反正的文化论证)。表面上在评五四,实质上在确认自己。Polaris 是这个 framework 最有解构力的一步——它把"对一个符号的态度"翻译成"这个时代对自己的判断"。</div>
-    </div>
-
-    <div class="reading-grid">
-      <div class="reading-label">IV. 画 Terra Incognita<span class="lat">Silentium</span></div>
-      <div class="reading-body">这个时代选择不连的星是什么。沉默之处,往往是禁区或盲点。八十年代不愿说"反传统的暴力性",因为说了就会动摇"否定的正当性";九十年代不愿说"白话文的真实成就"和"1919 那时古老传统站不住的具体原因",因为说了就会动摇"召回传统"的姿态。沉默和发声同样是态度——这一格是 framework 最容易被忽略的层次,也是揭露最深的层次。</div>
-    </div>
-
-    <div class="reading-grid">
-      <div class="reading-label">V. 叠图比较<span class="lat">Cartographia Comparata</span></div>
-      <div class="reading-body">把两个或多个时代的星图叠起来,看哪些关切跨越时代反复出现。这一格不是"找共识",而是问"这个符号为什么一直被反复征用"。本案三条:<em>Janus</em>(五四的两面性结构) / <em>Angustia Occidentis</em>(西方-传统的永恒焦虑) / <em>Necessitas Praesentis</em>(用历史确证当下的需要)。"不变"不是说某段内容一直延续,而是说每代人都在做同一个动作——拿这段历史给自己的判断找一个支点。</div>
-    </div>
-  </main>
-
-  <!-- ═════════════════ POLARIS CAVEAT ═════════════════ -->
-  <section class="caveat-band" aria-label="Polaris caveat — warning against the era's reach for synthesis">
-    <div class="caveat-inner">
-      <p class="caveat-label">Polaris Caveat</p>
-      <p class="caveat-latin">Synthesis ipsa lectio</p>
-      <p class="caveat-zh">本时代对自身"成熟综合"的警觉</p>
-      <p class="caveat-body">读到这里很容易抵达一个看似平衡的当代综合——"八十年代过分理想化、九十年代过分保守,我们终于学会两面都看了"。但这同样是一种 <em>Constellatio Aetatis</em>,是这一代为自己生成的当下立场,而不是站在所有时代之外的判断。</p>
-      <p class="caveat-body">每一代都觉得自己读懂了五四,而那种"读懂"的感觉本身,正是 <em>Necessitas Praesentis</em> 在工作。我们把"反对走极端"当作判断,实质是当下需要用历史确证"温和的合法性"——它和八十年代抓"否定的合法性"、九十年代抓"拨乱反正的合法性"是同一个动作。</p>
-      <p class="caveat-body">这张图不是为了终结判断。它只让人意识到判断从哪里来。每代人头顶的"真相"都看起来像永恒的;只有把多代读法叠在一起,才看到那其实是这一代锚定自己的方式。</p>
-    </div>
-  </section>
-
   <!-- ═════════════════ FOOTER ═════════════════ -->
   <footer>
-    <span>COLLATE · CONSTELLATIO FRAMEWORK · FIELD SKETCH</span>
-    <span>CLAUDE OPUS 4.7 FOR ALICE · 2026-04-28</span>
-    <span>SUBJECT · 五四在八十与九十年代的态度变迁</span>
+    <span>COLLATE · CONSTELLATIO · FIELD SKETCH</span>
+    <span>CLAUDE OPUS 4.7 FOR ALICE · 2026-04-29</span>
+    <span>FIGURA SOLA · 散文姊妹篇见 example-may-fourth.md</span>
   </footer>
 
 </body>

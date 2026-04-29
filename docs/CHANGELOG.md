@@ -1,5 +1,95 @@
 # Changelog
 
+## 2026-04-29 · v0.2.0
+
+### Version bump & runtime honesty
+
+#### Changed
+
+- Version 0.1.0 → 0.2.0 across all plugin manifests
+  (`.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
+  `.claude-plugin/marketplace.json`, `docs/ARCHITECTURE.md`,
+  `docs/TROUBLESHOOTING.md`).
+- Model identity corrected: "Claude Opus 4.7" → "Claude Opus 4.6"
+  throughout the repository (README, CONTRIBUTORS, manifests, references,
+  commands, INTEGRATIONS, ARCHITECTURE, TROUBLESHOOTING).
+- Runtime compatibility claims made honest: only Claude Code and Codex CLI
+  have native plugin manifests. Removed unimplemented runtimes (OpenCode,
+  Hermes, OpenClaw, Kimi, MiniMax) from README compatibility matrix;
+  Cursor and Gemini CLI marked as untested.
+- INTEGRATIONS.md runtime matrix updated with explicit status column
+  (原生支持 / 未测试 / 未实现 / 路线图 / 概念架构).
+- Marketplace description stripped of unverified runtime claims.
+- Skill counts updated: 14 → 15 skills, 6 → 7 reading skills
+  (constellatio added to reading layer).
+
+### Constellatio honest repositioning
+
+The `constellatio` skill is repositioned as a reception-history analysis
+format with one genuinely novel contribution (screen-property
+identification), not a "thinking lens" with four claimed cognitive moves.
+The previous SKILL.md overclaimed: the first two steps (list irreducible
+facts, treat each era's reading as diagnostic) are standard reception
+history, not novel methods. Only the third step — identifying the
+structural crack inside the object that lets every era's projection
+stick — is the skill's distinctive contribution.
+
+Three reference files (`visual-handoff.md`, `design-tokens.md`,
+`latin-conventions.md`) are merged into a single `viewer-spec.md`.
+
+#### Changed
+
+- `skills/constellatio/SKILL.md` rewritten with honest three-step
+  framing. Steps 1-2 are explicitly marked as standard reception-history
+  work; step 3 (屏幕属性) is the skill's only novel contribution.
+  Description changed from "thinking lens" to "接受史分析".
+- README captions changed from "diagnose" framing to "reception-history
+  analysis" — honest about what the skill actually does.
+
+#### Added
+
+- `skills/constellatio/references/viewer-spec.md` — single reference
+  merging aesthetic stance, design tokens, and Latin conventions.
+
+#### Removed
+
+- `skills/constellatio/references/visual-handoff.md` — merged into
+  `viewer-spec.md`.
+- `skills/constellatio/references/design-tokens.md` — merged into
+  `viewer-spec.md`.
+- `skills/constellatio/references/latin-conventions.md` — merged into
+  `viewer-spec.md`.
+
+### Constellatio sibling architecture
+
+The `constellatio` skill is decoupled into two equal-rank deliverables: a
+prose analysis and an optional chart sibling. The previous version let
+chart vocabulary (Polaris, fixed star, gravity well, constellation) leak
+into the cognitive method itself, which downstream agents would read as a
+prompt and reproduce as meta-narration of their own chart-construction
+process.
+
+#### Changed
+
+- `skills/constellatio/references/example-may-fourth.html` slimmed to
+  chart-only; the embedded five-step prose unfolding and Polaris caveat
+  band are removed.
+- Chart and prose positioned as sibling deliverables, not parent-child.
+
+#### Added
+
+- `skills/constellatio/references/example-may-fourth.md` — canonical
+  prose deliverable for the May Fourth case, parallel to the chart
+  sibling.
+- 屏幕属性 (screen-property) — the structural-ambiguity move that
+  separates this skill from generic 接受史 / comparative reading.
+
+#### Notes
+
+- Pre-decouple HTML preserved locally outside the repository (does not
+  ship to users).
+- This release does not touch the OCR pipeline or any other skill.
+
 ## 2026-04-20
 
 ### Interface convergence: skill-first surface

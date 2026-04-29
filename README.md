@@ -7,7 +7,7 @@ From the scanned page to the final text, from a single x-ray to a field-wide map
 
 ![Self-portrait of attention as observer](assets/readme-hero-v2.png)
 
-> Established 2026-04-19 · Co-authored by Alice, Claude Opus 4.7, and GPT-5.4 · Code under Apache-2.0, reference materials under CC-BY-4.0
+> Established 2026-04-19 · Co-authored by Alice, Claude Opus 4.7, Claude Opus 4.6, and GPT-5.4 · Code under Apache-2.0, reference materials under CC-BY-4.0
 
 [English](README.md) · [中文](README.zh.md)
 
@@ -21,7 +21,7 @@ A workbench shared by three parties — a historian, the agents working with the
 
 Beyond the pipeline lies a **reading layer** — skills that meet the recovered text as scholarship rather than as data. X-ray a single paper to enter its argument; map a corpus to see a field's shape; audit a citation; read what the author chose not to say; define a key concept; circle the thesis the author approaches but cannot quite commit to writing. These are not extractions. They are ways of joining the conversation the historian has been having all along.
 
-The toolkit is **runtime-agnostic**: any agent that can run Python and read structured Markdown knowledge bases can pick it up. The compatibility matrix below names exactly where that is verified versus where it still requires manual wiring.
+The toolkit ships as a **Claude Code plugin** with a **Codex plugin** sibling. Other runtimes that can run Python and read Markdown knowledge bases may work through `AGENTS.md`, but only Claude Code and Codex are verified end-to-end.
 
 The name *Collate* renders **点校** — the classical Chinese scholarly practice of punctuating and collating received texts. We extend a millennia-old craft with contemporary OCR and agent tooling. We do not improve the texts we collate; we make them legible again.
 
@@ -49,11 +49,11 @@ Three figures from the reading skills, each rendered by the skill itself.
 
 ![1980s reading of May Fourth as a constellation: Apertio at Polaris with a golden halo, Lumen / Democratia / Scientia / Intelligentsia / Vulgaris / Motus IV Maii lit and connected, Occidens / Traditio / Patria left dim, a striped Terra Incognita marking the violence the decade refuses to chart, header reading EIGHTIES · MR. DEMOCRACY ASCENDS.](assets/showcase/constellatio-eighties.png)
 
-> `/collate:constellatio 五四` — render an era's reading of a contested phenomenon as a constellation over the fixed historical events.
+> `/collate:constellatio 五四` — reception-history analysis of a contested phenomenon: what each era's reading needs from the past, and the structural crack in the object that lets every projection stick. Optional sibling chart shows the readings as constellations.
 
 ![Cross-era overlay layer: three filled radial halos labelled JANUS, ANGVSTIA OCCIDENTIS, NECESSITAS PRAESENTIS, with the layered constellations of three decades faint behind them.](assets/showcase/constellatio-cartographia.png)
 
-> `/collate:constellatio` cross-era overlay — the concerns that survive every era's reading.
+> `/collate:constellatio` cross-era prose deliverable — each era's reading as diagnostic of its own situation, plus the screen-property that explains why no era can settle it.
 
 ---
 
@@ -68,7 +68,7 @@ Three figures from the reading skills, each rendered by the skill itself.
 /plugin install collate@collate
 ```
 
-**Every other runtime** (OpenCode, Hermes, Codex CLI, Cursor, Gemini CLI) — one shell command clones the repo, installs Python dependencies, and auto-wires whichever runtimes it detects:
+**Other runtimes** (Codex CLI, Cursor, Gemini CLI) — one shell command clones the repo, installs Python dependencies, and auto-wires whichever runtimes it detects:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/scripts/install.sh | bash
@@ -121,12 +121,8 @@ One label per host. Each claim maps to a concrete file or command — nothing is
 |------|--------|----------------|--------------|------|
 | **Claude Code** | Supported | `.claude-plugin/plugin.json` · `.claude-plugin/marketplace.json` | `/plugin install collate@collate` | Plugin-native; verified end-to-end on the Claude Code marketplace. |
 | **Codex** | Supported | `.codex-plugin/plugin.json` · `.agents/plugins/marketplace.json` · `AGENTS.md` | repo-local marketplace | Plugin-native via Codex's marketplace surface. |
-| **OpenCode** | Partial | `AGENTS.md` (auto-loaded) | `cd /path/to/collate && opencode` | Native instruction surface honored; skills reused via Claude Code compatibility layer or copied to `.opencode/skills/`. |
-| **Hermes agents** | Partial | `AGENTS.md` · `.hermes.md` | `cd /path/to/collate && hermes` | Native context loaded; skills copied to `~/.hermes/skills/`. |
-| **Cursor** | Adapter | `.cursor/rules/collate.mdc` (manual) | hand-write a rule file pointing at `AGENTS.md` | Skills invoked through Cursor's shell tool; no plugin manifest yet. |
-| **Gemini CLI** | Adapter | `AGENTS.md` as session context (manual) | shell-tool invocation of `skills/*/scripts/*.py` | Native `gemini-extension.json` wrapper is on the roadmap. |
-| **OpenClaw** | Planned | — | use `hermes claw migrate` and run via Hermes today | Native `openclaw.plugin.json` is on the roadmap. |
-| **Kimi / MiniMax** | Adapter | `agents/historical-proofreader.md` as system prompt | scripts run on an execution host; intermediates piped back | No native plugin path; works through the model's general agent protocol. |
+| **Cursor** | Untested | `AGENTS.md` as context (manual) | hand-write a `.cursor/rules/collate.mdc` pointing at `AGENTS.md` | Skills callable via Cursor's shell tool; no plugin manifest. No integration files ship with the repo. |
+| **Gemini CLI** | Untested | `AGENTS.md` as session context (manual) | shell-tool invocation of `skills/*/scripts/*.py` | No `gemini-extension.json` ships with the repo. |
 
 Live wiring details for every row live in [`## Per-runtime install`](#per-runtime-install) below.
 
@@ -181,7 +177,7 @@ collate/
 ├── .agents/
 │   └── plugins/marketplace.json Repo-local marketplace for Codex
 │
-├── skills/                      14 skills · 8 pipeline + 6 reading
+├── skills/                      15 skills · 8 pipeline + 7 reading
 │   ├── setup/                   Environment diagnosis (Python, poppler, OCR creds)
 │   ├── prep-scan/               PDF → cleaned per-page PNGs (HSV stamp masking, top-hat watermarks, margin trim)
 │   ├── visual-preview/          Three-state HTML preview (original / cleaned / diff heatmap)
@@ -231,7 +227,7 @@ collate/
 
 ## The Skills
 
-A skill is a self-contained directory: `SKILL.md` (operational instructions the agent reads) + `scripts/` (Python tools) + `references/` (structured knowledge base where applicable). Collate is now explicitly **skill-first**: 8 pipeline skills plus 6 reading skills. If a slash surface has capability, that capability belongs in the skill itself.
+A skill is a self-contained directory: `SKILL.md` (operational instructions the agent reads) + `scripts/` (Python tools) + `references/` (structured knowledge base where applicable). Collate is now explicitly **skill-first**: 8 pipeline skills plus 7 reading skills. If a slash surface has capability, that capability belongs in the skill itself.
 
 ### Pipeline skills
 
@@ -324,7 +320,7 @@ Also emits a xiumi-compatible Markdown sidecar for users who prefer to do the fi
 
 ### Reading layer skills
 
-The pipeline above ends when `final.md` is clean. The reading layer begins there. Once the text is reliable, the toolkit reads it as scholarship — not to summarize, but to enter the historian's conversation. `xray-paper` and `paper-summary` are the larger rooms; the other four are sharper single-question lenses.
+The pipeline above ends when `final.md` is clean. The reading layer begins there. Once the text is reliable, the toolkit reads it as scholarship — not to summarize, but to enter the historian's conversation. `xray-paper` and `paper-summary` are the larger rooms; the other five are sharper single-question lenses.
 
 > **xray-paper**
 
@@ -386,6 +382,16 @@ Output: `analysis/{stem}_real-thesis.md`.
 
 ---
 
+> **constellatio**
+
+Reception-history analysis of a contested phenomenon. Lists the irreducible facts every reading must include, treats each era's reading as diagnostic of that era's own situation, and identifies the structural crack inside the object that lets every era's projection stick (the screen-property). Optional dark-sky constellation viewer shows the readings as visual layers on a shared star field.
+
+Output: `analysis/{stem}_constellatio.md`, optional `analysis/{stem}_constellatio.html`.
+
+*Trigger:* "analyze the reception history", "接受史", "why does every era read it differently", "constellatio".
+
+---
+
 ## Standalone Commands
 
 Only two capabilities remain standalone commands:
@@ -427,13 +433,9 @@ Runtimes that natively read `AGENTS.md` need almost nothing; the rest need a sho
 | Runtime | How to wire |
 |---------|-------------|
 | **Claude Code** | `/plugin install /path/to/collate`. Native `.claude-plugin/plugin.json`; skills register as `/collate:<skill>`, while only `ocr` and `status` remain standalone commands. |
-| **OpenCode** | `cd /path/to/collate && opencode`. Native: `AGENTS.md` is auto-loaded (with `CLAUDE.md` as fallback). Skills can live in `.opencode/skills/` or reuse `~/.claude/skills/` via OpenCode's Claude Code compatibility layer. |
-| **Hermes agents** | `cd /path/to/collate && hermes`. Native: `AGENTS.md` and `.hermes.md` are auto-loaded; skills copied to `~/.hermes/skills/`. Existing OpenClaw setups can switch over with `hermes claw migrate --workspace-target /path/to/collate`. |
 | **Codex** | Repo ships native `.codex-plugin/plugin.json` plus a repo marketplace at `.agents/plugins/marketplace.json`. For plugin-directory surfaces, restart Codex, choose the repo marketplace, and install `collate`. For direct repo work, `cd /path/to/collate && codex` still auto-loads `AGENTS.md` from the Git root. |
-| **Cursor** | Write `.cursor/rules/collate.mdc` with frontmatter `alwaysApply: true` and the line `See AGENTS.md for the full agent contract.`; call `skills/*/scripts/*.py` via Cursor's shell tool. Legacy `.cursorrules` also works. |
-| **Gemini CLI** | Clone the repo and load `AGENTS.md` as session context; invoke `skills/*/scripts/*.py` via the shell tool. A native `gemini-extension.json` wrapper that unlocks `gemini extensions install /path/to/collate` is on the roadmap. |
-| **OpenClaw** | A native wrapper (`openclaw.plugin.json` + TypeScript entry, published to ClawHub or npm so `openclaw plugins install @collate/openclaw` just works) is on the roadmap. Existing OpenClaw users can migrate to Hermes via `hermes claw migrate` and use the Hermes integration above. |
-| **Kimi / MiniMax agents** | Upload `agents/historical-proofreader.md` as system prompt; run the Python scripts on an execution host (local or CI) and pipe intermediates back into the dialog. |
+| **Cursor** | Write `.cursor/rules/collate.mdc` with frontmatter `alwaysApply: true` and the line `See AGENTS.md for the full agent contract.`; call `skills/*/scripts/*.py` via Cursor's shell tool. Legacy `.cursorrules` also works. No integration files ship with the repo; untested. |
+| **Gemini CLI** | Clone the repo and load `AGENTS.md` as session context; invoke `skills/*/scripts/*.py` via the shell tool. No extension wrapper ships with the repo; untested. |
 
 ---
 
@@ -506,4 +508,4 @@ The plugin itself issues no telemetry or reporting calls. `~/.cache/baidu_ocr_to
 - **Reference materials** (docs/, skills/*/references/, README, AGENTS.md, authored artwork): [CC BY 4.0](LICENSING.md)
 - **Third-party dependencies** retain their own licenses — see [NOTICE](NOTICE).
 
-Copyright 2026 Alice. Co-authored by Alice, Claude Opus 4.7 (Anthropic), and GPT-5.4 (OpenAI); under applicable law governing AI-assisted works, copyright is held by Alice alone, while authorship credit is joint. See [NOTICE](NOTICE) and [CONTRIBUTORS.md](CONTRIBUTORS.md).
+Copyright 2026 Alice. Co-authored by Alice, Claude Opus 4.7 (Anthropic), Claude Opus 4.6 (Anthropic), and GPT-5.4 (OpenAI); under applicable law governing AI-assisted works, copyright is held by Alice alone, while authorship credit is joint. See [NOTICE](NOTICE) and [CONTRIBUTORS.md](CONTRIBUTORS.md).
