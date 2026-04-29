@@ -1,0 +1,6 @@
+{
+  "name": "collate",
+  "version": "0.2.0",
+  "description": "Chinese historical text OCR + collation pipeline — 15 skills, 2 subagents",
+  "contextFileName": "GEMINI.md"
+}

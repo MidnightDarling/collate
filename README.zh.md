@@ -21,7 +21,7 @@
 
 流水线之外还有一层**阅读层** —— 把恢复出来的文本作为学术而非数据来读的 skill 与命令。为单篇论文透视它的论证、为整片文献绘出场域的形状、核查一条引证、读出作者选择不说的部分、为某个关键概念定义、贴近作者反复趋近但不敢正面落笔的那个论题。这些不是抽取。这些是加入历史学者一直在进行的那场对话的不同方式。
 
-工具箱以 **Claude Code 插件**形式分发,同时附带 **Codex 插件**。其他能跑 Python、读 Markdown 知识库的 runtime 可以通过 `AGENTS.md` 接入,但只有 Claude Code 和 Codex 经过端到端验证。
+工具箱以 **Claude Code 插件**形式分发,同时原生支持 **Codex**、**Gemini CLI** 和 **Cursor**。任何能跑 Python、读 Markdown 知识库的 runtime 都可以通过 `AGENTS.md` 接入。
 
 *Collate* 对应中文的**点校** —— 中国古代学者断句、勘误、校异的传统工夫。我们以当代的 OCR 与 agent 工具,延伸这门有千年积淀的手艺。我们不擅自改良所点之文,我们只让它重新可读。
 
@@ -119,8 +119,8 @@ fresh clone + supported agent runtime + /collate:ocr <real-pdf> + no human inter
 |---------|------|---------|----------|------|
 | **Claude Code** | Supported | `.claude-plugin/plugin.json` · `.claude-plugin/marketplace.json` | `/plugin install collate@collate` | 原生插件;在 Claude Code marketplace 端到端验证。 |
 | **Codex** | Supported | `.codex-plugin/plugin.json` · `.agents/plugins/marketplace.json` · `AGENTS.md` | repo 级 marketplace | 通过 Codex 的 marketplace 入口原生支持。 |
-| **Cursor** | Untested | `AGENTS.md` 作为上下文(手动) | 手写 `.cursor/rules/collate.mdc` 指向 `AGENTS.md` | skill 通过 Cursor 的 shell 工具调起;仓库不附带集成文件。 |
-| **Gemini CLI** | Untested | `AGENTS.md` 作为会话上下文(手动) | 通过 shell 工具调用 `skills/*/scripts/*.py` | 仓库不附带 `gemini-extension.json`。 |
+| **Cursor** | Supported | `.cursor/rules/collate.mdc` | `git clone` — Cursor 打开时自动加载规则 | `alwaysApply: true` 项目规则;skill 通过 shell 工具调起。 |
+| **Gemini CLI** | Supported | `GEMINI.md` · `gemini-extension.json` | `gemini extensions install` 或 `git clone` 后运行 `gemini` | 原生上下文文件每次会话自动加载;扩展清单支持 gallery 安装。 |
 
 每一行的具体接线步骤见下方 [`## 分 runtime 接入`](#分-runtime-接入)。
 
@@ -172,6 +172,8 @@ collate/
 ├── .codex-plugin/
 │   ├── plugin.json              Codex 原生插件清单
 │   └── README.md                Codex 插件入口说明
+├── .cursor/
+│   └── rules/collate.mdc       Cursor 项目规则(alwaysApply)
 ├── .agents/
 │   └── plugins/marketplace.json Codex 用的 repo 级 marketplace
 │
@@ -213,6 +215,8 @@ collate/
 │   ├── TROUBLESHOOTING.md       常见报错与兜底
 │   └── ...                      仅保留公开文档
 │
+├── GEMINI.md                    Gemini CLI 项目上下文(每次会话自动加载)
+├── gemini-extension.json        Gemini CLI 扩展清单
 ├── AGENTS.md                    agent 契约 —— 调用约定、决策矩阵、失败处理
 ├── CONTRIBUTORS.md              作者与贡献者(署名,非法律归属)
 ├── INSTALL.md                   详细安装指南
@@ -432,8 +436,8 @@ collate/
 |---------|----------|
 | **Claude Code** | `/plugin install /path/to/collate`。原生 `.claude-plugin/plugin.json`;skills 注册为 `/collate:<skill>`，而独立 command 只保留 `ocr` 与 `status`。 |
 | **Codex** | 仓库随发原生 `.codex-plugin/plugin.json` 与 repo 级 `.agents/plugins/marketplace.json`。支持 plugin directory 的 Codex 端重启后可直接从该 marketplace 安装 `collate`;在仓库里直接工作时,`cd /path/to/collate && codex` 仍会从 git root 自动加载 `AGENTS.md`。 |
-| **Cursor** | 在 `.cursor/rules/collate.mdc` 写一条带 `alwaysApply: true` frontmatter 的规则,正文引用 `AGENTS.md`;用 Cursor 的 shell 工具调 `skills/*/scripts/*.py`。仓库不附带集成文件;未经测试。 |
-| **Gemini CLI** | 克隆仓库,把 `AGENTS.md` 作为会话上下文载入,用 shell 工具调 `skills/*/scripts/*.py`。仓库不附带扩展包装;未经测试。 |
+| **Cursor** | 仓库随发 `.cursor/rules/collate.mdc`（`alwaysApply: true`）— Cursor 打开项目即自动加载。skill 通过 shell 工具调起;在新 chat tab 中加载 `agents/historical-proofreader.md` 作为 system prompt 来调度 subagent。 |
+| **Gemini CLI** | 仓库随发 `GEMINI.md`（每次会话自动加载为项目上下文）与 `gemini-extension.json`（扩展清单）。克隆后运行 `gemini` 即可,或通过 `gemini extensions install` 安装。skill 通过 shell 工具调起;用 `-C agents/historical-proofreader.md` 起新会话调度 subagent。 |
 
 ---
 

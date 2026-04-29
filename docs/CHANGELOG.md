@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-04-29 · Gemini CLI & Cursor native support
+
+### Added
+
+- `GEMINI.md` — project context file auto-loaded by Gemini CLI every session.
+- `gemini-extension.json` — Gemini CLI extension manifest (`gemini extensions install`).
+- `.cursor/rules/collate.mdc` — Cursor project rule (`alwaysApply: true`), auto-loaded on project open.
+- `docs/INTEGRATIONS.md` section 6: full Gemini CLI wiring (install, env vars, subagent dispatch, context management).
+
+### Changed
+
+- Compatibility matrix: Gemini CLI and Cursor promoted from "Untested" to "Supported" in both READMEs and INTEGRATIONS.md.
+- `docs/INTEGRATIONS.md` section 4 (Cursor): updated to reference shipped `.cursor/rules/collate.mdc` instead of manual `.cursorrules`.
+- `docs/INTEGRATIONS.md`: removed old section 8 (outdated Gemini CLI roadmap); renumbered sections 7–14.
+- README description updated: "native siblings for Codex, Gemini CLI, and Cursor" (was "only Claude Code and Codex verified").
+- README tree updated to show `GEMINI.md`, `gemini-extension.json`, and `.cursor/rules/`.
+
+---
+
 ## 2026-04-29 · v0.2.0
 
 ### Version bump & runtime honesty

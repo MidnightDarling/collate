@@ -1,0 +1,64 @@
+---
+description: "collate OCR + historical text collation plugin — loads when working with collate skills, agents, or pipeline scripts"
+alwaysApply: true
+---
+
+# collate — Cursor 项目上下文
+
+你在 collate 插件环境下工作。这是一个中文历史文献 OCR + 校对工具包，完整契约见 [AGENTS.md](../../AGENTS.md)。
+
+## 插件根
+
+```
+PLUGIN_ROOT = <此仓库的绝对路径>
+```
+
+启动时必须先读：
+
+- `AGENTS.md`（工作流契约）
+- `skills/<当前要跑的 skill>/SKILL.md`
+
+## 15 个 skill · 8 流水线 + 7 阅读
+
+流水线：setup → prep-scan → visual-preview → ocr-run → proofread → diff-review → to-docx → mp-format
+
+阅读：xray-paper · paper-summary · chunqiu · kaozheng · prometheus · real-thesis · constellatio
+
+每个 skill 目录：`SKILL.md`（指令）+ `scripts/`（Python）+ `references/`（知识库）。
+
+## 脚本执行
+
+在 Cursor 的集成终端里直接跑：
+
+```bash
+python3 skills/<skill>/scripts/<script>.py [args]
+
+# 完整 pipeline 一条命令
+python3 scripts/run_full_pipeline.py --pdf <input.pdf>
+```
+
+## Subagent 调度
+
+Cursor 没有 Task tool，用新 chat tab 模拟 subagent：
+
+1. **主 tab** 负责 pipeline 编排
+2. **proofread tab** 的 system prompt 从 `agents/historical-proofreader.md` 正文读入
+3. 主 tab 发送 raw.md 路径 + reference 路径 + 文献类型
+4. proofread tab 按 checklist 产出 `raw.review.md` 全文，主 tab 复制落盘
+
+## 环境变量
+
+项目根放 `.env`（已 gitignore），由 shell 加载：
+
+```bash
+OCR_ENGINE=mineru
+BAIDU_API_KEY=...       # 仅 baidu 引擎
+BAIDU_SECRET_KEY=...
+```
+
+## 核心原则
+
+- 端到端自主，不替换学术判断
+- C 类（存疑待考）保留原文 + 脚注
+- 失败要显性，结构化上报
+- 所有中间产物落盘，不清理

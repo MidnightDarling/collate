@@ -21,7 +21,7 @@ A workbench shared by three parties — a historian, the agents working with the
 
 Beyond the pipeline lies a **reading layer** — skills that meet the recovered text as scholarship rather than as data. X-ray a single paper to enter its argument; map a corpus to see a field's shape; audit a citation; read what the author chose not to say; define a key concept; circle the thesis the author approaches but cannot quite commit to writing. These are not extractions. They are ways of joining the conversation the historian has been having all along.
 
-The toolkit ships as a **Claude Code plugin** with a **Codex plugin** sibling. Other runtimes that can run Python and read Markdown knowledge bases may work through `AGENTS.md`, but only Claude Code and Codex are verified end-to-end.
+The toolkit ships as a **Claude Code plugin** with native siblings for **Codex**, **Gemini CLI**, and **Cursor**. Any runtime that can run Python and read Markdown knowledge bases can work through `AGENTS.md`.
 
 The name *Collate* renders **点校** — the classical Chinese scholarly practice of punctuating and collating received texts. We extend a millennia-old craft with contemporary OCR and agent tooling. We do not improve the texts we collate; we make them legible again.
 
@@ -121,8 +121,8 @@ One label per host. Each claim maps to a concrete file or command — nothing is
 |------|--------|----------------|--------------|------|
 | **Claude Code** | Supported | `.claude-plugin/plugin.json` · `.claude-plugin/marketplace.json` | `/plugin install collate@collate` | Plugin-native; verified end-to-end on the Claude Code marketplace. |
 | **Codex** | Supported | `.codex-plugin/plugin.json` · `.agents/plugins/marketplace.json` · `AGENTS.md` | repo-local marketplace | Plugin-native via Codex's marketplace surface. |
-| **Cursor** | Untested | `AGENTS.md` as context (manual) | hand-write a `.cursor/rules/collate.mdc` pointing at `AGENTS.md` | Skills callable via Cursor's shell tool; no plugin manifest. No integration files ship with the repo. |
-| **Gemini CLI** | Untested | `AGENTS.md` as session context (manual) | shell-tool invocation of `skills/*/scripts/*.py` | No `gemini-extension.json` ships with the repo. |
+| **Cursor** | Supported | `.cursor/rules/collate.mdc` | `git clone` — rule auto-loaded by Cursor on open | `alwaysApply: true` project rule; skills callable via Cursor's shell tool. |
+| **Gemini CLI** | Supported | `GEMINI.md` · `gemini-extension.json` | `gemini extensions install` or `git clone` + run `gemini` | Native context file auto-loaded every session; extension manifest for gallery install. |
 
 Live wiring details for every row live in [`## Per-runtime install`](#per-runtime-install) below.
 
@@ -174,6 +174,8 @@ collate/
 ├── .codex-plugin/
 │   ├── plugin.json              Codex-native plugin manifest
 │   └── README.md                Codex plugin surface overview
+├── .cursor/
+│   └── rules/collate.mdc       Cursor project rule (alwaysApply)
 ├── .agents/
 │   └── plugins/marketplace.json Repo-local marketplace for Codex
 │
@@ -215,6 +217,8 @@ collate/
 │   ├── TROUBLESHOOTING.md       Common errors and workarounds
 │   └── ...                      Public documentation only
 │
+├── GEMINI.md                    Gemini CLI project context (auto-loaded every session)
+├── gemini-extension.json        Gemini CLI extension manifest
 ├── AGENTS.md                    Agent runtime contract — calling conventions, decision matrix, failure modes
 ├── CONTRIBUTORS.md              Authors and contributors (credit, not legal attribution)
 ├── INSTALL.md                   Long-form install guide
@@ -434,8 +438,8 @@ Runtimes that natively read `AGENTS.md` need almost nothing; the rest need a sho
 |---------|-------------|
 | **Claude Code** | `/plugin install /path/to/collate`. Native `.claude-plugin/plugin.json`; skills register as `/collate:<skill>`, while only `ocr` and `status` remain standalone commands. |
 | **Codex** | Repo ships native `.codex-plugin/plugin.json` plus a repo marketplace at `.agents/plugins/marketplace.json`. For plugin-directory surfaces, restart Codex, choose the repo marketplace, and install `collate`. For direct repo work, `cd /path/to/collate && codex` still auto-loads `AGENTS.md` from the Git root. |
-| **Cursor** | Write `.cursor/rules/collate.mdc` with frontmatter `alwaysApply: true` and the line `See AGENTS.md for the full agent contract.`; call `skills/*/scripts/*.py` via Cursor's shell tool. Legacy `.cursorrules` also works. No integration files ship with the repo; untested. |
-| **Gemini CLI** | Clone the repo and load `AGENTS.md` as session context; invoke `skills/*/scripts/*.py` via the shell tool. No extension wrapper ships with the repo; untested. |
+| **Cursor** | Repo ships `.cursor/rules/collate.mdc` with `alwaysApply: true` — Cursor auto-loads it on project open. Skills invoke via shell tool; dispatch `historical-proofreader` in a new chat tab with `agents/historical-proofreader.md` as system prompt. |
+| **Gemini CLI** | Repo ships `GEMINI.md` (auto-loaded as project context) and `gemini-extension.json` (extension manifest). Clone and run `gemini` from the project root, or install via `gemini extensions install`. Skills invoke via shell tool; dispatch `historical-proofreader` in a new session with `-C agents/historical-proofreader.md`. |
 
 ---
 

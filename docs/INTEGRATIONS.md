@@ -30,15 +30,15 @@ status: stable
 |---------|------|----------------|----------------|--------|
 | Claude Code | **原生支持** | ✓（`${CLAUDE_PLUGIN_ROOT}`） | Task tool | `.claude-plugin/` |
 | Codex CLI | **原生支持** | `AGENTS.md` 自动发现 | 新会话 + `-f <agent.md>` | `.codex-plugin/` |
-| Cursor | 未测试 | 手动 `Read` | 独立 chat tab | git clone |
-| Gemini CLI | 未测试 | 手动 `Read` | 新 chat session | git clone |
+| Cursor | **原生支持** | `.cursor/rules/collate.mdc` 自动加载 | 独立 chat tab | `.cursor/rules/` |
+| Gemini CLI | **原生支持** | `GEMINI.md` 自动发现 | 新 session + `-C <agent.md>` | `gemini-extension.json` |
 | OpenCode | 未实现 | 理论可行 | 内置 spawn | 无集成文件 |
 | Hermes agents | 未实现 | 理论可行 | `/spawn <agent.md>` | 无集成文件 |
 | OpenClaw | 路线图 | 需 wrapper plugin | 插件 hook | 无集成文件 |
 | Kimi | 概念架构 | 上传为 knowledge base | file-api + 子会话 | 无 |
 | MiniMax | 概念架构 | 上传为 knowledge base | sub-session API | 无 |
 
-**实际状态**：只有 **Claude Code** 和 **Codex CLI** 有原生插件清单（`.claude-plugin/`、`.codex-plugin/`）。Cursor 与 Gemini CLI 理论可行但未经测试。OpenCode、Hermes、OpenClaw 没有集成文件，下方的接入说明是**架构参考**，不是已验证的集成。Kimi / MiniMax 是云端概念架构，需要本地执行机代跑 shell。
+**实际状态**：**Claude Code**、**Codex CLI**、**Gemini CLI** 和 **Cursor** 四个 runtime 有原生集成文件。OpenCode、Hermes、OpenClaw 没有集成文件，下方的接入说明是**架构参考**，不是已验证的集成。Kimi / MiniMax 是云端概念架构，需要本地执行机代跑 shell。
 
 ---
 
@@ -176,23 +176,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/prep-scan/scripts/split_pages.py" \
 git clone <repo-url> ~/dev/collate
 ```
 
-在 Cursor 项目根写一份 `.cursorrules`（或 `.cursor/rules.mdc`）：
-
-```markdown
-你在 collate 插件环境下工作。插件根在 ~/dev/collate。
-
-启动时必须先读：
-- ~/dev/collate/AGENTS.md（工作流契约）
-- ~/dev/collate/skills/<当前要跑的 skill>/SKILL.md
-
-调用 historical-proofreader subagent 时：
-1. 新开一个 chat tab
-2. 粘贴 ~/dev/collate/agents/historical-proofreader.md 的 YAML frontmatter 后的正文作为该 tab 的角色设定
-3. 在主 chat 把 raw.md 路径、reference 路径作为 prompt 发给子 tab
-4. 子 tab 产出 raw.review.md 完整文本后回到主 chat 落盘
-
-环境变量从 ./env 读（不是 ~/.env）。
-```
+仓库已自带 `.cursor/rules/collate.mdc`（`alwaysApply: true`）。Cursor 打开项目时自动加载此规则，无需手写。规则内容包含插件根定位、skill 列表、subagent 调度方式与核心原则。
 
 ### 4.2 环境变量
 
@@ -315,11 +299,90 @@ Codex CLI 适合在 GitHub Actions 里跑自动化 pipeline：
 
 ---
 
-## 6. Kimi
+## 6. Gemini CLI
+
+**定位**：Google 的开源命令行 agent。支持扩展（extension）机制与项目上下文文件（`GEMINI.md`）自动发现。
+
+### 6.1 安装
+
+两种方式：
+
+```bash
+# 方式 A：作为 Gemini CLI 扩展安装
+gemini extensions install collate
+
+# 方式 B：克隆仓库后直接运行
+git clone <repo-url> ~/dev/collate
+cd ~/dev/collate
+gemini
+```
+
+仓库随发两个原生文件：
+
+- `GEMINI.md` — 项目上下文，Gemini CLI 每次会话自动加载
+- `gemini-extension.json` — 扩展清单，声明名称、版本与上下文文件
+
+Gemini CLI 按层级加载上下文：全局 `~/.gemini/GEMINI.md` → 项目根 `GEMINI.md` → 子目录 `GEMINI.md`。仓库根的 `GEMINI.md` 提供插件总览与 skill 列表。
+
+### 6.2 环境变量
+
+直接 `export` 或写入 `.env`（需手动 `source`）：
+
+```bash
+export COLLATE_ROOT=~/dev/collate
+export OCR_ENGINE=mineru
+export BAIDU_API_KEY=...         # 仅 baidu 引擎
+export BAIDU_SECRET_KEY=...
+```
+
+### 6.3 Subagent 调度
+
+Gemini CLI 用新会话加载 agent 定义：
+
+```bash
+# 在新 session 中启动 proofreader
+gemini -C agents/historical-proofreader.md \
+  "type=modern, 请按五步 checklist 校对 $WORK_DIR/raw.md"
+```
+
+或在当前会话中用 `@agents/historical-proofreader.md` 引用 agent 上下文。
+
+### 6.4 脚本执行
+
+Gemini CLI 的 shell 工具直接跑 Python：
+
+```bash
+python3 "$COLLATE_ROOT/skills/prep-scan/scripts/split_pages.py" \
+    --pdf "$WORK_DIR/original.pdf" --out "$WORK_DIR/pages" --dpi 300
+```
+
+### 6.5 上下文管理
+
+```bash
+# 查看当前加载的所有 GEMINI.md 内容
+/memory show
+
+# 重新扫描并加载
+/memory reload
+```
+
+用户也可以在 `~/.gemini/settings.json` 中配置 `context.fileName` 同时加载 `AGENTS.md`：
+
+```json
+{
+  "context": {
+    "fileName": ["GEMINI.md", "AGENTS.md"]
+  }
+}
+```
+
+---
+
+## 7. Kimi
 
 **定位**：Moonshot 的云端 agent，上下文窗口大（200K+），适合长论文整篇上下文评审。
 
-### 6.1 准备
+### 7.1 准备
 
 Kimi 不能直接跑本地 Python 脚本，需要一台「执行机」——本地开发机、云服务器或者 GitHub Actions runner。架构：
 
@@ -334,7 +397,7 @@ Kimi（云端大脑，决策 + 校对）
 <basename>.ocr/（产物落盘；README.md 自描述）
 ```
 
-### 6.2 知识库上传
+### 7.2 知识库上传
 
 把 SKILL.md 与 reference 打包上传到 Kimi 知识库：
 
@@ -355,7 +418,7 @@ done
 
 拿到的 `file_id` 列表在启动 assistant 时通过 `file_ids` 字段关联，Kimi 就能在上下文中引用这些文档。
 
-### 6.3 主 agent 配置
+### 7.3 主 agent 配置
 
 主 agent 的 system prompt 明确执行机的通讯方式：
 
@@ -382,7 +445,7 @@ https://executor.example.com/run 让执行机代跑。请求格式：
 响应里的 raw_review_md 字段就是子对话的产物。
 ```
 
-### 6.4 Subagent 调度
+### 7.4 Subagent 调度
 
 Kimi 的 Moonshot Assistant API 支持 `create_sub_run`，可以起一个子对话，system prompt 独立。核心逻辑：
 
@@ -399,21 +462,21 @@ def subagent_handler(req):
     return {"raw_review_md": sub_run.final_message_content}
 ```
 
-### 6.5 失败处理
+### 7.5 失败处理
 
 Kimi 的失败（API rate limit / 网络 / 上下文超长）要显式回传：执行机返回 HTTP 5xx + 结构化 body，主 agent 读到后按 [AGENTS.md#失败处理](../AGENTS.md) 的格式上报给人类。**不要** 让主 agent 静默重试超过两次。
 
 ---
 
-## 7. MiniMax
+## 8. MiniMax
 
 **定位**：同 Kimi，云端 agent 架构。MiniMax 的 `abab-chat` + Assistants SDK 适合中文密集型任务。
 
-### 7.1 准备
+### 8.1 准备
 
 与 Kimi 相同，需要本地执行机。
 
-### 7.2 知识库上传
+### 8.2 知识库上传
 
 MiniMax Assistants API：
 
@@ -431,7 +494,7 @@ do
 done
 ```
 
-### 7.3 Subagent 调度
+### 8.3 Subagent 调度
 
 MiniMax Assistants 支持「子 Agent」机制（`sub_agent_id` 字段）。把 `historical-proofreader.md` 注册为一个独立 assistant，主 agent 通过 `create_run` 时指定 `sub_agent_id` 调起：
 
@@ -448,7 +511,7 @@ main_run = minimax.runs.create(
 
 子 agent 的输出通过 `tool_output` 事件流回主 agent。
 
-### 7.4 流式输出
+### 8.4 流式输出
 
 MiniMax 支持 SSE 流式，长文档校对时建议开启——一万字的校对清单流式返回比一次性 JSON 更稳：
 
@@ -457,65 +520,6 @@ for event in minimax.runs.stream(run_id=main_run.id):
     if event.type == "tool_output":
         raw_review_md_chunks.append(event.content)
 ```
-
----
-
-## 8. Gemini CLI
-
-**定位**：Google 的命令行 agent，上下文窗口 1M+，适合整本书级别的 PDF。扩展模型基于 `gemini-extension.json` + MCP server + 自定义命令（TOML）。
-
-### 8.1 安装
-
-**当前（fallback，手动加载 AGENTS.md）**：
-
-```bash
-git clone <repo-url> ~/dev/collate
-export COLLATE_ROOT=~/dev/collate
-gemini    # 交互式 CLI；首轮粘贴 AGENTS.md 作为上下文
-```
-
-Gemini CLI 的用户配置在 `~/.gemini/settings.json`，可以在此登记 MCP server 与工具允许列表。扩展位于 `~/.gemini/extensions/<name>/`，根目录必须有 `gemini-extension.json`。
-
-**路线图（native extension）**：collate 仓库将补一份 `gemini-extension.json`，`contextFileName` 指向 `AGENTS.md`，并直接暴露十四个 skill，只保留 `ocr` / `status` 两个独立 command，让：
-
-```bash
-gemini extensions install /path/to/collate
-# 或
-gemini extensions install https://github.com/MidnightDarling/collate
-```
-
-一键生效。
-
-### 8.2 环境变量
-
-读 `~/.env`：
-
-```bash
-set -a; source ~/.env; set +a
-gemini
-```
-
-或用 `hermes config set`-style 的 `gemini config` 命令管理 secret。
-
-### 8.3 Subagent 调度
-
-Gemini CLI 未提供 Claude Code 的 Task tool。等效模式：
-
-1. **主会话**：执行 pipeline 编排，碰到需要 proofread 时调 shell：
-   ```bash
-   gemini chat --non-interactive \
-     --prompt-file "$COLLATE_ROOT/agents/historical-proofreader.md" \
-     --context "$WORK_DIR/ocr/raw.md" \
-     --context "$COLLATE_ROOT/skills/proofread/references/modern-chinese.md" \
-     > "$WORK_DIR/review/raw.review.md"
-   ```
-2. 主会话读回 `raw.review.md` 继续。
-
-（注：`--non-interactive` 与 `--prompt-file` 均为 Gemini CLI 0.4+ 支持；低版本需手动起一个新的 `gemini` 交互会话并粘贴 agent.md 正文。）
-
-### 8.4 脚本执行
-
-同 Claude Code / Codex，直接在 bash 里跑 Python 脚本；用 `allowed_tools` 把 `shell` 加入白名单即可。
 
 ---
 
