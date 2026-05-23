@@ -24,15 +24,26 @@ Usage:
 
     # auth check only (no submission)
     python3 mineru_client.py --check-auth
+
+Exit codes:
+    0   success
+    2   missing/invalid args (no --out, pdf not found, etc.)
+    5   runtime failure (upload, submit, poll, download/extract)
+    6   refused: local PDF passed without --allow-public-upload consent
+   10   MINERU_API_KEY not configured anywhere
+   11   AUTH_FAIL (--check-auth only)
+   12   AUTH_UNKNOWN (--check-auth only)
 """
 from __future__ import annotations
 
 import argparse
 import io
+import ipaddress
 import json
 import os
 import re
 import shutil
+import socket
 import statistics
 import subprocess
 import sys
@@ -40,6 +51,7 @@ import tempfile
 import time
 import zipfile
 from pathlib import Path
+from urllib.parse import urlparse
 
 try:
     import requests
@@ -126,6 +138,52 @@ def check_auth(key: str) -> int:
         return 11
     print(f"AUTH_UNKNOWN http={r.status_code}")
     return 12
+
+
+def _validate_public_url(url: str) -> str:
+    """Return "" if `url` is a safe public https URL, otherwise a reason.
+
+    Used to gate the `--url` escape hatch. We refuse:
+      - non-https schemes (file://, http://, ftp://, gopher://, …)
+      - hostnames that resolve to loopback / link-local / RFC1918 / etc.
+
+    The check is best-effort: we resolve the host once and refuse if *any*
+    returned address sits in a private/loopback/link-local range. DNS
+    rebinding to a private IP after this check is out of scope (MinerU's
+    backend is what actually fetches the URL).
+    """
+    try:
+        parsed = urlparse(url)
+    except Exception as exc:
+        return f"url failed to parse: {exc}"
+    if parsed.scheme.lower() != "https":
+        return f"only https:// is allowed, got scheme={parsed.scheme!r}"
+    host = parsed.hostname or ""
+    if not host:
+        return "url has no hostname"
+    try:
+        addrinfo = socket.getaddrinfo(host, None)
+    except OSError as exc:
+        return f"could not resolve {host!r}: {exc}"
+    for entry in addrinfo:
+        addr = entry[4][0]
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            continue
+        if (
+            ip.is_loopback
+            or ip.is_link_local
+            or ip.is_private
+            or ip.is_multicast
+            or ip.is_reserved
+            or ip.is_unspecified
+        ):
+            return (
+                f"host {host!r} resolves to non-public address {addr!r} "
+                "(loopback / link-local / private / reserved)"
+            )
+    return ""
 
 
 def upload_to_catbox(pdf: Path, retries: int = 3) -> str:
@@ -499,6 +557,16 @@ def main() -> int:
                 "  mineru CLI (OCR_ENGINE=mineru) which does not upload anywhere.",
                 file=sys.stderr,
             )
+            return 6
+    else:
+        # `--url` is the "I already have a public URL" escape hatch. Reject
+        # schemes / hosts that would let it double as an SSRF probe: only
+        # https:// to a publicly-routable host is allowed. file:// would
+        # exfiltrate local files; loopback / RFC1918 / link-local would
+        # reach localhost or cloud-metadata endpoints (169.254.169.254).
+        bad = _validate_public_url(args.url)
+        if bad:
+            print(f"[mineru] refusing --url: {bad}", file=sys.stderr)
             return 6
 
     start = time.time()

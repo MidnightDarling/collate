@@ -84,7 +84,7 @@ System dependency: `poppler` (`brew install poppler` on macOS, `apt install popp
 /collate:setup
 ```
 
-Diagnoses Python version, the 13 runtime packages in `requirements.txt`, the `pdftoppm` binary, and OCR engine credentials. Reports passes, missing items, and one fix suggestion per gap. Never auto-installs.
+Diagnoses Python version, the 14 runtime packages in `requirements.txt`, the `pdftoppm` binary, and OCR engine credentials. Reports passes, missing items, and one fix suggestion per gap. Never auto-installs.
 
 In runtimes that expose skills directly, `setup` is a skill surface rather than a separate command shim.
 
@@ -239,7 +239,7 @@ A skill is a self-contained directory: `SKILL.md` (operational instructions the 
 
 > **setup**
 
-Environment diagnosis. Verifies Python ≥ 3.9, the 13 runtime packages in `requirements.txt`, the `pdftoppm` binary, and OCR engine credentials in `~/.env`. Reports passes, missing items, and one fix suggestion per gap. Never auto-installs.
+Environment diagnosis. Verifies Python ≥ 3.9, the 14 runtime packages in `requirements.txt`, the `pdftoppm` binary, and OCR engine credentials in `~/.env`. Reports passes, missing items, and one fix suggestion per gap. Never auto-installs.
 
 *Trigger:* first install, or any "how do I get OCR running" question.
 

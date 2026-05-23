@@ -84,7 +84,7 @@ curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/script
 /collate:setup
 ```
 
-诊断 Python 版本、requirements.txt 中的 13 个运行时依赖、`pdftoppm` 二进制、OCR 引擎凭据。逐项报告通过/缺失,每个缺失给一条修复建议。从不自动安装。
+诊断 Python 版本、requirements.txt 中的 14 个运行时依赖、`pdftoppm` 二进制、OCR 引擎凭据。逐项报告通过/缺失,每个缺失给一条修复建议。从不自动安装。
 
 在会直接暴露 skill 的 runtime 里，`setup` 是 skill 本身的 slash surface，不再需要一层同名 command 壳。
 
@@ -237,7 +237,7 @@ collate/
 
 > **setup**
 
-环境诊断。验证 Python ≥ 3.9、requirements.txt 中的 13 个运行时依赖、`pdftoppm` 二进制,以及 `~/.env` 中的 OCR 引擎凭据。逐项报告通过/缺失,每个缺失给一条修复建议。从不自动安装。
+环境诊断。验证 Python ≥ 3.9、requirements.txt 中的 14 个运行时依赖、`pdftoppm` 二进制,以及 `~/.env` 中的 OCR 引擎凭据。逐项报告通过/缺失,每个缺失给一条修复建议。从不自动安装。
 
 *触发*:首次安装,或者任何"OCR 怎么跑起来"的问题。
 

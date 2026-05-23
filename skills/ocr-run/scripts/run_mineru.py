@@ -11,8 +11,11 @@ a per-job tree rooted at `<OUT>/<pdf-stem>/auto/`; this script:
     2. Validates the output (content_list_v2.json must appear).
     3. Calls import_mineru_output.py --job-dir <tmp> --out <ocr-dir>
        --pdf <pdf>, which in turn triggers reflow + copies assets / meta.
-    4. Leaves the tmp dir alone so the user can inspect `_layout.pdf` / `_span.pdf`
-       for debugging if needed — we log the path.
+    4. Cleans the auto-allocated tempdir on success (GB-scale intermediate
+       output otherwise leaks per run). Pass `--keep-tmp` to retain the
+       tempdir for inspection of `_layout.pdf` / `_span.pdf`, or use
+       `--keep-mineru-out <path>` to direct MinerU at a stable directory
+       you manage yourself — neither of those is auto-cleaned.
 
 First run on a fresh machine takes 5–10 minutes because MinerU has to
 download ~2–3 GB of weights. Subsequent runs finish in ~90 s per 30 pages

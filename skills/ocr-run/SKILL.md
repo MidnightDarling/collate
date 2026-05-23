@@ -140,8 +140,11 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/run_mineru.py" \
 
 ```bash
 # 只在 mineru[pipeline] 装不上时兜底
+# 注意：该脚本走 catbox.moe 把 PDF 公开 24h，必须显式
+#       --allow-public-upload，否则直接 rc=6 拒绝上传。
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/mineru_client.py" \
-    --pdf "$PDF" --out "$OUT" --layout "$LAYOUT" --lang "$LANG"
+    --pdf "$PDF" --out "$OUT" --layout "$LAYOUT" --lang "$LANG" \
+    --allow-public-upload
 
 # 用户已有百度 OCR key 想复用
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/baidu_client.py" \
@@ -153,7 +156,8 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/ocr-run/scripts/baidu_client.py" \
 to-docx 不需要分支。细节：
 
 - `mineru_client.py`：走 MinerU 云 API，通过 catbox.moe 中转上传。catbox 偶
-  发静默失败，已加 3 次重试。没 API key 时不要走。
+  发静默失败，已加 3 次重试。**必须显式 `--allow-public-upload` 才会上传**；
+  没该 flag 时脚本直接 rc=6 退出。没 API key 时不要走。
 - `baidu_client.py`：每页调百度「通用文字识别（高精度版）」，段落合并依赖
   行距启发式，若 `raw.md` 出现「每行一段」→ 改走默认本地路径。
 

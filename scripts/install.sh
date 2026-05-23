@@ -291,6 +291,10 @@ wire_hermes() {
     local wired=0 skipped=0
     # nullglob makes the loop body skip entirely when skills/ is empty or
     # absent (instead of iterating over the literal `skills/*` pattern).
+    # Snapshot the prior state so we restore (rather than unconditionally
+    # unset) — the helper has no business clobbering caller-set shopts.
+    local _prev_nullglob
+    _prev_nullglob="$(shopt -p nullglob)"
     shopt -s nullglob
     for skill_dir in "$TARGET/skills/"*/; do
         [[ -d "$skill_dir" ]] || continue
@@ -309,7 +313,7 @@ wire_hermes() {
         run ln -s "$skill_dir" "$link_name"
         wired=$((wired + 1))
     done
-    shopt -u nullglob
+    eval "$_prev_nullglob"
 
     if (( wired > 0 )); then
         log_ok "hermes: wired ${wired} skills into ${hermes_skills}/collate-*"
@@ -319,15 +323,6 @@ wire_hermes() {
         log_warn "hermes: no skills/ directory found at ${TARGET}"
     fi
     WIRED_RUNTIMES+=("hermes")
-}
-
-wire_opencode() {
-    if ! command -v opencode >/dev/null 2>&1; then
-        return 1
-    fi
-    # OpenCode auto-loads AGENTS.md on `cd $TARGET && opencode` — nothing to do
-    log_ok "opencode: detected (zero-config, AGENTS.md auto-loads)"
-    WIRED_RUNTIMES+=("opencode")
 }
 
 wire_codex() {
@@ -361,7 +356,6 @@ if [[ $WIRE_RUNTIMES -eq 1 ]]; then
     log_step "Agent runtime auto-detection"
 
     wire_claude_code || log_hint "claude-code: not detected (no ~/.claude)"
-    wire_opencode    || log_hint "opencode: not detected (no \`opencode\` on PATH)"
     wire_hermes      || log_hint "hermes: not detected (no \`hermes\` on PATH)"
     wire_codex       || log_hint "codex-cli: not detected (no \`codex\` on PATH)"
     wire_cursor      || log_hint "cursor: not detected"
@@ -404,14 +398,6 @@ if [[ " ${WIRED_RUNTIMES[*]} " == *" claude-code "* ]]; then
                                    ${C_CYAN}/plugin install collate@collate${C_RESET}
      Already installed locally:   open Claude Code — the plugin auto-loads from ~/.claude/plugins/collate
      First run:                   ${C_CYAN}/collate:setup${C_RESET}
-EOF
-fi
-
-if [[ " ${WIRED_RUNTIMES[*]} " == *" opencode "* ]]; then
-    cat <<EOF
-
-   ${C_GREEN}OpenCode${C_RESET} (wired):
-     ${C_CYAN}cd ${TARGET} && opencode${C_RESET}     ${C_DIM}# AGENTS.md auto-loads${C_RESET}
 EOF
 fi
 

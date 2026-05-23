@@ -84,11 +84,19 @@ which mineru
 让用户拿一份任意的小 PDF（一两页即可，扫描或文字层都行）当 probe；
 仓库本身不附 sample PDF，避免把额外二进制塞进 git。
 
+先把用户提供的 PDF 绝对路径赋给 `USER_PROBE_PDF`，再运行：
+
 ```bash
-# 用用户给的 probe PDF 触发 MinerU 模型下载，跑完立刻退出
+# 1) 把用户的 probe PDF 路径填进来（绝对路径，含空格请用引号）
+USER_PROBE_PDF="/Users/<name>/Downloads/probe.pdf"
+
+# 2) 用该 probe PDF 触发 MinerU 模型下载，跑完立刻退出
 TMP=$(mktemp -d)
 mineru -p "$USER_PROBE_PDF" -o "$TMP" -b pipeline -m auto -l ch
 ```
+
+如果用户暂时拿不出 probe PDF，可以跳过 Step 3.5——正式 OCR
+时会触发同一次下载，只是第一份 PDF 会多等几分钟。
 
 看到 `Completed batch` 就算预热好了。约 4–8 分钟（取决于网速）。中国网
 络建议事先开代理或 ModelScope 镜像：

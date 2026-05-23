@@ -69,16 +69,29 @@ def fetch_token(api: str, secret: str) -> str:
     if not token:
         raise RuntimeError(f"no access_token in response: {body}")
     TOKEN_CACHE.parent.mkdir(parents=True, exist_ok=True)
-    TOKEN_CACHE.write_text(
-        json.dumps({"token": token, "ts": time.time()}),
-        encoding="utf-8",
-    )
-    # The token is a bearer credential; lock the cache to the owning user so
-    # a multi-tenant host doesn't leak it to other accounts via mode 0644.
+    # The token is a bearer credential — open the cache atomically with
+    # mode 0600 so it is never readable by other users on the host, not
+    # even briefly between write and chmod (the old write_text + chmod
+    # pattern left a TOCTOU window where the file existed as 0644).
+    payload = json.dumps({"token": token, "ts": time.time()})
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    fd = os.open(str(TOKEN_CACHE), flags, stat.S_IRUSR | stat.S_IWUSR)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(payload)
+    except Exception:
+        # os.fdopen takes ownership of fd on success; on a pre-fdopen
+        # exception we must close it ourselves.
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+        raise
+    # On filesystems that don't honour the open() mode (some Windows
+    # configurations, network mounts), fall back to a best-effort chmod.
     try:
         os.chmod(TOKEN_CACHE, stat.S_IRUSR | stat.S_IWUSR)
     except OSError:
-        # Windows / odd FS; best-effort only.
         pass
     return token
 

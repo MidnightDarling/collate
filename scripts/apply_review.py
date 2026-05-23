@@ -8,16 +8,25 @@ import re
 import sys
 from pathlib import Path
 
-from review_contract import ReviewItem, parse_review
+from review_contract import ReviewItem, SUGGESTION_ARROW_SEPS, parse_review
 
 
-ARROW_RE = re.compile(r"(?:→|->|⇒)\s*(.+)$")
+# Arrow-style separators ("→", "->", "⇒") sit anywhere in the suggestion
+# string. Keyword separators ("改为", "改作", "应为", ...) anchor the start
+# of the suggestion. We rebuild the two regexes from the single canonical
+# SUGGESTION_ARROW_SEPS list so apply_review and md_diff (and future tools)
+# cannot drift.
+_ARROW_SYMBOLS = ("→", "->", "⇒")
+_KEYWORD_SEPS = tuple(s for s in SUGGESTION_ARROW_SEPS if s not in _ARROW_SYMBOLS)
+ARROW_RE = re.compile(
+    r"(?:" + "|".join(re.escape(s) for s in _ARROW_SYMBOLS) + r")\s*(.+)$"
+)
 WHOLE_QUOTED_RE = re.compile(r'^[“"\'「『](.+?)[”"\'」』]$')
 STRUCTURE_APPROVED_RE = re.compile(
     r"^\s*structure_approved\s*:\s*true\s*$", re.IGNORECASE
 )
 DIRECT_REPLACEMENT_RE = re.compile(
-    r"^(?:改为|改作|应为|應為|修正为|修訂為|更正为)[:：]?\s*(.+)$"
+    r"^(?:" + "|".join(re.escape(s) for s in _KEYWORD_SEPS) + r")[:：]?\s*(.+)$"
 )
 EDITORIAL_MARKERS = (
     "删除", "刪除", "移除", "连读", "連讀", "合并", "合併", "脚注",

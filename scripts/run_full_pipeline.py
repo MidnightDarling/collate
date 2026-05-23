@@ -192,7 +192,10 @@ def try_ocr(workspace: Path) -> tuple[str, list[str]]:
 
     The chain is:
       1. run-mineru (local MinerU) — always enabled
-      2. mineru-cloud — enabled iff MINERU_API_KEY is set
+      2. mineru-cloud — enabled iff MINERU_API_KEY is set AND
+         COLLATE_ALLOW_PUBLIC_UPLOAD=1 (this path uploads to catbox.moe
+         as a 24h-public URL; the env var is the orchestrator-level
+         consent for the same gate mineru_client.py enforces directly)
       3. text-layer  — enabled iff COLLATE_ALLOW_TEXTLAYER != "0"
          (default on; set COLLATE_ALLOW_TEXTLAYER=0 to opt out for audits)
 
@@ -205,7 +208,16 @@ def try_ocr(workspace: Path) -> tuple[str, list[str]]:
     if not text_layer_source.is_file():
         text_layer_source = source
     local = [sys.executable, "skills/ocr-run/scripts/run_mineru.py", "--pdf", str(source), "--out", str(workspace), "--lang", "ch"]
+    # The cloud path uploads the PDF to catbox.moe as a 24h-public URL. The
+    # orchestrator can only forward this gate from an explicit user opt-in,
+    # so we require COLLATE_ALLOW_PUBLIC_UPLOAD=1 before passing the flag
+    # down to mineru_client.py. With the flag unset the cloud cmd
+    # deliberately includes no consent — mineru_client.py will refuse
+    # (rc=6) and we fall through to the text-layer fallback, which is the
+    # right behaviour from an unattended-pipeline standpoint.
     cloud = [sys.executable, "skills/ocr-run/scripts/mineru_client.py", "--pdf", str(source), "--out", str(workspace), "--layout", "horizontal", "--lang", "zh-hans", "--poll-interval", "10", "--timeout", "1800"]
+    if os.environ.get("COLLATE_ALLOW_PUBLIC_UPLOAD", "0") == "1":
+        cloud.append("--allow-public-upload")
     text_layer = [sys.executable, "skills/ocr-run/scripts/extract_text_layer.py", "--pdf", str(text_layer_source), "--out", str(workspace), "--layout", "horizontal", "--lang", "zh-hans"]
 
     if (workspace / "raw.md").exists() and _review_packets_ready(workspace):
@@ -215,7 +227,7 @@ def try_ocr(workspace: Path) -> tuple[str, list[str]]:
     attempts: list[str] = []
     for name, cmd, enabled in (
         ("run-mineru", local, True),
-        ("mineru-cloud", cloud, bool(os.environ.get("MINERU_API_KEY"))),
+        ("mineru-cloud", cloud, bool(os.environ.get("MINERU_API_KEY")) and os.environ.get("COLLATE_ALLOW_PUBLIC_UPLOAD", "0") == "1"),
         ("text-layer", text_layer, os.environ.get("COLLATE_ALLOW_TEXTLAYER", "1") != "0"),
     ):
         if not enabled:
@@ -339,11 +351,9 @@ def main() -> int:
     if args.pdf is None and args.workspace is None:
         print("pass --pdf <file> or --workspace <dir>", file=sys.stderr)
         return 2
-    try:
-        workspace = infer_workspace(args.pdf, args.workspace)
-    except ValueError as exc:
-        print(f"pipeline aborted: {exc}", file=sys.stderr)
-        return 2
+    # infer_workspace only raises ValueError when both args are None, which
+    # is already short-circuited above; no try-except needed here.
+    workspace = infer_workspace(args.pdf, args.workspace)
     pdf = resolve_pdf_hint(args.pdf, workspace)
     ocr_engine: str | None = None
     ocr_attempts: list[str] = []

@@ -380,6 +380,8 @@ python3 "$COLLATE_ROOT/skills/prep-scan/scripts/split_pages.py" \
 
 ## 7. Kimi
 
+> **状态：未支持（概念架构存档）**。Kimi 未在受支持的 runtime 列表（§1 的五个）里；本节是早期架构推演的存档参考，不是已验证的接入手册。若按下方步骤搭通，欢迎以 PR 形式回传可行的运行实例与产物校验脚本。INSTALL.md 不再把读者引向这一节。
+
 **定位**：Moonshot 的云端 agent，上下文窗口大（200K+），适合长论文整篇上下文评审。
 
 ### 7.1 准备
@@ -470,6 +472,8 @@ Kimi 的失败（API rate limit / 网络 / 上下文超长）要显式回传：�
 
 ## 8. MiniMax
 
+> **状态：未支持（概念架构存档）**。同 Kimi，本节是未验证的架构推演，不是已支持的 runtime。
+
 **定位**：同 Kimi，云端 agent 架构。MiniMax 的 `abab-chat` + Assistants SDK 适合中文密集型任务。
 
 ### 8.1 准备
@@ -524,6 +528,8 @@ for event in minimax.runs.stream(run_id=main_run.id):
 ---
 
 ## 9. OpenCode
+
+> **状态：未支持（架构参考存档）**。OpenCode 不在受支持的 runtime 列表里；`scripts/install.sh` 已不再做 `wire_opencode` 检测，本节保留为未验证的架构参考。
 
 **定位**：SST 出品的开源终端 agent；内置三层扩展（skills / agents / plugins），原生识别 `AGENTS.md`，并提供 Claude Code 兼容层。适合团队里既有 Claude Code 用户又有 OpenCode 用户的混合场景。
 
@@ -638,6 +644,8 @@ Hermes 的上下文加载是排他式的：命中第一个文件后就不再继�
 ---
 
 ## 11. OpenClaw
+
+> **状态：未支持（路线图存档）**。OpenClaw 不在受支持的 runtime 列表里；本节描述的是 wrapper plugin 思路，并没有现成的可装产物。INSTALL.md 不再把读者引向这一节。
 
 **定位**：开源 AI 助手框架，强项在 15+ 消息通道 + 跨网站控制；扩展通过「native 插件（TS/JS entry + `openclaw.plugin.json`）+ ClawHub / npm 分发」。用户量大，但本仓库当前主线是 Python + Markdown，不是 Native TS 插件，直接 `openclaw plugins install <path>` 对裸目录**不支持**。
 

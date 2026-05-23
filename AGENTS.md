@@ -156,11 +156,16 @@ python skills/ocr-run/scripts/baidu_client.py \
 # 百度读取 <ws>.ocr/prep/pages/*.png（非 cleaned.pdf），产物写 raw.md + <!-- page N --> 标记
 
 # OCR_ENGINE=mineru-cloud （走 catbox.moe 中转 → 敏感内容不要用）
+# 注意：catbox.moe 会把 PDF 公开 24 小时，必须显式 --allow-public-upload
+#       才会执行；不加该 flag 时脚本直接 rc=6 退出，不上传任何东西。
+#       orchestrator (scripts/run_full_pipeline.py) 通过环境变量
+#       COLLATE_ALLOW_PUBLIC_UPLOAD=1 自动转发该同意。
 python skills/ocr-run/scripts/mineru_client.py \
     --pdf <ws>.ocr/prep/cleaned.pdf \
     --out <ws>.ocr \
     --lang zh-hans \
     --layout horizontal \
+    --allow-public-upload \
     [--poll-interval 10] [--timeout 1800]
 
 # 第三选项：PDF 自带文本层直接提取（canonical 第三级兜底，默认自动）
