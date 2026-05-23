@@ -162,7 +162,30 @@ def count_char_changes(opcodes, raw: list[Paragraph], final: list[Paragraph]) ->
 # ---------- Acceptance judgement ----------
 
 
-KEY_EXTRACT_SEPS = ["→", "->", "⇒", "改为", "应为", "应是", "建议改为"]
+# Imported from the shared review-contract module so apply_review and
+# diff-review agree on which suggestion arrows mean "accepted edit".
+try:
+    # When running as part of the installed plugin, scripts/ is on sys.path.
+    from review_contract import SUGGESTION_ARROW_SEPS as _ARROWS  # type: ignore
+except ImportError:
+    import importlib.util
+    import os
+    _spec = importlib.util.spec_from_file_location(
+        "review_contract",
+        os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+            "scripts",
+            "review_contract.py",
+        ),
+    )
+    if _spec and _spec.loader:
+        _mod = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_mod)
+        _ARROWS = _mod.SUGGESTION_ARROW_SEPS  # type: ignore
+    else:
+        _ARROWS = ("→", "->", "⇒", "改为", "改作", "应为", "應為", "应是", "建议改为")
+
+KEY_EXTRACT_SEPS = list(_ARROWS)
 
 
 def extract_key_chars(suggestion: str) -> list[str]:

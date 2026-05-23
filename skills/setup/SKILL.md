@@ -70,7 +70,7 @@ pip3 install --user -U -r "${CLAUDE_PLUGIN_ROOT}/requirements.txt"
 验证：
 
 ```bash
-python3 -c "import cv2, PIL, requests, dotenv, markdown, PyPDF2, pdf2image, bs4, docx, mineru, torch; print('依赖齐全')"
+python3 -c "import cv2, PIL, requests, dotenv, markdown, PyPDF2, pdf2image, bs4, docx, yaml, opencc, mineru, torch, torchvision; print('依赖齐全')"
 which mineru
 ```
 
@@ -81,12 +81,13 @@ which mineru
 第一次跑 `mineru` 会下载 ~2–3 GB 模型到 `~/.cache/huggingface/hub/`。
 在正式 OCR 一份 PDF 前让它先下好，省得第一次跑 PDF 时卡住。
 
+让用户拿一份任意的小 PDF（一两页即可，扫描或文字层都行）当 probe；
+仓库本身不附 sample PDF，避免把额外二进制塞进 git。
+
 ```bash
-# tiny probe PDF — 让 mineru 触发模型下载，跑完立刻退出
+# 用用户给的 probe PDF 触发 MinerU 模型下载，跑完立刻退出
 TMP=$(mktemp -d)
-cp "${CLAUDE_PLUGIN_ROOT}/examples/smoke.pdf" "$TMP/smoke.pdf" 2>/dev/null || \
-  python3 -c "from reportlab.pdfgen import canvas; c = canvas.Canvas('$TMP/smoke.pdf'); c.drawString(100,750,'smoke'); c.save()"
-mineru -p "$TMP/smoke.pdf" -o "$TMP" -b pipeline -m auto -l ch
+mineru -p "$USER_PROBE_PDF" -o "$TMP" -b pipeline -m auto -l ch
 ```
 
 看到 `Completed batch` 就算预热好了。约 4–8 分钟（取决于网速）。中国网

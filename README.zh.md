@@ -84,7 +84,7 @@ curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/script
 /collate:setup
 ```
 
-诊断 Python 版本、十个依赖包、`pdftoppm` 二进制、OCR 引擎凭据。逐项报告通过/缺失,每个缺失给一条修复建议。从不自动安装。
+诊断 Python 版本、requirements.txt 中的 13 个运行时依赖、`pdftoppm` 二进制、OCR 引擎凭据。逐项报告通过/缺失,每个缺失给一条修复建议。从不自动安装。
 
 在会直接暴露 skill 的 runtime 里，`setup` 是 skill 本身的 slash surface，不再需要一层同名 command 壳。
 
@@ -192,7 +192,8 @@ collate/
 │   ├── chunqiu/                 读禁忌、定谳与策略性沉默
 │   ├── kaozheng/                审引证、证据层级与 warrant
 │   ├── prometheus/              为单个概念下定义并渲染 SVG 卡
-│   └── real-thesis/             挖作者绕而不写的真论题
+│   ├── real-thesis/             挖作者绕而不写的真论题
+│   └── constellatio/            跨时代接受史分析 + 可选星图同级产物
 │
 ├── agents/                      2 个专职 subagent
 │   ├── ocr-pipeline-operator.md 流水线总操作员:机械 → 校对 → 自审 → 交付
@@ -230,13 +231,13 @@ collate/
 
 ## Skills 详述
 
-每个 skill 是自包含目录:`SKILL.md`(agent 读取的操作指令)+ `scripts/`(Python 工具)+ `references/`(结构化知识库,如适用)。Collate 现在明确以 skill 为唯一能力本体: **8 个流水线 skill + 7 个阅读 skill**。如果某个 slash surface 有能力，那能力就应该写回 skill 本身。
+每个 skill 是自包含目录:`SKILL.md`(agent 读取的操作指令),可选 `scripts/`(Python 工具)与 `references/`(结构化知识库)。Collate 现在明确以 skill 为唯一能力本体: **8 个流水线 skill + 7 个阅读 skill**。如果某个 slash surface 有能力,那能力就应该写回 skill 本身。
 
 ### 流水线 skill
 
 > **setup**
 
-环境诊断。验证 Python ≥ 3.9、十个依赖包、`pdftoppm` 二进制,以及 `~/.env` 中的 OCR 引擎凭据。逐项报告通过/缺失,每个缺失给一条修复建议。从不自动安装。
+环境诊断。验证 Python ≥ 3.9、requirements.txt 中的 13 个运行时依赖、`pdftoppm` 二进制,以及 `~/.env` 中的 OCR 引擎凭据。逐项报告通过/缺失,每个缺失给一条修复建议。从不自动安装。
 
 *触发*:首次安装,或者任何"OCR 怎么跑起来"的问题。
 

@@ -1,11 +1,12 @@
 collate
 Copyright 2026 Alice and contributors
 
-Co-authored by Alice and Claude Opus 4.7 (Anthropic).
+Co-authored by Alice, Claude Opus 4.7 (Anthropic), Claude Opus 4.6
+(Anthropic), and GPT-5.4 (OpenAI).
 Copyright is held by Alice; under applicable law governing AI-assisted
 works, an AI system cannot hold copyright independently, so ownership
 rests solely with the named human co-author above. Authorship credit,
-however, is joint.
+however, is joint and extends to all four parties above.
 
 This product includes software developed by the collate
 contributors.
@@ -52,8 +53,8 @@ retain their original licenses and are not redistributed here:
   pdf2image                 — MIT License
   Pillow                    — HPND License (Pillow fork)
   PyPDF2 / pypdf            — BSD-3-Clause
-  OpenAI (via plugin)       — Commercial API
-  Anthropic Claude (via SDK) — Commercial API
+  OpenAI (via plugin)       — Commercial API (joint authorship credit: GPT-5.4)
+  Anthropic Claude (via SDK) — Commercial API (joint authorship credit: Opus 4.6, 4.7)
 
 Users who invoke MinerU via this plugin should be aware that MinerU itself
 is licensed under AGPL-3.0. Outputs of MinerU executed on user data do not

@@ -208,7 +208,14 @@ def run_mineru(pdf: Path, tmp_out: Path, lang: str, method: str) -> None:
     while proc.poll() is None:
         elapsed = time.monotonic() - start
         quiet_for = time.monotonic() - last_output[0]
-        no_artifacts_yet = not any(tmp_out.iterdir())
+        try:
+            no_artifacts_yet = not any(tmp_out.iterdir())
+        except OSError:
+            # MinerU is writing into this dir as we poll it; on some
+            # filesystems an in-flight rename can briefly trip iterdir().
+            # Treat the transient failure as "still no artifacts yet" and
+            # let the next tick re-check.
+            no_artifacts_yet = True
         if total_timeout > 0 and elapsed > total_timeout:
             timeout_reason = (
                 f"[run_mineru] local MinerU exceeded {total_timeout}s total runtime; "
@@ -296,6 +303,10 @@ def main() -> int:
                     help="Use this directory for MinerU's raw output instead "
                          "of a throwaway tempdir — useful for debugging or "
                          "caching across re-runs")
+    ap.add_argument("--keep-tmp", action="store_true",
+                    help="Keep MinerU's auto-allocated tempdir on success "
+                         "(default: clean it up). Ignored when "
+                         "--keep-mineru-out is given.")
     args = ap.parse_args()
 
     if not args.pdf.is_file():
@@ -308,7 +319,10 @@ def main() -> int:
         cleanup = False
     else:
         tmp_out = Path(tempfile.mkdtemp(prefix="mineru-"))
-        cleanup = False  # keep for now so debugging stays easy
+        # Default to cleaning the throwaway tempdir on success so we don't
+        # leak GB-scale intermediate output per run. Pass --keep-tmp to
+        # retain it for debugging.
+        cleanup = not args.keep_tmp
 
     run_mineru(args.pdf, tmp_out, args.lang, args.method)
     job = locate_job(tmp_out, args.pdf.stem)

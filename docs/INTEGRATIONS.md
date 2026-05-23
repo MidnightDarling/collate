@@ -132,9 +132,9 @@ git clone <repo-url> ~/.claude/plugins/collate
 
 ```bash
 # ~/.env
-OCR_ENGINE=mineru              # mineru / mineru-cloud / baidu / pdf-text-layer
-BAIDU_API_KEY=...              # 仅 OCR_ENGINE=baidu 需要
-BAIDU_SECRET_KEY=...
+OCR_ENGINE=mineru              # mineru / mineru-cloud / baidu
+BAIDU_OCR_API_KEY=...          # 仅 OCR_ENGINE=baidu 需要
+BAIDU_OCR_SECRET_KEY=...
 ANTHROPIC_API_KEY=...          # 用于 proofread subagent
 ```
 
@@ -331,8 +331,8 @@ Gemini CLI 按层级加载上下文：全局 `~/.gemini/GEMINI.md` → 项目根
 ```bash
 export COLLATE_ROOT=~/dev/collate
 export OCR_ENGINE=mineru
-export BAIDU_API_KEY=...         # 仅 baidu 引擎
-export BAIDU_SECRET_KEY=...
+export BAIDU_OCR_API_KEY=...     # 仅 baidu 引擎
+export BAIDU_OCR_SECRET_KEY=...
 ```
 
 ### 6.3 Subagent 调度
@@ -690,8 +690,8 @@ collate 的 OCR 相关 key（`MINERU_API_KEY` / `BAIDU_OCR_API_KEY`）由 plugin
 | 变量 | 用途 | 默认 | 必需 |
 |------|-----|------|----|
 | `OCR_ENGINE` | OCR 引擎选择 | `mineru` | 是 |
-| `BAIDU_API_KEY` | 百度 OCR API Key | — | `OCR_ENGINE=baidu` 时必需 |
-| `BAIDU_SECRET_KEY` | 百度 OCR Secret | — | 同上 |
+| `BAIDU_OCR_API_KEY` | 百度 OCR API Key | — | `OCR_ENGINE=baidu` 时必需 |
+| `BAIDU_OCR_SECRET_KEY` | 百度 OCR Secret | — | 同上 |
 | `ANTHROPIC_API_KEY` | Claude API（proofread 用） | — | 非 Claude Code runtime 必需 |
 | `MOONSHOT_API_KEY` | Kimi API | — | Kimi runtime 必需 |
 | `MINIMAX_API_KEY` | MiniMax API | — | MiniMax runtime 必需 |

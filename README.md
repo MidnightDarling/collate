@@ -84,7 +84,7 @@ System dependency: `poppler` (`brew install poppler` on macOS, `apt install popp
 /collate:setup
 ```
 
-Diagnoses Python version, ten required packages, the `pdftoppm` binary, and OCR engine credentials. Reports passes, missing items, and one fix suggestion per gap. Never auto-installs.
+Diagnoses Python version, the 13 runtime packages in `requirements.txt`, the `pdftoppm` binary, and OCR engine credentials. Reports passes, missing items, and one fix suggestion per gap. Never auto-installs.
 
 In runtimes that expose skills directly, `setup` is a skill surface rather than a separate command shim.
 
@@ -194,7 +194,8 @@ collate/
 │   ├── chunqiu/                 Read taboo, verdict, and strategic silence
 │   ├── kaozheng/                Audit citations, source rank, and warrants
 │   ├── prometheus/              Define one concept and render an SVG card
-│   └── real-thesis/             Excavate the thesis the paper circles
+│   ├── real-thesis/             Excavate the thesis the paper circles
+│   └── constellatio/            Reception-history analysis + optional star-chart sibling
 │
 ├── agents/                      2 specialized subagents
 │   ├── ocr-pipeline-operator.md Pipeline conductor: mechanical → proofreader → self-audit → delivery
@@ -232,13 +233,13 @@ collate/
 
 ## The Skills
 
-A skill is a self-contained directory: `SKILL.md` (operational instructions the agent reads) + `scripts/` (Python tools) + `references/` (structured knowledge base where applicable). Collate is now explicitly **skill-first**: 8 pipeline skills plus 7 reading skills. If a slash surface has capability, that capability belongs in the skill itself.
+A skill is a self-contained directory: `SKILL.md` (operational instructions the agent reads) plus optional `scripts/` (Python tools) and `references/` (structured knowledge base) where applicable. Collate is now explicitly **skill-first**: 8 pipeline skills plus 7 reading skills. If a slash surface has capability, that capability belongs in the skill itself.
 
 ### Pipeline skills
 
 > **setup**
 
-Environment diagnosis. Verifies Python ≥ 3.9, ten required packages, the `pdftoppm` binary, and OCR engine credentials in `~/.env`. Reports passes, missing items, and one fix suggestion per gap. Never auto-installs.
+Environment diagnosis. Verifies Python ≥ 3.9, the 13 runtime packages in `requirements.txt`, the `pdftoppm` binary, and OCR engine credentials in `~/.env`. Reports passes, missing items, and one fix suggestion per gap. Never auto-installs.
 
 *Trigger:* first install, or any "how do I get OCR running" question.
 

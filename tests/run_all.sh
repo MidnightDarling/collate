@@ -18,7 +18,9 @@ fail=0
 total=0
 failed_names=()
 
-for t in tests/smoke_*.py tests/*/smoke_*.py; do
+# Find smoke tests at any depth under tests/ — previously only one level of
+# nesting was searched, which silently dropped any test placed deeper.
+while IFS= read -r t; do
     [ -f "$t" ] || continue
     total=$((total + 1))
     name="$(basename "$t")"
@@ -31,7 +33,7 @@ for t in tests/smoke_*.py tests/*/smoke_*.py; do
         echo "FAIL: $name"
     fi
     echo
-done
+done < <(find tests -type f -name 'smoke_*.py' | sort)
 
 echo "---"
 echo "$pass/$total PASS"

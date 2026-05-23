@@ -1,6 +1,8 @@
 # AGENTS.md
 
-> 面向任何运行此 pipeline 的 agent 运行时（Claude Code / Cursor / Codex CLI / Gemini CLI / OpenCode / Hermes agents / Kimi / MiniMax agents 等）。描述完整的自动化工作流、每个 skill 的调用契约、agent 自主决策点、失败处理。人类只负责提供 PDF、接收最终产物与审计报告。
+> 面向任何运行此 pipeline 的 agent 运行时（Claude Code / Codex CLI / Cursor / Gemini CLI / Hermes agents）。描述完整的自动化工作流、每个 skill 的调用契约、agent 自主决策点、失败处理。人类只负责提供 PDF、接收最终产物与审计报告。
+>
+> **范围说明**：本文档覆盖 8 步 pipeline 层。仓库还包含 7 个阅读层 skill（`xray-paper` / `paper-summary` / `chunqiu` / `kaozheng` / `prometheus` / `real-thesis` / `constellatio`），它们独立于 pipeline，使用各自 `skills/<name>/SKILL.md` 作为调用契约，本文档不重复展开。
 
 ---
 
@@ -505,10 +507,8 @@ files_preserved: [<paths that remain for inspection>]
 所有 skill 的产物路径、环境变量、依赖在任何 POSIX 系统 + Python 3.9+ 下都一致。运行时差异仅在于 "agent 如何找到 SKILL.md / 如何调度 subagent"：
 
 - **Claude Code**：`${CLAUDE_PLUGIN_ROOT}` 指向插件根，SKILL.md 自动进入上下文；`historical-proofreader` 通过 Task tool 调用。
-- **OpenCode / Hermes agents / Codex CLI**：原生识别 `AGENTS.md`（OpenCode 还兼容 `CLAUDE.md`，Codex 向 Git root 递归查找）；各 SKILL.md 由 agent 按需 `Read`，Python 脚本用 shell 调；subagent 走运行时自己的子会话机制。
-- **Cursor / Gemini CLI**：需要把 `AGENTS.md` 手动放入上下文（Cursor 用 `.cursor/rules/*.mdc`；Gemini CLI 在 native extension 发布前，用首轮粘贴或 `--prompt-file`）；subagent 用新 chat tab / `--non-interactive` 会话模拟。
-- **Kimi / MiniMax（云端）**：把 SKILL.md 内容上传为 knowledge base；`agents/historical-proofreader.md` 作为子会话 system prompt；本地执行机代跑 shell，中间产物回传给主对话。
-- **OpenClaw**：原生强项是消息通道，Python/Markdown 插件接入目前走路线图；已有用户建议 `hermes claw migrate` 迁到 Hermes。
+- **Codex CLI / Hermes agents**：原生识别 `AGENTS.md`（Codex 向 Git root 递归查找）；各 SKILL.md 由 agent 按需 `Read`，Python 脚本用 shell 调；subagent 走运行时自己的子会话机制。
+- **Cursor / Gemini CLI**：需要把 `AGENTS.md` 手动放入上下文（Cursor 用 `.cursor/rules/*.mdc`；Gemini CLI 通过 `gemini-extension.json` 或首轮粘贴 / `--prompt-file`）；subagent 用新 chat tab / `--non-interactive` 会话模拟。
 
 具体接入步骤见 [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)。
 

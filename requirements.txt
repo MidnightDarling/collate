@@ -1,8 +1,9 @@
 # collate — Python dependencies
 #
-# Pinned loosely (major version floor) so the user's Python 3.11+ environment
-# doesn't break on every upstream patch. When a hard upper bound matters
-# (e.g. a known breaking change), add it inline with a comment.
+# Supports Python 3.9+ (same floor as the install.sh / setup checks). Pinned
+# loosely (major version floor) so the user's environment doesn't break on
+# every upstream patch. When a hard upper bound matters (e.g. a known
+# breaking change), add it inline with a comment.
 #
 # Two functional groups:
 #   1. Classical pipeline — prep-scan, preview, md→docx, mp-format

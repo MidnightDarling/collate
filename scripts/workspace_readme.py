@@ -179,7 +179,12 @@ def list_dir_entries(d: Path, max_entries: int = 20) -> list[str]:
             lines.append(f"- ... 还有 {len(items) - max_entries} 项")
             break
         if item.is_dir():
-            n = sum(1 for _ in item.iterdir())
+            try:
+                n: int | str = sum(1 for _ in item.iterdir())
+            except OSError:
+                # Permission denied / vanished mid-render — fall back to "?"
+                # so a single unreadable child doesn't crash README rendering.
+                n = "?"
             lines.append(f"- `{item.name}/` — {n} 项")
         else:
             try:

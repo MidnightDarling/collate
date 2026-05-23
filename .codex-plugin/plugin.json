@@ -32,8 +32,8 @@
     ],
     "websiteURL": "https://github.com/MidnightDarling/collate",
     "brandColor": "#d54d3f",
-    "composerIcon": "./assets/collate-codex-mark.svg",
-    "logo": "./assets/collate-codex-mark.svg",
+    "composerIcon": "../assets/collate-codex-mark.svg",
+    "logo": "../assets/collate-codex-mark.svg",
     "defaultPrompt": [
       "Run the full collate workflow on this PDF and produce DOCX plus WeChat HTML outputs.",
       "OCR this historical Chinese paper, generate a review checklist, and summarise the risky pages.",

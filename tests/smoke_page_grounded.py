@@ -60,7 +60,10 @@ def main() -> int:
     # Page-image production: confirm at least one on-disk fixture shows
     # split_pages has actually produced page_*.png. If no fixture exists,
     # we skip (this is an environment concern, not a code regression).
-    ocr_dirs = sorted((ROOT / "test").glob("*.ocr")) if (ROOT / "test").is_dir() else []
+    # Look under `tests/` (canonical, plural); fall back to `test/` for
+    # any local checkout that still uses the old singular spelling.
+    fixture_root = (ROOT / "tests") if (ROOT / "tests").is_dir() else (ROOT / "test")
+    ocr_dirs = sorted(fixture_root.glob("*.ocr")) if fixture_root.is_dir() else []
     png_count = 0
     for d in ocr_dirs:
         png_count = len(list((d / "prep/pages").glob("*.png")))

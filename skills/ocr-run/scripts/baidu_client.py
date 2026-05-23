@@ -26,6 +26,7 @@ import argparse
 import base64
 import json
 import os
+import stat
 import statistics
 import sys
 import time
@@ -68,14 +69,24 @@ def fetch_token(api: str, secret: str) -> str:
     if not token:
         raise RuntimeError(f"no access_token in response: {body}")
     TOKEN_CACHE.parent.mkdir(parents=True, exist_ok=True)
-    TOKEN_CACHE.write_text(json.dumps({"token": token, "ts": time.time()}))
+    TOKEN_CACHE.write_text(
+        json.dumps({"token": token, "ts": time.time()}),
+        encoding="utf-8",
+    )
+    # The token is a bearer credential; lock the cache to the owning user so
+    # a multi-tenant host doesn't leak it to other accounts via mode 0644.
+    try:
+        os.chmod(TOKEN_CACHE, stat.S_IRUSR | stat.S_IWUSR)
+    except OSError:
+        # Windows / odd FS; best-effort only.
+        pass
     return token
 
 
 def load_token(api: str, secret: str) -> str:
     if TOKEN_CACHE.is_file():
         try:
-            data = json.loads(TOKEN_CACHE.read_text())
+            data = json.loads(TOKEN_CACHE.read_text(encoding="utf-8"))
             # cached for 24h (Baidu tokens live 30 days, but refresh is cheap)
             if time.time() - data.get("ts", 0) < 24 * 3600:
                 return data["token"]

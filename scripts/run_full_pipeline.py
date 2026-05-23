@@ -339,7 +339,11 @@ def main() -> int:
     if args.pdf is None and args.workspace is None:
         print("pass --pdf <file> or --workspace <dir>", file=sys.stderr)
         return 2
-    workspace = infer_workspace(args.pdf, args.workspace)
+    try:
+        workspace = infer_workspace(args.pdf, args.workspace)
+    except ValueError as exc:
+        print(f"pipeline aborted: {exc}", file=sys.stderr)
+        return 2
     pdf = resolve_pdf_hint(args.pdf, workspace)
     ocr_engine: str | None = None
     ocr_attempts: list[str] = []

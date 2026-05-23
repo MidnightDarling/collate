@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-05-23 · Model identity restored to Opus 4.7
+
+### Changed
+
+- Canonical model identity restored to **Claude Opus 4.7** across READMEs,
+  CONTRIBUTORS, docs frontmatter, references, and plugin manifests. The
+  previous v0.2.0 sweep (2026-04-29) downgraded all mentions to 4.6 when
+  4.7 was temporarily off; with 4.7 back as the active model this is a
+  deliberate restoration, not the same regression.
+- `NOTICE` updated to list all four co-authors (Alice, Opus 4.7, Opus 4.6,
+  GPT-5.4) — previously only Opus 4.7 was named, which contradicted
+  README/CONTRIBUTORS/plugin.json.
+- `.claude-plugin/plugin.json` `contributors` array now includes Opus 4.7
+  alongside Opus 4.6 and GPT-5.4.
+
+### Notes
+
+- The CHANGELOG entry below describing the 4.7→4.6 sweep is preserved for
+  history; this entry is the corrective record for anyone diffing the tree
+  against that note.
+
+---
+
 ## 2026-04-29 · Hermes agents native support
 
 ### Changed
