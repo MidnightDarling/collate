@@ -312,9 +312,30 @@ def main() -> int:
 
     # 2. also keep MinerU's original full.md alongside for comparison / audit.
     #    CLI layout puts it at `<stem>/auto/<stem>.md`; legacy job exports put it as
-    #    `full.md` at the job root. Check both.
-    full_candidates = [job / "full.md", *list(job.rglob("*.md"))]
-    for full in full_candidates:
+    #    `full.md` at the job root. Prefer exact-name hits before falling back
+    #    to an rglob sweep so we don't accidentally pick up a content_list_v2
+    #    side-product before the real full markdown.
+    stem_md = job / f"{args.pdf.stem}.md"
+    auto_stem_md = job / "auto" / f"{args.pdf.stem}.md"
+    preferred = [
+        job / "full.md",
+        auto_stem_md,
+        stem_md,
+    ]
+    all_md = list(job.rglob("*.md"))
+    # Among any remaining candidates, push ones whose filename is "full.md"
+    # or "<stem>.md" to the front; demote derivatives like "*_content_list*.md".
+    def _md_rank(p: Path) -> tuple[int, int]:
+        name = p.name.lower()
+        if name == "full.md":
+            return (0, len(str(p)))
+        if name == f"{args.pdf.stem.lower()}.md":
+            return (1, len(str(p)))
+        if "content_list" in name:
+            return (9, len(str(p)))
+        return (5, len(str(p)))
+    rest = sorted([p for p in all_md if p not in preferred], key=_md_rank)
+    for full in [*preferred, *rest]:
         if full.is_file():
             shutil.copy2(full, internal_dir / "mineru_full.md")
             break

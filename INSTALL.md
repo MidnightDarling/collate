@@ -6,7 +6,7 @@
 2. **一键 shell 脚本**——给其他 agent runtime 用的 `curl | bash`
 3. **手动分步**——完全受控
 
-其他 agent 运行时（OpenCode / Hermes agents / Codex CLI / Cursor / Gemini CLI / Kimi / MiniMax / OpenClaw）的接入细节见 [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)。
+其他 agent 运行时（Codex CLI / Cursor / Gemini CLI / Hermes agents）的接入细节见 [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)。
 
 ---
 
@@ -44,8 +44,7 @@ curl -fsSL https://raw.githubusercontent.com/MidnightDarling/collate/main/script
 2. 跑 `pip install --user -U -r requirements.txt` 装 Python 依赖
 3. 自动识别本机已装的 agent runtime，并为每个 runtime 做对应接入：
     - **Claude Code**：把仓库软链到 `~/.claude/plugins/collate`
-    - **Hermes agents**：把 14 个 skill 软链到 `~/.hermes/skills/collate-*`
-    - **OpenCode**：零配置，只打印 `cd + 启动` 命令
+    - **Hermes agents**：把全部 15 个 skill 软链到 `~/.hermes/skills/collate-*`
     - **Codex**：打印两条路径
       - 直接在 repo 里运行 `codex`（原生读取 `AGENTS.md`）
       - 或使用仓库自带的 `.codex-plugin/plugin.json` 与 `.agents/plugins/marketplace.json`
@@ -95,17 +94,6 @@ pip install --user -U -r requirements.txt
 ```
 
 或直接把仓库软链到 `~/.claude/plugins/collate`，Claude Code 启动时会自动发现。
-
-### OpenCode
-
-零配置：在仓库目录里启动即可。
-
-```bash
-cd ~/.local/share/collate
-opencode
-```
-
-OpenCode 原生识别 `AGENTS.md`。
 
 ### Codex
 

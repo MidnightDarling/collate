@@ -82,10 +82,10 @@ gemini -C agents/historical-proofreader.md \
 
 ```bash
 export COLLATE_ROOT=/path/to/collate
-export OCR_ENGINE=mineru    # mineru | mineru-cloud | baidu | pdf-text-layer
+export OCR_ENGINE=mineru    # mineru | mineru-cloud | baidu
 # 仅 baidu 引擎需要：
-export BAIDU_API_KEY=...
-export BAIDU_SECRET_KEY=...
+export BAIDU_OCR_API_KEY=...
+export BAIDU_OCR_SECRET_KEY=...
 ```
 
 ## 核心原则

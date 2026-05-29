@@ -88,7 +88,6 @@ OpenAI 的大语言模型。本项目当前这一轮清理与收口工作的**�
 
 - **[Baidu AI OCR](https://ai.baidu.com/tech/ocr)** — 可选 OCR 引擎
 - **[Anthropic Claude](https://www.anthropic.com/)** — 主 agent 与 proofread subagent 的底层模型
-- **[Moonshot Kimi K2](https://kimi.moonshot.cn/)** / **[MiniMax](https://www.minimaxi.com/)** — 跨运行时接入的可选后端
 
 ### 学术规范参考
 

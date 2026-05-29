@@ -24,6 +24,25 @@ class ReviewItem:
 CANON_HEADER_RE = re.compile(
     r"^###\s+([ABC]\d+)\.\s+(.*?)(?:\s+·\s+(?:Line\s+(\d+)|全文))?\s*$"
 )
+
+# Canonical suggestion-arrow separators. Shared between md_diff (acceptance
+# judgement) and apply_review (direct replacement extraction) so that a
+# proofreader who writes "改作" can't have md_diff classify the suggestion
+# as "未接受" while apply_review happily applies it.
+SUGGESTION_ARROW_SEPS: tuple[str, ...] = (
+    "→",
+    "->",
+    "⇒",
+    "改为",
+    "改作",
+    "应为",
+    "應為",
+    "应是",
+    "建议改为",
+    "修正为",
+    "修訂為",
+    "更正为",
+)
 LEGACY_SECTION_RE = re.compile(r"^##\s+([ABC])(?:\b|（)")
 LEGACY_BULLET_RE = re.compile(
     r'^-\s*(?:(?:line|Line)\s+(\d+)|全文)\s*\|\s*原文[:：]\s*"?(.+?)"?\s*\|\s*建议[:：]\s*"?(.+?)"?\s*\|\s*理由[:：]\s*(.+?)\s*$'
@@ -52,7 +71,17 @@ def _parse_canonical(lines: list[str]) -> list[ReviewItem]:
                 fragment_lines.append(peek[2:].rstrip())
             if "**建议**" in peek or peek.startswith("**建议"):
                 rest = peek.split("**建议**", 1)[-1].lstrip("：:*").strip()
-                suggestion = rest or (lines[j + 1].strip() if j + 1 < len(lines) else "")
+                if rest:
+                    suggestion = rest
+                elif j + 1 < len(lines):
+                    next_line = lines[j + 1]
+                    # Only adopt the next line as the suggestion if it's
+                    # actual prose. A section/header line means the
+                    # author left **建议** body blank — skip it rather
+                    # than swallow the next item's title.
+                    stripped = next_line.lstrip()
+                    if stripped and not stripped.startswith(("###", "## ", "# ", "---")):
+                        suggestion = next_line.strip()
             j += 1
         items.append(
             ReviewItem(

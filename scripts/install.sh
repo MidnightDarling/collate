@@ -120,11 +120,19 @@ esac
 # ---------------------------------------------------------------------------
 # Dry-run helper
 # ---------------------------------------------------------------------------
+# Invoke as `run cmd arg1 arg2 ...` — args are passed through unchanged via
+# "$@" so paths with spaces and shell metacharacters are not re-interpreted.
+# Earlier revisions used `eval "$@"`, which made the helper sensitive to any
+# unquoted expansion at the call site (and would happily execute injected
+# command substitutions from $TARGET / $COLLATE_HOME). We never need that
+# power here.
 run() {
     if [[ $DRY_RUN -eq 1 ]]; then
-        printf '%s[dry]%s %s\n' "${C_DIM}" "${C_RESET}" "$*"
+        printf '%s[dry]%s' "${C_DIM}" "${C_RESET}"
+        printf ' %q' "$@"
+        printf '\n'
     else
-        eval "$@"
+        "$@"
     fi
 }
 
@@ -152,9 +160,9 @@ log_ok "git: $(git --version | head -1)"
 
 if command -v python3 >/dev/null 2>&1; then
     PY_VERSION=$(python3 --version 2>&1 | awk '{print $2}')
-    PY_MAJOR=$(echo "$PY_VERSION" | cut -d. -f1)
-    PY_MINOR=$(echo "$PY_VERSION" | cut -d. -f2)
-    if (( PY_MAJOR < 3 || (PY_MAJOR == 3 && PY_MINOR < 9) )); then
+    # Let Python itself parse its version so `3.13.0rc1`, `3.12.0+`, and
+    # other distro-flavored strings don't confuse a hand-rolled awk/cut path.
+    if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' >/dev/null 2>&1; then
         die "python3 >= 3.9 required, found ${PY_VERSION}"
     fi
     log_ok "python3: ${PY_VERSION}"
@@ -195,12 +203,12 @@ if [[ -n "$SCRIPT_PARENT" && -f "$SCRIPT_PARENT/.claude-plugin/plugin.json" ]]; 
     TARGET="$SCRIPT_PARENT"
 elif [[ -d "$TARGET/.git" ]]; then
     log_info "existing checkout at ${TARGET}; pulling"
-    run "git -C \"$TARGET\" pull --ff-only"
+    run git -C "$TARGET" pull --ff-only
     log_ok "repo updated"
 else
     log_info "cloning ${REPO_URL} → ${TARGET}"
-    run "mkdir -p \"$(dirname "$TARGET")\""
-    run "git clone --depth 1 \"$REPO_URL\" \"$TARGET\""
+    run mkdir -p "$(dirname "$TARGET")"
+    run git clone --depth 1 "$REPO_URL" "$TARGET"
     log_ok "repo cloned"
 fi
 
@@ -239,7 +247,7 @@ wire_claude_code() {
         return 1  # Claude Code not installed
     fi
 
-    run "mkdir -p \"$plugins_dir\""
+    run mkdir -p "$plugins_dir"
 
     if [[ -L "$target_link" ]]; then
         local current
@@ -260,7 +268,7 @@ wire_claude_code() {
         return 0
     fi
 
-    run "ln -s \"$TARGET\" \"$target_link\""
+    run ln -s "$TARGET" "$target_link"
     log_ok "claude-code: symlinked $target_link → $TARGET"
     WIRED_RUNTIMES+=("claude-code")
 }
@@ -271,7 +279,7 @@ wire_hermes() {
     fi
 
     local hermes_skills="$HOME/.hermes/skills"
-    run "mkdir -p \"$hermes_skills\""
+    run mkdir -p "$hermes_skills"
 
     # In dry-run mode the $TARGET checkout may not exist yet; report intent only.
     if [[ $DRY_RUN -eq 1 && ! -d "$TARGET/skills" ]]; then
@@ -281,6 +289,13 @@ wire_hermes() {
     fi
 
     local wired=0 skipped=0
+    # nullglob makes the loop body skip entirely when skills/ is empty or
+    # absent (instead of iterating over the literal `skills/*` pattern).
+    # Snapshot the prior state so we restore (rather than unconditionally
+    # unset) — the helper has no business clobbering caller-set shopts.
+    local _prev_nullglob
+    _prev_nullglob="$(shopt -p nullglob)"
+    shopt -s nullglob
     for skill_dir in "$TARGET/skills/"*/; do
         [[ -d "$skill_dir" ]] || continue
         local skill_name
@@ -295,9 +310,10 @@ wire_hermes() {
             log_warn "hermes: $link_name exists and is not a symlink; skipping"
             continue
         fi
-        run "ln -s \"$skill_dir\" \"$link_name\""
+        run ln -s "$skill_dir" "$link_name"
         wired=$((wired + 1))
     done
+    eval "$_prev_nullglob"
 
     if (( wired > 0 )); then
         log_ok "hermes: wired ${wired} skills into ${hermes_skills}/collate-*"
@@ -307,15 +323,6 @@ wire_hermes() {
         log_warn "hermes: no skills/ directory found at ${TARGET}"
     fi
     WIRED_RUNTIMES+=("hermes")
-}
-
-wire_opencode() {
-    if ! command -v opencode >/dev/null 2>&1; then
-        return 1
-    fi
-    # OpenCode auto-loads AGENTS.md on `cd $TARGET && opencode` — nothing to do
-    log_ok "opencode: detected (zero-config, AGENTS.md auto-loads)"
-    WIRED_RUNTIMES+=("opencode")
 }
 
 wire_codex() {
@@ -349,7 +356,6 @@ if [[ $WIRE_RUNTIMES -eq 1 ]]; then
     log_step "Agent runtime auto-detection"
 
     wire_claude_code || log_hint "claude-code: not detected (no ~/.claude)"
-    wire_opencode    || log_hint "opencode: not detected (no \`opencode\` on PATH)"
     wire_hermes      || log_hint "hermes: not detected (no \`hermes\` on PATH)"
     wire_codex       || log_hint "codex-cli: not detected (no \`codex\` on PATH)"
     wire_cursor      || log_hint "cursor: not detected"
@@ -392,14 +398,6 @@ if [[ " ${WIRED_RUNTIMES[*]} " == *" claude-code "* ]]; then
                                    ${C_CYAN}/plugin install collate@collate${C_RESET}
      Already installed locally:   open Claude Code — the plugin auto-loads from ~/.claude/plugins/collate
      First run:                   ${C_CYAN}/collate:setup${C_RESET}
-EOF
-fi
-
-if [[ " ${WIRED_RUNTIMES[*]} " == *" opencode "* ]]; then
-    cat <<EOF
-
-   ${C_GREEN}OpenCode${C_RESET} (wired):
-     ${C_CYAN}cd ${TARGET} && opencode${C_RESET}     ${C_DIM}# AGENTS.md auto-loads${C_RESET}
 EOF
 fi
 

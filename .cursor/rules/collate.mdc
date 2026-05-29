@@ -20,9 +20,9 @@ PLUGIN_ROOT = <此仓库的绝对路径>
 
 ## 15 个 skill · 8 流水线 + 7 阅读
 
-流水线：setup → prep-scan → visual-preview → ocr-run → proofread → diff-review → to-docx → mp-format
+流水线（8）：setup → prep-scan → visual-preview → ocr-run → proofread → diff-review → to-docx → mp-format
 
-阅读：xray-paper · paper-summary · chunqiu · kaozheng · prometheus · real-thesis · constellatio
+阅读（7）：xray-paper · paper-summary · chunqiu · kaozheng · prometheus · real-thesis · constellatio
 
 每个 skill 目录：`SKILL.md`（指令）+ `scripts/`（Python）+ `references/`（知识库）。
 
@@ -52,8 +52,8 @@ Cursor 没有 Task tool，用新 chat tab 模拟 subagent：
 
 ```bash
 OCR_ENGINE=mineru
-BAIDU_API_KEY=...       # 仅 baidu 引擎
-BAIDU_SECRET_KEY=...
+BAIDU_OCR_API_KEY=...   # 仅 baidu 引擎
+BAIDU_OCR_SECRET_KEY=...
 ```
 
 ## 核心原则

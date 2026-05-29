@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import shutil
 import sys
 from pathlib import Path
 
@@ -35,20 +36,25 @@ except ImportError:
 def crop(img_path: Path, out_path: Path, header: float, footer: float) -> None:
     if header <= 0 and footer <= 0:
         if img_path != out_path:
-            out_path.write_bytes(img_path.read_bytes())
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(img_path, out_path)
         return
-    img = Image.open(img_path)
-    w, h = img.size
-    top = int(h * header)
-    bottom = int(h * (1 - footer))
-    if bottom <= top:
-        # Degenerate case, skip
-        if img_path != out_path:
-            out_path.write_bytes(img_path.read_bytes())
-        return
-    cropped = img.crop((0, top, w, bottom))
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    cropped.save(out_path, "PNG")
+    # Use a context manager so the source file handle is released on every
+    # iteration; otherwise PIL pins each handle until GC and we hit Linux's
+    # default 1024-fd ulimit on books with a few hundred scanned pages.
+    with Image.open(img_path) as img:
+        w, h = img.size
+        top = int(h * header)
+        bottom = int(h * (1 - footer))
+        if bottom <= top:
+            # Degenerate case, skip
+            if img_path != out_path:
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(img_path, out_path)
+            return
+        cropped = img.crop((0, top, w, bottom))
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        cropped.save(out_path, "PNG")
 
 
 def main() -> int:

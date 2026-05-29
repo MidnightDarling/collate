@@ -222,14 +222,14 @@ preview.html / diff.html / visual-preview.html 均为单文件：
 
 关键流程：
 
-1. **上传**：本地 PDF → catbox.moe（匿名公共文件，24h 过期）→ 拿到 URL
+1. **上传**（默认拒绝，需显式同意）：本地 PDF → catbox.moe（匿名公共文件，24h 过期）→ 拿到 URL。必须传 `--allow-public-upload`（或在 orchestrator 端设 `COLLATE_ALLOW_PUBLIC_UPLOAD=1`）才会上传；否则脚本以 rc=6 拒绝，不外发任何数据。已持有公开 URL 时改传 `--url <https-url>` 跳过上传。
 2. **提交**：`POST /api/v4/extract/task`，payload 仅含 `url / is_ocr / enable_formula / enable_table`
 3. **轮询**：`GET /api/v4/extract/task/<id>` 每 10s 直到 `state=done`
 4. **下载**：从 `full_zip_url` 下载 zip，解 `full.md` → `raw.md`，图片 → `assets/`
 
 Response envelope：`{"code": 0, "data": {...}, "msg": "..."}`——`code != 0` 视为错误。
 
-**已知限制**：catbox.moe 中转会让 PDF 短暂公开。后续版本应切到 `POST /api/v4/file-urls/batch` 直接上传。
+**已知限制**：catbox.moe 中转会让 PDF 短暂公开，因此上传默认关闭、需 `--allow-public-upload` 显式同意（见上）。后续版本应切到 `POST /api/v4/file-urls/batch` 直接上传以彻底移除公共中转。
 
 ### 百度 OCR
 

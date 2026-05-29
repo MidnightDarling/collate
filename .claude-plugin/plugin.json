@@ -8,6 +8,11 @@
   },
   "contributors": [
     {
+      "name": "Claude Opus 4.7",
+      "email": "noreply@anthropic.com",
+      "role": "co-author"
+    },
+    {
       "name": "Claude Opus 4.6",
       "email": "noreply@anthropic.com",
       "role": "co-author"

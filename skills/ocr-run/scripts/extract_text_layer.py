@@ -195,11 +195,12 @@ def extract_pdf_metadata(pdf_path: Path) -> dict:
     import re as _re
     out: dict = {"title": "", "author": "", "year": ""}
     try:
-        r = PyPDF2.PdfReader(pdf_path.open("rb"))
-        meta = r.metadata or {}
-        title = (meta.get("/Title") or "").strip()
-        author = (meta.get("/Author") or "").strip()
-        creation = str(meta.get("/CreationDate") or meta.get("/ModDate") or "")
+        with pdf_path.open("rb") as fh:
+            r = PyPDF2.PdfReader(fh)
+            meta = r.metadata or {}
+            title = (meta.get("/Title") or "").strip()
+            author = (meta.get("/Author") or "").strip()
+            creation = str(meta.get("/CreationDate") or meta.get("/ModDate") or "")
         m = _re.search(r"(19\d{2}|20\d{2})", creation)
         year = m.group(1) if m else ""
         out["title"] = title

@@ -36,11 +36,21 @@ def collect_pages(in_dir: Path) -> list[Path]:
     return pngs
 
 
+def _load_rgb(path: Path) -> Image.Image:
+    # `Image.open` holds the file open lazily; `.load()` reads the pixel data
+    # into memory so we can close the source file before saving the combined
+    # PDF. With hundreds of scan pages the old eager-list pattern blew through
+    # the per-process FD limit.
+    with Image.open(path) as img:
+        img.load()
+        return img.convert("RGB")
+
+
 def assemble(pages: list[Path], out_pdf: Path) -> int:
     if not pages:
         return 0
-    first = Image.open(pages[0]).convert("RGB")
-    rest = [Image.open(p).convert("RGB") for p in pages[1:]]
+    first = _load_rgb(pages[0])
+    rest = [_load_rgb(p) for p in pages[1:]]
     out_pdf.parent.mkdir(parents=True, exist_ok=True)
     first.save(
         out_pdf,

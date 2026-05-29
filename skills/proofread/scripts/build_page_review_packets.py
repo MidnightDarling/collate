@@ -41,15 +41,14 @@ def split_by_page(markdown: str, total_pages: int) -> list[tuple[int, str]]:
             blocks.append((page, markdown[start:end].strip()))
         return blocks
 
-    if total_pages > 1:
+    if total_pages <= 0:
         raise ValueError(
-            "page markers missing: multi-page raw.md cannot be split truthfully; "
-            "rerun OCR/reflow so raw.md contains `<!-- page N -->` markers"
+            "page count is zero: no pages found under prep/pages/, cannot build "
+            "review packets — re-run prep-scan to populate page_*.png first"
         )
 
-    text = markdown.strip()
-    if total_pages <= 1:
-        return [(1, text)]
+    if total_pages == 1:
+        return [(1, markdown.strip())]
 
     raise ValueError(
         "page markers missing: multi-page raw.md cannot be split truthfully; "

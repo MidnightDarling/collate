@@ -104,6 +104,11 @@ def assert_try_ocr_skips_incomplete_cloud() -> None:
 
         env_backup = dict(os.environ)
         os.environ["MINERU_API_KEY"] = "stub-key"
+        # The cloud branch is now gated on a second env var (the
+        # orchestrator-level mirror of mineru_client.py's
+        # --allow-public-upload). Without it the cloud step is
+        # skipped=not-enabled and we can't exercise this regression.
+        os.environ["COLLATE_ALLOW_PUBLIC_UPLOAD"] = "1"
         os.environ["COLLATE_ALLOW_TEXTLAYER"] = "1"
         try:
             with patch("subprocess.run", side_effect=fake_run):

@@ -5,6 +5,12 @@ MinerU v4 API is URL-based: the `/extract/task` endpoint accepts a PDF URL,
 not a multipart upload. For local files, we first upload to catbox.moe
 (24-hour anonymous hosting) to obtain a public URL, then submit that URL.
 
+PRIVACY WARNING: the catbox.moe upload step produces a 24-hour PUBLIC URL
+to the user's PDF. Historical materials may be unpublished, archive-licensed,
+or otherwise sensitive — never upload without explicit consent. Pass
+`--allow-public-upload` to opt in; otherwise local input is rejected and the
+caller must pass an already-public `--url` instead.
+
 Response envelope: {"code": 0, "data": {...}, "msg": "..."}
 Result field: `full_zip_url` pointing to a zip with markdown + assets.
 
@@ -13,20 +19,31 @@ Environment:
 
 Usage:
     python3 mineru_client.py --pdf cleaned.pdf --out out_dir \
-        --layout horizontal --lang zh-hans \
+        --layout horizontal --lang zh-hans --allow-public-upload \
         --poll-interval 10 --timeout 900
 
     # auth check only (no submission)
     python3 mineru_client.py --check-auth
+
+Exit codes:
+    0   success
+    2   missing/invalid args (no --out, pdf not found, etc.)
+    5   runtime failure (upload, submit, poll, download/extract)
+    6   refused: local PDF passed without --allow-public-upload consent
+   10   MINERU_API_KEY not configured anywhere
+   11   AUTH_FAIL (--check-auth only)
+   12   AUTH_UNKNOWN (--check-auth only)
 """
 from __future__ import annotations
 
 import argparse
 import io
+import ipaddress
 import json
 import os
 import re
 import shutil
+import socket
 import statistics
 import subprocess
 import sys
@@ -34,6 +51,7 @@ import tempfile
 import time
 import zipfile
 from pathlib import Path
+from urllib.parse import urlparse
 
 try:
     import requests
@@ -122,8 +140,59 @@ def check_auth(key: str) -> int:
     return 12
 
 
+def _validate_public_url(url: str) -> str:
+    """Return "" if `url` is a safe public https URL, otherwise a reason.
+
+    Used to gate the `--url` escape hatch. We refuse:
+      - non-https schemes (file://, http://, ftp://, gopher://, …)
+      - hostnames that resolve to loopback / link-local / RFC1918 / etc.
+
+    The check is best-effort: we resolve the host once and refuse if *any*
+    returned address sits in a private/loopback/link-local range. DNS
+    rebinding to a private IP after this check is out of scope (MinerU's
+    backend is what actually fetches the URL).
+    """
+    try:
+        parsed = urlparse(url)
+    except Exception as exc:
+        return f"url failed to parse: {exc}"
+    if parsed.scheme.lower() != "https":
+        return f"only https:// is allowed, got scheme={parsed.scheme!r}"
+    host = parsed.hostname or ""
+    if not host:
+        return "url has no hostname"
+    try:
+        addrinfo = socket.getaddrinfo(host, None)
+    except OSError as exc:
+        return f"could not resolve {host!r}: {exc}"
+    for entry in addrinfo:
+        addr = entry[4][0]
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            continue
+        if (
+            ip.is_loopback
+            or ip.is_link_local
+            or ip.is_private
+            or ip.is_multicast
+            or ip.is_reserved
+            or ip.is_unspecified
+        ):
+            return (
+                f"host {host!r} resolves to non-public address {addr!r} "
+                "(loopback / link-local / private / reserved)"
+            )
+    return ""
+
+
 def upload_to_catbox(pdf: Path, retries: int = 3) -> str:
     """Upload a local PDF to catbox.moe, return public URL. 24h retention.
+
+    The caller MUST have already confirmed `--allow-public-upload`; this
+    function performs the actual upload but does not re-validate consent.
+    The URL it returns is publicly fetchable for 24h by anyone who guesses
+    or observes it.
 
     catbox occasionally returns 200 with an empty body (appears to be a
     transient nginx/cache issue on their side — the same request succeeds
@@ -374,7 +443,23 @@ def download_and_extract(
 
     with tempfile.TemporaryDirectory(prefix="mineru-cloud-") as td:
         unpacked = Path(td)
+        unpacked_resolved = unpacked.resolve()
         with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
+            # Defend against zip-slip: any entry whose normalized path escapes
+            # `unpacked` (via `../..` or an absolute path) is refused outright.
+            # The MinerU API is trusted today but the zip travels over the
+            # network and a future API change could carry crafted names.
+            for entry in zf.infolist():
+                name = entry.filename
+                if not name or name.endswith("/"):
+                    continue
+                target = (unpacked / name).resolve()
+                try:
+                    target.relative_to(unpacked_resolved)
+                except ValueError:
+                    raise RuntimeError(
+                        f"refusing to extract MinerU zip entry outside target dir: {name!r}"
+                    )
             zf.extractall(unpacked)
             md_candidates = [n for n in zf.namelist() if n.lower().endswith(".md")]
             md_candidates.sort(key=lambda n: (0 if "full" in n.lower() else 1, len(n)))
@@ -440,6 +525,14 @@ def main() -> int:
     ap.add_argument("--poll-interval", type=int, default=10)
     ap.add_argument("--timeout", type=int, default=900)
     ap.add_argument("--check-auth", action="store_true")
+    ap.add_argument(
+        "--allow-public-upload",
+        action="store_true",
+        help=(
+            "Acknowledge that the local PDF will be uploaded to catbox.moe "
+            "as a 24h-public URL. Required when --pdf is given without --url."
+        ),
+    )
     args = ap.parse_args()
 
     key = load_key()
@@ -455,6 +548,26 @@ def main() -> int:
         if not args.pdf or not args.pdf.is_file():
             print(f"pdf not found: {args.pdf}", file=sys.stderr)
             return 2
+        if not args.allow_public_upload:
+            print(
+                "[mineru] refusing to upload local PDF to catbox.moe without consent.\n"
+                "  catbox.moe holds the file at a publicly-fetchable URL for 24 hours.\n"
+                "  If you accept this, re-run with --allow-public-upload.\n"
+                "  Otherwise pass --url <already-public-URL>, or switch to the local\n"
+                "  mineru CLI (OCR_ENGINE=mineru) which does not upload anywhere.",
+                file=sys.stderr,
+            )
+            return 6
+    else:
+        # `--url` is the "I already have a public URL" escape hatch. Reject
+        # schemes / hosts that would let it double as an SSRF probe: only
+        # https:// to a publicly-routable host is allowed. file:// would
+        # exfiltrate local files; loopback / RFC1918 / link-local would
+        # reach localhost or cloud-metadata endpoints (169.254.169.254).
+        bad = _validate_public_url(args.url)
+        if bad:
+            print(f"[mineru] refusing --url: {bad}", file=sys.stderr)
+            return 6
 
     start = time.time()
     total_pages_hint: int | None = None

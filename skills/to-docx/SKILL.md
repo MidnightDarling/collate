@@ -52,7 +52,7 @@ test -f "$INPUT" || { echo "文件不存在"; exit 1; }
 
 ### Step 3：Fallback — 用 bundled 脚本
 
-Anthropic docx skill 不可用时（Kimi / MiniMax / 脱机环境等），跑：
+Anthropic docx skill 不可用时（非 Claude Code 运行时、脱机环境等），跑：
 
 ```bash
 # --output 省略；脚本会根据 workspace 约定把 docx 放到 <ws>/output/<title>_<author>_<year>_final.docx
