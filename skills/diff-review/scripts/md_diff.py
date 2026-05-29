@@ -181,6 +181,13 @@ def extract_key_chars(suggestion: str) -> list[str]:
     for sep in KEY_EXTRACT_SEPS:
         if sep in suggestion:
             after = suggestion.split(sep, 1)[1]
+            # Mirror apply_review's DIRECT_REPLACEMENT_RE "[:：]?\s*": drop an
+            # optional leading colon + surrounding whitespace so both stages
+            # key off the same replacement text. Without this, "建议改为：海東青"
+            # yields key tokens ["：", "海東青"] here but "海東青" in apply_review.
+            after = after.lstrip()
+            if after[:1] in ("：", ":"):
+                after = after[1:].lstrip()
             break
     tokens = re.findall(
         r"[\u4e00-\u9fff]{1,}|[A-Za-z]{2,}|[\[\]《》「」『』【】（）()：;；:,，]",
